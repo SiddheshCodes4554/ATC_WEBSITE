@@ -62,13 +62,11 @@ export const Footer: React.FC = () => {
         <div className="pb-12 border-b-2 border-white/10 grid lg:grid-cols-12 gap-8 items-end">
           <div className="lg:col-span-8 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#8B1E22] border-2 border-white/30 p-1 flex items-center justify-center shadow-pop-sm">
-                <img
-                  src="/atc-shield-logo.png"
-                  alt="ATC Logo"
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <img
+                src="/atc-shield-logo.png"
+                alt="ATC Logo"
+                className="h-10 w-auto object-contain drop-shadow-[0_2px_8px_rgba(255,255,255,0.2)]"
+              />
               <span className="text-xs font-mono font-bold tracking-widest text-[#FFE600] uppercase bg-white/10 px-3 py-1.5 rounded-full border border-white/15">
                 ● ADVANCED TECH CLUB • NIAT PUNE
               </span>

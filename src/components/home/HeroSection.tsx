@@ -195,13 +195,11 @@ export const HeroSection: React.FC = () => {
             
             {/* Club Pill Tag */}
             <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#FFE600] border-3 border-[#121316] shadow-pop-sm">
-              <div className="w-6 h-6 rounded-lg bg-[#8B1E22] p-0.5 border border-[#121316] flex items-center justify-center overflow-hidden">
-                <img
-                  src="/atc-shield-logo.png"
-                  alt="ATC Logo"
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <img
+                src="/atc-shield-logo.png"
+                alt="ATC Logo"
+                className="h-5 w-auto object-contain"
+              />
               <span className="text-xs sm:text-sm font-mono font-black uppercase text-[#121316] tracking-wider">
                 ADVANCED TECH CLUB • NIAT PUNE
               </span>
