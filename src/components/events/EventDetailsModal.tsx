@@ -5,10 +5,10 @@ import { PlayfulButton } from '../ui/PlayfulButton';
 export interface EventItem {
   id: string;
   title: string;
-  category: 'Workshops' | 'Hackathons' | 'Tech Talks' | 'Competitions';
+  category: 'Workshops' | 'Hackathons' | 'Tech Talks' | 'Competitions' | 'Experiences' | string;
   date: string;
   location: string;
-  status: 'Completed' | 'Upcoming' | 'Registration Open';
+  status: 'Completed' | 'Upcoming' | 'Registration Open' | 'Live Now' | 'Cancelled' | 'Draft' | string;
   tagline: string;
   description: string;
   fullRecap?: string;

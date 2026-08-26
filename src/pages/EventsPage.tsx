@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EventsHero } from '../components/events/EventsHero';
 import { EventCard, WorstUIUXIllustration, GitHubGSoCIllustration, BlockchainIllustration, RoboticsBootcampIllustration, CodeSprintIllustration } from '../components/events/EventCard';
 import { EventItem } from '../components/events/EventDetailsModal';
 import { UpcomingTeaser } from '../components/events/UpcomingTeaser';
-import { Sparkles } from 'lucide-react';
-import { SparkleDoodle } from '../components/doodles/DoodleSvgs';
+import { EventService } from '../services/eventService';
+import { ATCEvent } from '../types/event.types';
+import { Sparkles, Calendar, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const EventsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All Events');
+  const [dbEvents, setDbEvents] = useState<ATCEvent[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const categories = ['All Events', 'Workshops', 'Hackathons', 'Tech Talks', 'Competitions'];
 
-  const allEvents: EventItem[] = [
+  // Static showcase items with matching slugs
+  const defaultShowcaseEvents: EventItem[] = [
     {
       id: 'worst-ui-ux',
       title: 'Worst UI/UX Hackathon',
@@ -37,7 +42,7 @@ export const EventsPage: React.FC = () => {
       illustration: <WorstUIUXIllustration />,
     },
     {
-      id: 'git-github-gsoc',
+      id: 'git-github-road-to-gsoc',
       title: 'Git & GitHub: Road to GSoC',
       category: 'Workshops',
       date: 'Apr 05, 2026',
@@ -61,7 +66,7 @@ export const EventsPage: React.FC = () => {
       illustration: <GitHubGSoCIllustration />,
     },
     {
-      id: 'mst-blockchain',
+      id: 'mst-blockchain-workshop',
       title: 'MST Blockchain Workshop',
       category: 'Workshops',
       date: 'Apr 12, 2026',
@@ -134,9 +139,81 @@ export const EventsPage: React.FC = () => {
     },
   ];
 
+  // Fetch real Appwrite events
+  useEffect(() => {
+    const fetchAppwriteEvents = async () => {
+      try {
+        setLoading(true);
+        const result = await EventService.getPublicEvents({ limit: 50 });
+        if (result.success && result.data && result.data.length > 0) {
+          setDbEvents(result.data);
+        }
+      } catch (err) {
+        console.error('Error fetching public events from Appwrite:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppwriteEvents();
+  }, []);
+
+  // Map Appwrite events to EventItem interface
+  const mapDbEventToItem = (evt: ATCEvent): EventItem => {
+    const categoryMap: Record<string, string> = {
+      workshop: 'Workshops',
+      hackathon: 'Hackathons',
+      tech_talk: 'Tech Talks',
+      competition: 'Competitions',
+      experience: 'Experiences',
+    };
+
+    const statusMap: Record<string, string> = {
+      upcoming: 'Upcoming',
+      ongoing: 'Live Now',
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+    };
+
+    return {
+      id: evt.slug, // Use unique slug as routing key
+      title: evt.title,
+      category: categoryMap[evt.eventType] || evt.eventType || 'Workshops',
+      date: new Date(evt.startDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      location: evt.venue,
+      status: statusMap[evt.status] || evt.status,
+      tagline: evt.shortDescription,
+      description: evt.description,
+      stats: [
+        { label: 'Status', value: evt.status },
+        { label: 'Type', value: evt.eventType },
+      ],
+      highlights: [
+        `Venue: ${evt.venue}`,
+        `Registration: ${evt.registrationEnabled ? 'Open' : 'Closed'}`,
+      ],
+      color: 'bg-white',
+      badgeBg: 'bg-[#6C5CE7]',
+      illustration: (
+        <div className="w-full h-32 rounded-xl flex items-center justify-center border-2 border-[#121316] shadow-pop-sm" style={{ backgroundColor: evt.accentColor || '#FFE600' }}>
+          <Calendar className="w-12 h-12 text-[#121316]" />
+        </div>
+      ),
+    };
+  };
+
+  // Combine database events (priority) with default showcase events
+  const displayedItems: EventItem[] = dbEvents.length > 0
+    ? dbEvents.map(mapDbEventToItem)
+    : defaultShowcaseEvents;
+
   const filteredEvents = selectedCategory === 'All Events'
-    ? allEvents
-    : allEvents.filter((ev) => ev.category === selectedCategory);
+    ? displayedItems
+    : displayedItems.filter((ev) => ev.category === selectedCategory);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -173,19 +250,26 @@ export const EventsPage: React.FC = () => {
             <div className="mt-4 flex items-center gap-2 text-xs font-mono font-bold text-gray-600">
               <span>Showing {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}</span>
               <span>•</span>
-              <span className="text-[#6C5CE7]">Click "View Details ↗" on any event to view its full permanent archive</span>
+              <span className="text-[#6C5CE7]">Click "View Details ↗" on any event to view its landing page</span>
             </div>
           </div>
 
           {/* Event Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
-            {filteredEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="p-16 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop flex flex-col items-center justify-center gap-3 text-center">
+              <Loader2 className="w-8 h-8 text-[#6C5CE7] animate-spin" />
+              <p className="text-xs font-mono font-bold text-gray-600">Loading events from Appwrite...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+              {filteredEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                />
+              ))}
+            </div>
+          )}
 
         </div>
       </section>
@@ -196,3 +280,5 @@ export const EventsPage: React.FC = () => {
     </div>
   );
 };
+
+export default EventsPage;

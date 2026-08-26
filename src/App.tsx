@@ -54,7 +54,7 @@ export const App: React.FC = () => {
           <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
           <Route path="/about" element={<PublicLayout><AboutPage /></PublicLayout>} />
           <Route path="/events" element={<PublicLayout><EventsPage /></PublicLayout>} />
-          <Route path="/events/:eventId" element={<PublicLayout><EventDetailsPage /></PublicLayout>} />
+          <Route path="/events/:slug" element={<PublicLayout><EventDetailsPage /></PublicLayout>} />
           <Route path="/projects" element={<PublicLayout><ProjectsPage /></PublicLayout>} />
           <Route path="/lab" element={<PublicLayout><LabPage /></PublicLayout>} />
           <Route path="/team" element={<PublicLayout><TeamPage /></PublicLayout>} />
