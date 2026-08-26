@@ -9,51 +9,38 @@ import { AdminRole } from '../../types/appwrite.types';
  */
 
 /**
- * Creates permission array where any visitor can read, but only authenticated admins can write/update/delete.
+ * Creates permission array where any visitor can read, but only authenticated admins can update/delete.
  * Used for: public events, published projects, team directory, gallery, public website content.
+ * Note: 'create' is a collection-level permission, not a document-level permission.
  */
 export const createPublicReadAdminWritePermissions = (): string[] => {
   return [
     Permission.read(Role.any()),
-    Permission.create(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.update(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.delete(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.create(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-    Permission.update(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-    Permission.delete(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
+    Permission.update(Role.users()),
+    Permission.delete(Role.users()),
   ];
 };
 
 /**
- * Creates permission array where ONLY authenticated admins have any access.
+ * Creates permission array where ONLY authenticated users have read/update/delete access.
  * Used for: admin_profiles, private logs, sensitive metrics, internal notes.
  */
 export const createAdminOnlyPermissions = (): string[] => {
   return [
-    Permission.read(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.create(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.update(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.delete(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.read(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-    Permission.create(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-    Permission.update(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-    Permission.delete(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
+    Permission.read(Role.users()),
+    Permission.update(Role.users()),
+    Permission.delete(Role.users()),
   ];
 };
 
 /**
- * Creates permission array where a student can create/read their own registration,
- * and admins have full management access.
+ * Creates permission array for registrations.
  */
 export const createRegistrationPermissions = (userId?: string): string[] => {
   const permissions = [
-    Permission.create(Role.any()),
-    Permission.read(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.update(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.delete(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-    Permission.read(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-    Permission.update(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-    Permission.delete(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
+    Permission.read(Role.users()),
+    Permission.update(Role.users()),
+    Permission.delete(Role.users()),
   ];
 
   if (userId) {

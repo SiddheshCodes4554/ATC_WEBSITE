@@ -27,16 +27,13 @@ export class EventService {
 
   /**
    * Helper: Build standard permissions for public read and authenticated admin write
+   * Note: Document-level permissions only allow 'read', 'update', 'delete', 'write' (not 'create').
    */
   private static getEventPermissions(): string[] {
     return [
       Permission.read(Role.any()),
-      Permission.create(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-      Permission.update(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-      Permission.delete(Role.label(APPWRITE_CONFIG.ROLES.ADMIN)),
-      Permission.create(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-      Permission.update(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
-      Permission.delete(Role.label(APPWRITE_CONFIG.ROLES.SUPER_ADMIN)),
+      Permission.update(Role.users()),
+      Permission.delete(Role.users()),
     ];
   }
 
