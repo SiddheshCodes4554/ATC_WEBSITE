@@ -1,0 +1,713 @@
+export interface EventStat {
+  label: string;
+  value: string;
+  emoji: string;
+}
+
+export interface MissionStage {
+  step: string;
+  title: string;
+  desc: string;
+  iconName: string;
+}
+
+export interface HighlightItem {
+  id: string;
+  title: string;
+  caption: string;
+  type: 'polaroid' | 'sticky' | 'screenshot' | 'quote';
+  badge?: string;
+  color?: string;
+  rotation?: string;
+  imgUrl?: string;
+}
+
+export interface GalleryPhoto {
+  id: string;
+  title: string;
+  caption: string;
+  tapeColor?: string;
+  rotation?: string;
+  aspect?: string;
+  category: string;
+  svgSceneType: 'hacking' | 'presentation' | 'laughing' | 'judging' | 'trophy' | 'chaos-code';
+}
+
+export interface LearningItem {
+  title: string;
+  tagline: string;
+  desc: string;
+  emoji: string;
+  color: string;
+  badge: string;
+}
+
+export interface WinnerProject {
+  title: string;
+  badge: string;
+  badgeColor: string;
+  team: string[];
+  desc: string;
+  tech: string[];
+  mockupType: 'runaway-btn' | 'win93' | 'shouting-slider' | 'tos-wordsearch';
+}
+
+export interface EventQuote {
+  quote: string;
+  author: string;
+  role: string;
+  color: string;
+  rotation: string;
+}
+
+export interface DetailedEvent {
+  id: string;
+  title: string;
+  category: 'HACKATHON' | 'WORKSHOP' | 'TECH SESSION' | 'COMPETITION';
+  tagline: string;
+  date: string;
+  venue: string;
+  organizedBy: string;
+  eventType: string;
+  heroTheme: {
+    accentColor: string;
+    badgeBg: string;
+    bgPattern: string;
+  };
+  stats: EventStat[];
+  about: {
+    heading: string;
+    subheading: string;
+    paragraphs: string[];
+    pullQuote: string;
+    stickyNote: string;
+  };
+  mission: MissionStage[];
+  highlights: HighlightItem[];
+  gallery: GalleryPhoto[];
+  learnings: LearningItem[];
+  winners: WinnerProject[];
+  quotes: EventQuote[];
+}
+
+export const eventsArchive: Record<string, DetailedEvent> = {
+  'worst-ui-ux': {
+    id: 'worst-ui-ux',
+    title: 'WORST UI/UX HACKATHON',
+    category: 'HACKATHON',
+    tagline: 'Break every UX rule possible.',
+    date: '30 March 2026',
+    venue: 'Lab 502, NIAT Pune',
+    organizedBy: 'Advanced Tech Club • NIAT Pune',
+    eventType: '4-Hour Creative Chaos Hackathon',
+    heroTheme: {
+      accentColor: '#FF6B6B',
+      badgeBg: 'bg-[#FF6B6B]',
+      bgPattern: 'bg-[#FAF7F0]',
+    },
+    stats: [
+      { label: 'Participants', value: '80+', emoji: '👥' },
+      { label: 'Chaos Sprints', value: '3 Hours', emoji: '⏱' },
+      { label: 'Crazy Interfaces', value: '20+', emoji: '💻' },
+      { label: 'Podium Teams', value: '4 Teams', emoji: '🏆' },
+      { label: 'Pizzas Devoured', value: '40+', emoji: '🍕' },
+      { label: 'UX Errors Triggered', value: '999+', emoji: '⚠️' },
+    ],
+    about: {
+      heading: 'WHAT WAS THIS ALL ABOUT?',
+      subheading: 'Why build clean software when you can engineer pure creative madness?',
+      paragraphs: [
+        'In every software engineering syllabus, students are taught how to design intuitive, clean, and seamless user experiences. We wanted to flip that completely on its head.',
+        'The Worst UI/UX Hackathon challenged 80+ builders across NIAT Pune to intentionally violate every rule in the Human Interface Guidelines: unclickable buttons, backward progress bars, inverted scroll mechanics, Comic Sans typography, and multi-step captchas written in ancient languages.',
+        'By forcing students to deconstruct what makes software frustrating, they walked away with a profound, deep appreciation for intuitive product design, animation timing, and cognitive psychology.',
+      ],
+      pullQuote: 'Instead of designing a good user experience... we challenged students to engineer the absolute WORST one.',
+      stickyNote: '💡 To master the rules of great UI, you first have to break every single one of them with joy!',
+    },
+    mission: [
+      {
+        step: '01',
+        title: 'Form a Squad',
+        desc: 'Gather 2-4 fearless builders, designers, and frontend chaos agents.',
+        iconName: 'users',
+      },
+      {
+        step: '02',
+        title: 'Receive The Theme',
+        desc: 'Draw a cursed prompt: "E-Commerce Checkout from Hell" or "Impossible Flight Booker".',
+        iconName: 'dices',
+      },
+      {
+        step: '03',
+        title: 'Break Every UX Rule',
+        desc: 'Reverse hover states, disable right clicks, randomize color contrast, and build runaway buttons.',
+        iconName: 'bomb',
+      },
+      {
+        step: '04',
+        title: 'Prototype The Madness',
+        desc: 'Deploy working React, HTML5 Canvas, and CSS animations that induce glorious designer tears.',
+        iconName: 'code',
+      },
+      {
+        step: '05',
+        title: 'Live Judge Pitch',
+        desc: 'Present your masterpiece to our poker-faced jury without bursting into laughter.',
+        iconName: 'trophy',
+      },
+    ],
+    highlights: [
+      {
+        id: 'h1',
+        title: 'The Runaway Login Button',
+        caption: 'Team 404 calculated mouse cursor velocity and had the submit button flee across the viewport at 60fps.',
+        type: 'screenshot',
+        badge: 'VIRAL MOMENT',
+        color: 'bg-[#FFF9DB]',
+        rotation: '-rotate-2',
+      },
+      {
+        id: 'h2',
+        title: 'Audio-Volume by Screaming',
+        caption: 'A media player volume slider that only moves up when the user literally shouts into their microphone.',
+        type: 'polaroid',
+        badge: 'DECIBEL MAX',
+        color: 'bg-[#E1DCFF]',
+        rotation: 'rotate-2',
+      },
+      {
+        id: 'h3',
+        title: 'Terms of Service Word Search',
+        caption: 'You cannot click "Accept" until you find 8 hidden legal clauses inside an unselectable 50x50 word grid.',
+        type: 'sticky',
+        badge: 'PURE EVIL',
+        color: 'bg-[#FFD9E8]',
+        rotation: '-rotate-1',
+      },
+      {
+        id: 'h4',
+        title: 'Backward Progress Bar',
+        caption: 'A loading screen that starts at 99% and slowly counts down to 0% over 4 minutes before showing an error.',
+        type: 'screenshot',
+        badge: 'TIME WASTER',
+        color: 'bg-[#D4F8E8]',
+        rotation: 'rotate-1',
+      },
+    ],
+    gallery: [
+      {
+        id: 'g1',
+        title: 'The 3PM Kickoff',
+        caption: 'The moment the prompt was announced and everyone realized what they had signed up for.',
+        tapeColor: '#FFE600',
+        rotation: '-rotate-2',
+        category: 'Action',
+        svgSceneType: 'hacking',
+      },
+      {
+        id: 'g2',
+        title: 'The Runaway Button Demo',
+        caption: 'Judges attempting to click a button running away at mach speed.',
+        tapeColor: '#FF6B6B',
+        rotation: 'rotate-3',
+        category: 'Live Demo',
+        svgSceneType: 'chaos-code',
+      },
+      {
+        id: 'g3',
+        title: 'Laughter Across Lab 502',
+        caption: 'Never seen so many engineers laughing while their code completely breaks.',
+        tapeColor: '#48DBFB',
+        rotation: '-rotate-1',
+        category: 'Atmosphere',
+        svgSceneType: 'laughing',
+      },
+      {
+        id: 'g4',
+        title: 'The Jury In Agony',
+        caption: 'Judges attempting to enter a phone number using an impossible randomized spinning dial wheel.',
+        tapeColor: '#A29BFE',
+        rotation: 'rotate-2',
+        category: 'Judging',
+        svgSceneType: 'judging',
+      },
+      {
+        id: 'g5',
+        title: 'Championship Podium',
+        caption: 'Winning team receiving the prestigious golden "Broken Floppy Disk" trophy.',
+        tapeColor: '#2ED573',
+        rotation: '-rotate-3',
+        category: 'Celebration',
+        svgSceneType: 'trophy',
+      },
+      {
+        id: 'g6',
+        title: 'Post-Hackathon Whiteboard',
+        caption: 'The chalkboard covered in cursed wireframes and 404 memes.',
+        tapeColor: '#FFA502',
+        rotation: 'rotate-1',
+        category: 'Behind The Scenes',
+        svgSceneType: 'presentation',
+      },
+    ],
+    learnings: [
+      {
+        title: 'Cognitive Ergonomics',
+        tagline: 'Experiencing bad design firsthand.',
+        desc: 'By deliberately maximizing user frustration, students internalized Fitts\'s Law, Hick\'s Law, and visual hierarchy better than any textbook.',
+        emoji: '🧠',
+        color: 'bg-[#D4F8E8]',
+        badge: 'UI/UX MASTERY',
+      },
+      {
+        title: 'Rapid CSS & DOM Sorcery',
+        tagline: 'Pushing browser physics to the limits.',
+        desc: 'Participants mastered complex requestAnimationFrame physics, mouse tracking vectors, and CSS matrix transforms.',
+        emoji: '⚡',
+        color: 'bg-[#D6EEFF]',
+        badge: 'FRONTEND AGILITY',
+      },
+      {
+        title: 'Satirical Pitching',
+        tagline: 'Defending chaos with straight-faced charisma.',
+        desc: 'Presenting an intentionally terrible product taught students how to craft compelling product narratives and entertain an audience.',
+        emoji: '🎤',
+        color: 'bg-[#FFE8D6]',
+        badge: 'COMMUNICATION',
+      },
+      {
+        title: 'Resilient Team Dynamic',
+        tagline: 'High pressure, zero stress.',
+        desc: 'When the goal is to make something absurd, fear of failure disappears and raw creativity takes the wheel.',
+        emoji: '🤝',
+        color: 'bg-[#FFD9E8]',
+        badge: 'TEAM BONDING',
+      },
+    ],
+    winners: [
+      {
+        title: 'The Runaway Login Portal',
+        badge: 'MOST FRUSTRATING',
+        badgeColor: 'bg-[#FF4757]',
+        team: ['Aarav Sharma', 'Neha Joshi', 'Tanmay Roy'],
+        desc: 'A login page where username fields swap positions on every keystroke and the submit button accelerates away from the mouse cursor with momentum physics.',
+        tech: ['React', 'Framer Motion', 'Canvas 2D'],
+        mockupType: 'runaway-btn',
+      },
+      {
+        title: 'Windows 93 Chaos Edition',
+        badge: 'MOST CHAOTIC',
+        badgeColor: 'bg-[#6C5CE7]',
+        team: ['Rohan Kulkarni', 'Ananya Deshmukh'],
+        desc: 'A complete faux operating system with fake BSODs, unclosable popups that duplicate when you click "X", and backward audio drivers.',
+        tech: ['TypeScript', 'Tailwind', 'Web Audio API'],
+        mockupType: 'win93',
+      },
+      {
+        title: 'Volume Slider by Microphone Screaming',
+        badge: 'JUDGES\' FAVORITE',
+        badgeColor: 'bg-[#FFA502]',
+        team: ['Vikram Patil', 'Siddharth Nair', 'Kavya Rao'],
+        desc: 'A media player where you must yell at 90+ decibels into your mic to turn up the volume. If you whisper, it pauses and insults your music taste.',
+        tech: ['Web Audio API', 'HTML5 Media', 'Vanilla JS'],
+        mockupType: 'shouting-slider',
+      },
+      {
+        title: 'Terms of Service Word Search',
+        badge: 'PERFECTLY TERRIBLE',
+        badgeColor: 'bg-[#10AC84]',
+        team: ['Pooja Hegde', 'Manish Verma'],
+        desc: 'You cannot proceed with checkout until you solve a randomized word search containing legal jargon. One wrong click resets the entire shopping cart.',
+        tech: ['React', 'CSS Grid', 'LocalStorage'],
+        mockupType: 'tos-wordsearch',
+      },
+    ],
+    quotes: [
+      {
+        quote: 'I have never been so proud of making something this completely and utterly terrible.',
+        author: 'Aarav Sharma',
+        role: '1st Year Computing • Team BuggyBois',
+        color: 'bg-[#FFF385]',
+        rotation: '-rotate-2',
+      },
+      {
+        quote: 'I think our team accidentally invented a monetization strategy for shady airline booking sites.',
+        author: 'Ananya Deshmukh',
+        role: '2nd Year AI & Data Science',
+        color: 'bg-[#FFD1E3]',
+        rotation: 'rotate-2',
+      },
+      {
+        quote: 'The judge tried to click the submit button for three straight minutes until his wrist cramped. 10/10 hackathon.',
+        author: 'Rohan Kulkarni',
+        role: 'Core Member • ATC NIAT',
+        color: 'bg-[#E1DCFF]',
+        rotation: '-rotate-1',
+      },
+      {
+        quote: 'This button clearly has trust issues. Best 4 hours spent on campus this semester!',
+        author: 'Prof. S. Joshi',
+        role: 'Faculty Mentor & Hackathon Judge',
+        color: 'bg-[#D4F8E8]',
+        rotation: 'rotate-1',
+      },
+    ],
+  },
+
+  'git-github-gsoc': {
+    id: 'git-github-gsoc',
+    title: 'GIT & GITHUB: ROAD TO GSOC',
+    category: 'WORKSHOP',
+    tagline: 'Learn. Contribute. Build in public.',
+    date: '05 April 2026',
+    venue: 'Tech Auditorium, NIAT Pune',
+    organizedBy: 'Advanced Tech Club • Open Source Wing',
+    eventType: 'Full-Day Interactive Bootcamp & PR Sprint',
+    heroTheme: {
+      accentColor: '#2E86DE',
+      badgeBg: 'bg-[#2E86DE]',
+      bgPattern: 'bg-[#FAF7F0]',
+    },
+    stats: [
+      { label: 'Attendees', value: '180+', emoji: '👥' },
+      { label: 'PRs Merged Upstream', value: '45+', emoji: '🌿' },
+      { label: 'GSoC Mentors', value: '3 Leads', emoji: '🎓' },
+      { label: 'Repos Forked', value: '210+', emoji: '🐙' },
+      { label: 'Git Conflicts Resolved', value: '88', emoji: '⚔️' },
+      { label: 'Open Source Swag Packs', value: '50+', emoji: '🎁' },
+    ],
+    about: {
+      heading: 'WHAT WAS THIS ALL ABOUT?',
+      subheading: 'Demystifying open-source workflows from terminal zero to merged PR.',
+      paragraphs: [
+        'Open source can feel intimidating. Between cryptic rebase errors, upstream branch syncs, and formal contribution guidelines, many students never submit their first pull request.',
+        'The Road to GSoC workshop brought together Google Summer of Code alumni, Linux kernel contributors, and 180+ students for an intensive hands-on lab.',
+        'We covered rebase vs merge, interactive cherry-picking, GPG signing, crafting proposal documents, and real-time live PR reviews with upstream maintainers.',
+      ],
+      pullQuote: 'Your GitHub graph isn\'t just green squares—it\'s your proof of craftsmanship and collaboration.',
+      stickyNote: '🚀 45 pull requests were merged upstream into live production repositories by the end of the day!',
+    },
+    mission: [
+      {
+        step: '01',
+        title: 'Master The Terminal',
+        desc: 'Drop the GUI. Learn raw Git plumbing, refs, staging trees, and commit hashes.',
+        iconName: 'terminal',
+      },
+      {
+        step: '02',
+        title: 'Fork & Clone Repos',
+        desc: 'Configure remote upstream tracking, branch conventions, and clean history.',
+        iconName: 'git-branch',
+      },
+      {
+        step: '03',
+        title: 'Survive Merge Conflicts',
+        desc: 'Battle through multi-author branch collision drills in our custom conflict simulator.',
+        iconName: 'shield',
+      },
+      {
+        step: '04',
+        title: 'Craft The Proposal',
+        desc: 'Review winning GSoC proposal templates from Python Software Foundation and CNCF.',
+        iconName: 'file-text',
+      },
+      {
+        step: '05',
+        title: 'Ship Upstream PR',
+        desc: 'Submit your code live to open-source maintainers and get real-time code reviews.',
+        iconName: 'check-circle',
+      },
+    ],
+    highlights: [
+      {
+        id: 'gh1',
+        title: 'Live Merge Conflict Arena',
+        caption: '30 teams simultaneously pushing to a single master branch to debug conflict markers live on the auditorium screen.',
+        type: 'screenshot',
+        badge: 'HANDS-ON',
+        color: 'bg-[#D6EEFF]',
+        rotation: '-rotate-2',
+      },
+      {
+        id: 'gh2',
+        title: '1-on-1 GSoC Proposal Teardown',
+        caption: 'Alumni mentors reviewed 40+ student proposal drafts for CNCF, Mozilla, and OpenCV.',
+        type: 'polaroid',
+        badge: 'MENTORSHIP',
+        color: 'bg-[#E1DCFF]',
+        rotation: 'rotate-2',
+      },
+      {
+        id: 'gh3',
+        title: 'Upstream PR Stampede',
+        caption: 'Over 45 real documentation, bugfix, and test suite PRs merged before sunset.',
+        type: 'sticky',
+        badge: 'REAL IMPACT',
+        color: 'bg-[#D4F8E8]',
+        rotation: '-rotate-1',
+      },
+      {
+        id: 'gh4',
+        title: 'GitHub Swag Extravaganza',
+        caption: 'Invertocat plushies, stickers, and GitHub Student Developer Pack walkthroughs.',
+        type: 'screenshot',
+        badge: 'COMMUNITY',
+        color: 'bg-[#FFF9DB]',
+        rotation: 'rotate-1',
+      },
+    ],
+    gallery: [
+      {
+        id: 'ghg1',
+        title: 'Full House at Tech Audi',
+        caption: '180+ laptops open and syncing forks simultaneously.',
+        tapeColor: '#2E86DE',
+        rotation: '-rotate-2',
+        category: 'Audience',
+        svgSceneType: 'hacking',
+      },
+      {
+        id: 'ghg2',
+        title: 'Terminal Mastery Lab',
+        caption: 'Walking through git rebase -i on the main projector screen.',
+        tapeColor: '#FFE600',
+        rotation: 'rotate-2',
+        category: 'Workshop',
+        svgSceneType: 'presentation',
+      },
+      {
+        id: 'ghg3',
+        title: 'The "PR Merged" Bell Ring',
+        caption: 'Ringing the physical lab gong every time an attendee got a PR merged.',
+        tapeColor: '#FF6B6B',
+        rotation: '-rotate-1',
+        category: 'Milestone',
+        svgSceneType: 'laughing',
+      },
+      {
+        id: 'ghg4',
+        title: 'GSoC Mentor Q&A',
+        caption: 'Past contributors sharing insider tips on standing out to org admins.',
+        tapeColor: '#2ED573',
+        rotation: 'rotate-3',
+        category: 'Mentorship',
+        svgSceneType: 'judging',
+      },
+    ],
+    learnings: [
+      {
+        title: 'Advanced Git Tree Plumbing',
+        tagline: 'Interactive rebase, squash, cherry-pick.',
+        desc: 'Mastering Git beyond basic add/commit/push to keep contribution histories pristine and maintainable.',
+        emoji: '🌿',
+        color: 'bg-[#D6EEFF]',
+        badge: 'VERSION CONTROL',
+      },
+      {
+        title: 'Open Source Community Etiquette',
+        tagline: 'Issue triage & PR communication.',
+        desc: 'Writing structured pull request summaries, respecting CODEOWNERS, and providing reproducible bug reports.',
+        emoji: '🤝',
+        color: 'bg-[#D4F8E8]',
+        badge: 'COLLABORATION',
+      },
+      {
+        title: 'GSoC Strategy & Proposal Writing',
+        tagline: 'Architecting 350-hour student roadmaps.',
+        desc: 'Understanding how open source organizations evaluate proposal feasibility, milestones, and deliverable timelines.',
+        emoji: '📝',
+        color: 'bg-[#FFE8D6]',
+        badge: 'PROPOSAL WRITING',
+      },
+      {
+        title: 'Continuous Integration Workflows',
+        tagline: 'GitHub Actions & automated testing.',
+        desc: 'Triggering automated linting, test suites, and Docker matrix validation on every push.',
+        emoji: '🤖',
+        color: 'bg-[#E1DCFF]',
+        badge: 'DEVOPS BASICS',
+      },
+    ],
+    winners: [
+      {
+        title: 'Top Upstream Contributor',
+        badge: 'MOST MERGED PRS',
+        badgeColor: 'bg-[#2E86DE]',
+        team: ['Priyansh Sharma'],
+        desc: 'Successfully authored and merged 4 bug fixes into the official VS Code extension ecosystem in a single afternoon.',
+        tech: ['TypeScript', 'VSCode API', 'Git'],
+        mockupType: 'runaway-btn',
+      },
+      {
+        title: 'Best GSoC Proposal Draft',
+        badge: 'PROPOSAL CHAMPION',
+        badgeColor: 'bg-[#10AC84]',
+        team: ['Ishita Kulkarni'],
+        desc: 'Drafted an exceptional 12-page proposal on LLM-based fuzz testing for Rust crates.',
+        tech: ['Rust', 'LLVM', 'Markdown'],
+        mockupType: 'win93',
+      },
+    ],
+    quotes: [
+      {
+        quote: 'I used to be terrified of merge conflicts. Now I actually understand what the HEAD pointer is doing.',
+        author: 'Manav Gupta',
+        role: '1st Year Computer Engineering',
+        color: 'bg-[#D6EEFF]',
+        rotation: '-rotate-2',
+      },
+      {
+        quote: 'Seeing that green "Merged" badge live for the first time gave me goosebumps. Best Saturday of my year.',
+        author: 'Pooja Patil',
+        role: '2nd Year IT • NIAT Pune',
+        color: 'bg-[#FFF385]',
+        rotation: 'rotate-2',
+      },
+    ],
+  },
+
+  'mst-blockchain': {
+    id: 'mst-blockchain',
+    title: 'MST BLOCKCHAIN WORKSHOP',
+    category: 'WORKSHOP',
+    tagline: 'Exploring decentralized technology.',
+    date: '12 April 2026',
+    venue: 'Computer Wing, NIAT Pune',
+    organizedBy: 'Advanced Tech Club • Web3 & Systems',
+    eventType: 'Hands-on Smart Contract Engineering Lab',
+    heroTheme: {
+      accentColor: '#10AC84',
+      badgeBg: 'bg-[#10AC84]',
+      bgPattern: 'bg-[#FAF7F0]',
+    },
+    stats: [
+      { label: 'Builders', value: '140+', emoji: '👥' },
+      { label: 'Smart Contracts', value: '60+', emoji: '⛓️' },
+      { label: 'Testnet TXs', value: '1,200+', emoji: '⚡' },
+      { label: 'Gas Saved in Contest', value: '42%', emoji: '⛽' },
+      { label: 'DApps Deployed', value: '25+', emoji: '🌐' },
+    ],
+    about: {
+      heading: 'WHAT WAS THIS ALL ABOUT?',
+      subheading: 'Moving past crypto hype into real cryptographic consensus & smart contracts.',
+      paragraphs: [
+        'Decentralized systems are grounded in rigorous computer science: cryptographic hashing, Merkle trees, state machines, and consensus protocols.',
+        'The MST Blockchain Workshop stripped away the financial buzzwords to teach 140+ students the engineering reality of Ethereum Virtual Machines, Solidity development, and EVM gas optimization.',
+        'Every student coded, tested, and deployed their own decentralized voting system and peer-to-peer micro-escrow smart contracts onto live Ethereum testnets.',
+      ],
+      pullQuote: 'Blockchain isn\'t magic—it\'s distributed systems and applied cryptography executed in public.',
+      stickyNote: '🔐 Over 1,200 verified transactions were broadcast to Sepolia testnet during our 4-hour live lab!',
+    },
+    mission: [
+      {
+        step: '01',
+        title: 'Cryptographic Foundations',
+        desc: 'Understand SHA-256, Elliptic Curve cryptography (ECDSA), and public-private keypairs.',
+        iconName: 'key',
+      },
+      {
+        step: '02',
+        title: 'Solidity Deep Dive',
+        desc: 'Write robust smart contracts with memory vs storage management and reentrancy guards.',
+        iconName: 'code',
+      },
+      {
+        step: '03',
+        title: 'Hardhat & Local Node',
+        desc: 'Spin up local EVM testnets, write automated unit tests, and simulate edge failure cases.',
+        iconName: 'server',
+      },
+      {
+        step: '04',
+        title: 'Gas Optimization Arena',
+        desc: 'Compete to minimize bytecode storage slots and execution gas consumption.',
+        iconName: 'zap',
+      },
+      {
+        step: '05',
+        title: 'Frontend Web3 Integration',
+        desc: 'Connect ethers.js and Wagmi to build an interactive voting dashboard for NIAT campus.',
+        iconName: 'globe',
+      },
+    ],
+    highlights: [
+      {
+        id: 'bc1',
+        title: 'Gas Golfing Challenge',
+        caption: 'Builders competed to compress a voter registration contract to the absolute lowest bytecode gas cost.',
+        type: 'screenshot',
+        badge: 'OPTIMIZATION',
+        color: 'bg-[#E8F5E9]',
+        rotation: '-rotate-2',
+      },
+      {
+        id: 'bc2',
+        title: 'Reentrancy Attack Simulation',
+        caption: 'Students successfully drained a mock vulnerable DAO contract to understand the famous DAO hack.',
+        type: 'polaroid',
+        badge: 'SECURITY AUDIT',
+        color: 'bg-[#FFE8D6]',
+        rotation: 'rotate-2',
+      },
+    ],
+    gallery: [
+      {
+        id: 'bcg1',
+        title: 'Solidity Compiler Live Feed',
+        caption: 'Watching real-time bytecode compilation and ABI generation in Remix IDE.',
+        tapeColor: '#10AC84',
+        rotation: '-rotate-2',
+        category: 'Lab',
+        svgSceneType: 'hacking',
+      },
+      {
+        id: 'bcg2',
+        title: 'First Testnet TX Confirmed',
+        caption: 'The moment the transaction hash was confirmed on Etherscan testnet.',
+        tapeColor: '#FFE600',
+        rotation: 'rotate-2',
+        category: 'Milestone',
+        svgSceneType: 'trophy',
+      },
+    ],
+    learnings: [
+      {
+        title: 'Solidity & EVM Architecture',
+        tagline: 'State storage slots, memory, and calldata.',
+        desc: 'Writing secure smart contracts while accounting for immutability and byte-level efficiency.',
+        emoji: '⛓️',
+        color: 'bg-[#E8F5E9]',
+        badge: 'SMART CONTRACTS',
+      },
+      {
+        title: 'Cryptographic Primitives',
+        tagline: 'Merkle trees, keccak256, and signatures.',
+        desc: 'Verifying whitelists and decentralized proof-of-membership using mathematical proofs.',
+        emoji: '🔐',
+        color: 'bg-[#D6EEFF]',
+        badge: 'CRYPTOGRAPHY',
+      },
+    ],
+    winners: [
+      {
+        title: 'Gas Golfing 1st Place',
+        badge: 'LOWEST GAS CONSUMPTION',
+        badgeColor: 'bg-[#10AC84]',
+        team: ['Harsh Vardhan', 'Devendra Singh'],
+        desc: 'Reduced voter registry execution from 84,000 gas down to 21,300 gas using custom assembly (Yul) packing.',
+        tech: ['Solidity', 'Yul', 'Hardhat'],
+        mockupType: 'shouting-slider',
+      },
+    ],
+    quotes: [
+      {
+        quote: 'Actually deploying a contract to a live testnet and inspecting the state on Etherscan demystified everything for me.',
+        author: 'Rhea Sen',
+        role: '3rd Year Computer Engineering',
+        color: 'bg-[#E8F5E9]',
+        rotation: '-rotate-2',
+      },
+    ],
+  },
+};

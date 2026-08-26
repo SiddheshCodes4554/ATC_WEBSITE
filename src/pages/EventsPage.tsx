@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { EventsHero } from '../components/events/EventsHero';
 import { EventCard, WorstUIUXIllustration, GitHubGSoCIllustration, BlockchainIllustration, RoboticsBootcampIllustration, CodeSprintIllustration } from '../components/events/EventCard';
-import { EventDetailsModal, EventItem } from '../components/events/EventDetailsModal';
+import { EventItem } from '../components/events/EventDetailsModal';
 import { UpcomingTeaser } from '../components/events/UpcomingTeaser';
-import { Sparkles, Filter } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { SparkleDoodle } from '../components/doodles/DoodleSvgs';
 
 export const EventsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All Events');
-  const [activeModalEvent, setActiveModalEvent] = useState<EventItem | null>(null);
 
   const categories = ['All Events', 'Workshops', 'Hackathons', 'Tech Talks', 'Competitions'];
 
@@ -22,7 +21,6 @@ export const EventsPage: React.FC = () => {
       status: 'Completed',
       tagline: 'Break every UX rule possible.',
       description: 'A deliberately chaotic 24-hour design jam where builders competed to create the most infuriating, hilarious, and absurdly creative user interfaces.',
-      fullRecap: 'Over 120 student hackers joined forces across 28 teams. Winning entries featured captcha puzzles that change languages every second, inverted touch gestures, and unclosable floating dialogs. Sponsored by NIAT Innovation Cell.',
       stats: [
         { label: 'Participants', value: '120+' },
         { label: 'Broken UIs', value: '28' },
@@ -47,7 +45,6 @@ export const EventsPage: React.FC = () => {
       status: 'Completed',
       tagline: 'Learn. Contribute. Build in public.',
       description: 'A hands-on deep dive from zero Git knowledge to landing your first open-source pull requests and crafting winning Google Summer of Code proposals.',
-      fullRecap: 'Hands-on live repo cloning, branching workflows, interactive merge conflict resolution, squashing commits, and open-source etiquette. Over 45 PRs were merged upstream into real open-source repositories during the sprint.',
       stats: [
         { label: 'Attendees', value: '180+' },
         { label: 'PRs Merged', value: '45' },
@@ -72,7 +69,6 @@ export const EventsPage: React.FC = () => {
       status: 'Completed',
       tagline: 'Exploring decentralized technology.',
       description: 'Demystifying cryptographic primitives, consensus mechanisms, smart contracts in Solidity, and zero-knowledge proofs from the ground up.',
-      fullRecap: 'Students engineered and deployed decentralized voting systems and token faucets on testnet networks. Explored layer-2 rollups, gas optimization techniques, and web3 security audit principles.',
       stats: [
         { label: 'Builders', value: '140+' },
         { label: 'Smart Contracts', value: '60+' },
@@ -97,7 +93,6 @@ export const EventsPage: React.FC = () => {
       status: 'Completed',
       tagline: 'Where hardware meets autonomous perception.',
       description: 'Building differential drive autonomous rovers with LiDAR mapping, SLAM navigation, and real-time obstacle avoidance in ROS 2 Humble.',
-      fullRecap: 'Intensive hardware workshop spanning motor encoders, ESP32 micro-ROS bridging, RViz telemetry visualization, and obstacle pathfinding algorithms.',
       stats: [
         { label: 'Rovers Built', value: '8' },
         { label: 'Lab Hours', value: '16' },
@@ -122,7 +117,6 @@ export const EventsPage: React.FC = () => {
       status: 'Completed',
       tagline: 'Algorithmic speed, concurrency, and architecture.',
       description: 'Competitive programming and rapid prototype challenge pitting engineering teams across universities against tough algorithmic problem sets.',
-      fullRecap: '6 hours of intense problem solving covering dynamic programming, graph algorithms, and distributed systems architecture. NIAT team secured 1st podium finish.',
       stats: [
         { label: 'Teams', value: '95' },
         { label: 'Submissions', value: '1,420' },
@@ -179,7 +173,7 @@ export const EventsPage: React.FC = () => {
             <div className="mt-4 flex items-center gap-2 text-xs font-mono font-bold text-gray-600">
               <span>Showing {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}</span>
               <span>•</span>
-              <span className="text-[#6C5CE7]">Click "View Details ↗" on any card for full recap</span>
+              <span className="text-[#6C5CE7]">Click "View Details ↗" on any event to view its full permanent archive</span>
             </div>
           </div>
 
@@ -189,7 +183,6 @@ export const EventsPage: React.FC = () => {
               <EventCard
                 key={event.id}
                 event={event}
-                onSelect={(ev) => setActiveModalEvent(ev)}
               />
             ))}
           </div>
@@ -199,12 +192,6 @@ export const EventsPage: React.FC = () => {
 
       {/* WHAT'S NEXT? UPCOMING EVENTS TEASER */}
       <UpcomingTeaser />
-
-      {/* Interactive Modal when clicking an event */}
-      <EventDetailsModal
-        event={activeModalEvent}
-        onClose={() => setActiveModalEvent(null)}
-      />
 
     </div>
   );

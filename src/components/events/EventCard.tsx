@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, MapPin, ArrowUpRight, CheckCircle2, AlertTriangle, GitBranch, Blocks, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { EventItem } from './EventDetailsModal';
 import { PlayfulButton } from '../ui/PlayfulButton';
 
@@ -193,10 +194,9 @@ export const CodeSprintIllustration: React.FC = () => (
 
 interface EventCardProps {
   event: EventItem;
-  onSelect: (event: EventItem) => void;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, onSelect }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event }) => {
   return (
     <div className={`group relative p-6 sm:p-8 rounded-[36px] border-4 border-[#121316] shadow-pop-lg hover:shadow-pop-xl transition-all duration-200 flex flex-col justify-between ${event.color}`}>
       
@@ -215,17 +215,21 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onSelect }) => {
         </div>
 
         {/* Large Expressive Vector Illustration Showcase */}
-        <div className="p-4 bg-white/80 rounded-2xl border-3 border-[#121316] shadow-inner mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-          <div className="w-full max-w-[260px]">
-            {event.illustration}
+        <Link to={`/events/${event.id}`} className="block">
+          <div className="p-4 bg-white/80 rounded-2xl border-3 border-[#121316] shadow-inner mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+            <div className="w-full max-w-[260px]">
+              {event.illustration}
+            </div>
           </div>
-        </div>
+        </Link>
 
         {/* Title & Tagline */}
         <div className="space-y-2 mb-4">
-          <h3 className="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight leading-tight group-hover:text-[#6C5CE7] transition-colors">
-            {event.title}
-          </h3>
+          <Link to={`/events/${event.id}`}>
+            <h3 className="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight leading-tight group-hover:text-[#6C5CE7] transition-colors">
+              {event.title}
+            </h3>
+          </Link>
           <p className="text-sm sm:text-base font-bold text-gray-800 leading-snug">
             {event.tagline}
           </p>
@@ -245,10 +249,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onSelect }) => {
         </div>
       </div>
 
-      {/* Bottom Action: View Details ↗ */}
+      {/* Bottom Action: View Details ↗ (Dedicated Page Link) */}
       <div className="pt-4 border-t-2 border-[#121316]/20 flex items-center justify-between">
         <PlayfulButton
-          onClick={() => onSelect(event)}
+          to={`/events/${event.id}`}
           variant="primary"
           size="md"
           icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
@@ -257,7 +261,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onSelect }) => {
         </PlayfulButton>
 
         <span className="text-xs font-hand font-bold text-gray-600">
-          Recap & photos ready 📸
+          Complete archive 📖
         </span>
       </div>
 
