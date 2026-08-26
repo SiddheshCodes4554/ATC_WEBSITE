@@ -29,9 +29,9 @@ export const Navbar: React.FC = () => {
               <img
                 src="/atc-shield-logo.png"
                 alt="ATC NIAT Pune Logo"
-                className="h-11 sm:h-12 w-auto object-contain drop-shadow-[2px_2px_0px_rgba(0,0,0,0.15)] group-hover:scale-110 group-hover:rotate-6 transition-transform duration-200"
+                className="h-12 sm:h-13 w-auto object-contain drop-shadow-[2px_3px_0px_#121316] group-hover:scale-105 group-hover:rotate-6 transition-transform duration-200"
               />
-              <Sparkles className="w-3.5 h-3.5 text-[#FF6B6B] absolute -top-1 -right-1 animate-twinkle pointer-events-none" />
+              <Sparkles className="w-4 h-4 text-[#FF6B6B] absolute -top-1 -right-1 animate-twinkle pointer-events-none" />
             </div>
             
             <div className="flex flex-col">
