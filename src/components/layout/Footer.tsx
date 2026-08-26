@@ -60,10 +60,19 @@ export const Footer: React.FC = () => {
         
         {/* Main Footer Impact Heading */}
         <div className="pb-12 border-b-2 border-white/10 grid lg:grid-cols-12 gap-8 items-end">
-          <div className="lg:col-span-8 space-y-3">
-            <span className="text-xs font-mono font-bold tracking-widest text-[#FFE600] uppercase bg-white/10 px-3 py-1 rounded-full border border-white/15">
-              ● ADVANCED TECH CLUB • NIAT PUNE
-            </span>
+          <div className="lg:col-span-8 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#8B1E22] border-2 border-white/30 p-1 flex items-center justify-center shadow-pop-sm">
+                <img
+                  src="/atc-shield-logo.png"
+                  alt="ATC Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-xs font-mono font-bold tracking-widest text-[#FFE600] uppercase bg-white/10 px-3 py-1.5 rounded-full border border-white/15">
+                ● ADVANCED TECH CLUB • NIAT PUNE
+              </span>
+            </div>
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] text-white">
               LET’S BUILD THE FUTURE.<br />
               <span className="text-[#FFE600] drop-shadow-[0_4px_12px_rgba(255,230,0,0.3)]">

@@ -26,10 +26,14 @@ export const Navbar: React.FC = () => {
           {/* ATC Brand Logo on Left */}
           <Link to="/" className="flex items-center gap-3 group focus:outline-none select-none">
             <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-[#FFE600] text-[#121316] border-3 border-[#121316] shadow-pop flex items-center justify-center font-black text-2xl tracking-tighter group-hover:rotate-12 transition-transform duration-200">
-                ATC
+              <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl bg-[#8B1E22] border-3 border-[#121316] shadow-pop flex items-center justify-center p-1 group-hover:rotate-6 transition-transform duration-200 overflow-hidden">
+                <img
+                  src="/atc-shield-logo.png"
+                  alt="ATC Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <Sparkles className="w-4 h-4 text-[#FF6B6B] absolute -top-1.5 -right-1.5 animate-twinkle" />
+              <Sparkles className="w-4 h-4 text-[#FFE600] absolute -top-1.5 -right-1.5 animate-twinkle" />
             </div>
             
             <div className="flex flex-col">
