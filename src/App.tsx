@@ -8,8 +8,8 @@ import { EventsPage } from './pages/EventsPage';
 import { EventDetailsPage } from './pages/EventDetailsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { LabPage } from './pages/LabPage';
+import { TeamPage } from './pages/TeamPage';
 import { 
-  TeamPage, 
   GalleryPage, 
   JoinPage 
 } from './pages/OtherPages';

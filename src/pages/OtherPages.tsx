@@ -1,18 +1,11 @@
 import React from 'react';
 import { PlaceholderPage } from './PlaceholderPage';
 
-export const TeamPage: React.FC = () => (
-  <PlaceholderPage 
-    title="MEET THE SQUAD" 
-    subtitle="The student leads, core mentors, and builders making ATC happen." 
-    nextUp={true}
-  />
-);
-
 export const GalleryPage: React.FC = () => (
   <PlaceholderPage 
     title="ATC GALLERY" 
     subtitle="Memories, hackathon sleepless nights, lab builds, and tech triumphs." 
+    nextUp={true}
   />
 );
 
