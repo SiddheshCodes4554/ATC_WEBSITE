@@ -9,10 +9,8 @@ import { EventDetailsPage } from './pages/EventDetailsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { LabPage } from './pages/LabPage';
 import { TeamPage } from './pages/TeamPage';
-import { 
-  GalleryPage, 
-  JoinPage 
-} from './pages/OtherPages';
+import { GalleryPage } from './pages/GalleryPage';
+import { JoinPage } from './pages/OtherPages';
 
 // Scroll to top component on navigation
 const ScrollToTop = () => {
