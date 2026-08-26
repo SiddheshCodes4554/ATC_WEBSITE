@@ -7,8 +7,8 @@ import { AboutPage } from './pages/AboutPage';
 import { EventsPage } from './pages/EventsPage';
 import { EventDetailsPage } from './pages/EventDetailsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
+import { LabPage } from './pages/LabPage';
 import { 
-  LabPage, 
   TeamPage, 
   GalleryPage, 
   JoinPage 
