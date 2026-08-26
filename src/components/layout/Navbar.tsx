@@ -19,21 +19,21 @@ export const Navbar: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FAF7F0]/95 backdrop-blur-md text-[#121316] border-b-3 border-[#121316] transition-all">
+    <header className="sticky top-0 z-50 bg-[#FAF7F0]/95 backdrop-blur-md text-[#121316] border-b-3 border-[#121316] transition-all select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
           {/* ATC Brand Logo on Left */}
           <Link to="/" className="flex items-center gap-3 group focus:outline-none select-none">
             <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-[#FFE600] text-[#121316] border-3 border-[#121316] shadow-pop flex items-center justify-center font-black text-2xl tracking-tighter group-hover:rotate-6 transition-transform">
+              <div className="w-12 h-12 rounded-2xl bg-[#FFE600] text-[#121316] border-3 border-[#121316] shadow-pop flex items-center justify-center font-black text-2xl tracking-tighter group-hover:rotate-12 transition-transform duration-200">
                 ATC
               </div>
-              <Sparkles className="w-4 h-4 text-[#FF6B6B] absolute -top-1.5 -right-1.5 animate-pulse" />
+              <Sparkles className="w-4 h-4 text-[#FF6B6B] absolute -top-1.5 -right-1.5 animate-twinkle" />
             </div>
             
             <div className="flex flex-col">
-              <span className="font-black text-lg sm:text-xl tracking-tight leading-none text-[#121316]">
+              <span className="font-black text-lg sm:text-xl tracking-tight leading-none text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
                 ADVANCED TECH CLUB
               </span>
               <span className="text-[11px] font-mono tracking-wider uppercase font-bold text-[#6C5CE7]">
@@ -42,7 +42,7 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Menu */}
+          {/* Desktop Menu with Animated Active Underline */}
           <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -50,20 +50,24 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`relative px-3.5 py-1.5 rounded-full text-sm font-extrabold transition-all duration-150 ${
+                  className={`group relative px-3.5 py-1.5 rounded-full text-sm font-extrabold transition-all duration-200 ${
                     isActive
-                      ? 'bg-[#FFD32A] text-[#121316] border-2 border-[#121316] shadow-pop-sm'
-                      : 'text-[#121316]/80 hover:text-[#121316] hover:bg-[#121316]/5'
+                      ? 'bg-[#FFD32A] text-[#121316] border-2 border-[#121316] shadow-pop-sm scale-105'
+                      : 'text-[#121316]/80 hover:text-[#121316] hover:bg-[#121316]/5 hover:scale-105'
                   }`}
                 >
-                  {link.name}
-                  {link.badge && (
-                    <span className="ml-1.5 px-1.5 py-0.2 bg-[#6C5CE7] text-white text-[10px] rounded-full font-mono font-bold">
-                      {link.badge}
-                    </span>
-                  )}
+                  <span className="relative z-10 flex items-center gap-1">
+                    {link.name}
+                    {link.badge && (
+                      <span className="px-1.5 py-0.2 bg-[#6C5CE7] text-white text-[10px] rounded-full font-mono font-bold">
+                        {link.badge}
+                      </span>
+                    )}
+                  </span>
+
+                  {/* Active Animated Underline Scribble */}
                   {isActive && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#FF6B6B]" />
+                    <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full bg-[#FF6B6B] animate-pulse" />
                   )}
                 </Link>
               );
@@ -96,9 +100,9 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu with Playful Cascade */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t-3 border-[#121316] bg-[#FAF7F0] px-5 py-6 space-y-3">
+        <div className="lg:hidden border-t-3 border-[#121316] bg-[#FAF7F0] px-5 py-6 space-y-3 animate-fadeIn">
           <div className="grid grid-cols-2 gap-2">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -107,10 +111,10 @@ export const Navbar: React.FC = () => {
                   key={link.name}
                   to={link.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center justify-between border-2 ${
+                  className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center justify-between border-2 transition-transform active:scale-95 ${
                     isActive
                       ? 'bg-[#FFD32A] text-[#121316] border-[#121316] shadow-pop-sm'
-                      : 'bg-white border-[#121316]/20 text-[#121316]'
+                      : 'bg-white border-[#121316]/20 text-[#121316] hover:bg-gray-50'
                   }`}
                 >
                   <span>{link.name}</span>

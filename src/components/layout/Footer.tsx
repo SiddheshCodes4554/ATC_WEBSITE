@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, ArrowUpRight, Heart } from 'lucide-react';
-import { SparkleDoodle } from '../doodles/DoodleSvgs';
+import { SparkleDoodle, RetroRobotMascot } from '../doodles/DoodleSvgs';
+import confetti from 'canvas-confetti';
 
 // Bespoke Social Icons
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
@@ -29,13 +30,29 @@ const YoutubeIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }
 );
 
 export const Footer: React.FC = () => {
+  const [robotSpin, setRobotSpin] = useState(false);
+  const [robotSpeech, setRobotSpeech] = useState(false);
+
+  const handleRobotClick = () => {
+    setRobotSpin(true);
+    setRobotSpeech(true);
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#2ED573'],
+    });
+
+    setTimeout(() => setRobotSpin(false), 800);
+    setTimeout(() => setRobotSpeech(false), 4000);
+  };
+
   return (
-    <footer className="relative bg-[#0B0F19] text-white border-t-4 border-[#121316] pt-16 pb-12 overflow-hidden dots-pattern-dark">
+    <footer className="relative bg-[#0B0F19] text-white border-t-4 border-[#121316] pt-16 pb-12 overflow-hidden dots-pattern-dark select-none">
       {/* Decorative Sparkle Doodles */}
-      <div className="absolute top-10 left-10 opacity-30 pointer-events-none">
+      <div className="absolute top-10 left-10 opacity-30 pointer-events-none animate-twinkle">
         <SparkleDoodle className="w-10 h-10" color="#FFE600" />
       </div>
-      <div className="absolute top-12 right-12 opacity-30 pointer-events-none">
+      <div className="absolute top-12 right-12 opacity-30 pointer-events-none animate-twinkle">
         <SparkleDoodle className="w-12 h-12" color="#FF6B6B" />
       </div>
 
@@ -116,15 +133,15 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 3: Socials */}
-          <div className="col-span-2 space-y-3">
+          {/* Col 3: Socials & Interactive Mascot */}
+          <div className="col-span-2 space-y-4">
             <h4 className="text-xs font-mono font-bold text-yellow-400 uppercase tracking-widest">
               CONNECT & CODE
             </h4>
             <p className="text-xs text-gray-400">
               Follow our latest builds, open-source repositories, tutorials and hackathon streams.
             </p>
-            <div className="pt-2 flex flex-wrap items-center gap-2.5">
+            <div className="pt-1 flex flex-wrap items-center gap-2.5">
               <a
                 href="https://instagram.com"
                 target="_blank"
@@ -144,7 +161,7 @@ export const Footer: React.FC = () => {
                 <span>LinkedIn</span>
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/SiddheshCodes4554/ATC_WEBSITE"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white hover:text-[#121316] border border-white/20 text-xs font-bold transition-all hover:-translate-y-0.5"
@@ -161,6 +178,29 @@ export const Footer: React.FC = () => {
                 <YoutubeIcon className="w-4 h-4" />
                 <span>YouTube</span>
               </a>
+            </div>
+
+            {/* Interactive Tiny Mascot Easter Egg */}
+            <div className="pt-2 flex items-center gap-3">
+              <div 
+                onClick={handleRobotClick}
+                className={`p-2 rounded-2xl bg-[#FFE600] border-2 border-white/30 text-[#121316] cursor-pointer hover:scale-110 active:scale-95 transition-all ${
+                  robotSpin ? 'rotate-[360deg] duration-700' : ''
+                }`}
+                title="Click me!"
+              >
+                <RetroRobotMascot className="w-8 h-auto" />
+              </div>
+              
+              {robotSpeech ? (
+                <div className="px-3 py-1.5 bg-white text-[#121316] rounded-xl font-hand font-bold text-sm animate-bounce shadow-pop-sm">
+                  "You found me! Keep building great things! 🤖🚀"
+                </div>
+              ) : (
+                <span className="text-[11px] font-mono text-gray-400">
+                  (Click the robot for a secret hello!)
+                </span>
+              )}
             </div>
           </div>
         </div>

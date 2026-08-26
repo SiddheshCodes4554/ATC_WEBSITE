@@ -32,8 +32,8 @@ export const PlayfulButton: React.FC<PlayfulButtonProps> = ({
       const y = (rect.top + rect.height / 2) / window.innerHeight;
       
       confetti({
-        particleCount: 40,
-        spread: 60,
+        particleCount: 45,
+        spread: 65,
         origin: { x, y },
         colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#48DBFB', '#2ED573'],
       });
@@ -56,13 +56,13 @@ export const PlayfulButton: React.FC<PlayfulButtonProps> = ({
     outline: 'bg-transparent hover:bg-[#121316]/5 text-[#121316] border-2 sm:border-3 border-[#121316] shadow-pop-sm hover:shadow-pop',
   };
 
-  const baseClasses = `inline-flex items-center justify-center rounded-full transition-all duration-150 active:translate-x-[2px] active:translate-y-[2px] select-none cursor-pointer ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
+  const baseClasses = `group inline-flex items-center justify-center rounded-full transition-all duration-150 active:translate-x-[2px] active:translate-y-[2px] select-none cursor-pointer ${sizeClasses[size]} ${variantClasses[variant]} ${className}`;
 
   if (to) {
     return (
       <Link to={to} className={baseClasses} onClick={handleClick}>
-        {children}
-        {icon && <span className="transition-transform group-hover:translate-x-1">{icon}</span>}
+        <span>{children}</span>
+        {icon && <span className="transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-0.5">{icon}</span>}
       </Link>
     );
   }
@@ -70,16 +70,16 @@ export const PlayfulButton: React.FC<PlayfulButtonProps> = ({
   if (href) {
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" className={baseClasses} onClick={handleClick}>
-        {children}
-        {icon && <span className="transition-transform group-hover:translate-x-1">{icon}</span>}
+        <span>{children}</span>
+        {icon && <span className="transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-0.5">{icon}</span>}
       </a>
     );
   }
 
   return (
     <button type="button" onClick={handleClick} className={baseClasses}>
-      {children}
-      {icon && <span>{icon}</span>}
+      <span>{children}</span>
+      {icon && <span className="transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-0.5">{icon}</span>}
     </button>
   );
 };

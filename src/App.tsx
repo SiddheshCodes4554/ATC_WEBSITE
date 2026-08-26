@@ -11,6 +11,7 @@ import { LabPage } from './pages/LabPage';
 import { TeamPage } from './pages/TeamPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { JoinPage } from './pages/JoinPage';
+import { PartyModeEasterEgg } from './components/common/PartyModeEasterEgg';
 
 // Scroll to top component on navigation
 const ScrollToTop = () => {
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
   return (
     <Router>
       <ScrollToTop />
+      <PartyModeEasterEgg />
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow">
