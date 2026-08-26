@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
@@ -11,6 +11,10 @@ import { LabPage } from './pages/LabPage';
 import { TeamPage } from './pages/TeamPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { JoinPage } from './pages/JoinPage';
+import { AdminLoginPage } from './pages/admin/AdminLoginPage';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 import { PartyModeEasterEgg } from './components/common/PartyModeEasterEgg';
 
 // Scroll to top component on navigation
@@ -22,30 +26,55 @@ const ScrollToTop = () => {
   return null;
 };
 
+// Main Public Layout with Navbar and Footer
+const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
 export const App: React.FC = () => {
   return (
-    <Router>
-      <ScrollToTop />
-      <PartyModeEasterEgg />
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/events/:eventId" element={<EventDetailsPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/lab" element={<LabPage />} />
-            <Route path="/team" element={<TeamPage />} />
-            <Route path="/gallery" element={<GalleryPage />} />
-            <Route path="/join" element={<JoinPage />} />
-            <Route path="*" element={<HomePage />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <ScrollToTop />
+        <PartyModeEasterEgg />
+        <Routes>
+          {/* ============================================================= */}
+          {/* PUBLIC ROUTES (No authentication required)                     */}
+          {/* ============================================================= */}
+          <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+          <Route path="/about" element={<PublicLayout><AboutPage /></PublicLayout>} />
+          <Route path="/events" element={<PublicLayout><EventsPage /></PublicLayout>} />
+          <Route path="/events/:eventId" element={<PublicLayout><EventDetailsPage /></PublicLayout>} />
+          <Route path="/projects" element={<PublicLayout><ProjectsPage /></PublicLayout>} />
+          <Route path="/lab" element={<PublicLayout><LabPage /></PublicLayout>} />
+          <Route path="/team" element={<PublicLayout><TeamPage /></PublicLayout>} />
+          <Route path="/gallery" element={<PublicLayout><GalleryPage /></PublicLayout>} />
+          <Route path="/join" element={<PublicLayout><JoinPage /></PublicLayout>} />
+
+          {/* ============================================================= */}
+          {/* ADMIN AUTHENTICATION ROUTES                                    */}
+          {/* ============================================================= */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+
+          {/* ============================================================= */}
+          {/* PROTECTED ADMIN ROUTES (Appwrite Admin Session Required)       */}
+          {/* ============================================================= */}
+          <Route path="/admin" element={<ProtectedRoute><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+
+          {/* Fallback route */}
+          <Route path="*" element={<PublicLayout><HomePage /></PublicLayout>} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 
