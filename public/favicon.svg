@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect x="5" y="5" width="90" height="90" rx="24" fill="#FFE600" stroke="#121316" stroke-width="8"/>
+  <text x="50" y="62" font-family="sans-serif" font-weight="900" font-size="34" text-anchor="middle" fill="#121316">ATC</text>
+  <circle cx="80" cy="20" r="8" fill="#FF6B6B" stroke="#121316" stroke-width="3"/>
+</svg>
