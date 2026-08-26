@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail, ArrowRight, ShieldAlert, Sparkles, Loader2, ArrowLeft } from 'lucide-react';
+import { 
+  Lock, 
+  Mail, 
+  ArrowRight, 
+  ShieldAlert, 
+  Loader2, 
+  ArrowLeft, 
+  Eye, 
+  EyeOff, 
+  Sparkles 
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const AdminLoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -14,7 +25,7 @@ export const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // If already logged in, redirect to dashboard immediately
+  // If already authenticated, redirect to the admin dashboard immediately
   useEffect(() => {
     if (!loading && isAuthenticated) {
       const destination = (location.state as any)?.from?.pathname || '/admin/dashboard';
@@ -26,15 +37,28 @@ export const AdminLoginPage: React.FC = () => {
     e.preventDefault();
     if (isSubmitting) return;
 
+    // Basic client-side validation
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      setError('Please enter both your admin email and password.');
+      return;
+    }
+
+    if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const result = await login(email, password);
+      // Re-use existing Appwrite authentication service
+      const result = await login(trimmedEmail, password);
 
       if (result.success) {
         confetti({
-          particleCount: 60,
+          particleCount: 70,
           spread: 80,
           origin: { y: 0.6 },
           colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#2ED573'],
@@ -43,27 +67,30 @@ export const AdminLoginPage: React.FC = () => {
         const destination = (location.state as any)?.from?.pathname || '/admin/dashboard';
         navigate(destination, { replace: true });
       } else {
-        setError(result.error || 'Invalid credentials. Please try again.');
+        setError(result.error || 'Authentication failed. Please verify your admin credentials.');
       }
     } catch (err: any) {
-      setError(err?.message || 'An unexpected error occurred during login.');
+      setError(err?.message || 'An unexpected error occurred during login. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-[85vh] bg-[#FAF7F0] flex flex-col items-center justify-center p-4 sm:p-8 paper-pattern select-none">
+    <div className="min-h-[90vh] bg-[#FAF7F0] flex flex-col items-center justify-center p-4 sm:p-8 paper-pattern select-none">
       
-      {/* Back to website link */}
-      <div className="w-full max-w-md mb-6">
+      {/* Back to Website Link */}
+      <div className="w-full max-w-md mb-6 flex items-center justify-between">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7] transition-colors"
+          className="inline-flex items-center gap-2 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to ATC Website</span>
+          <span>← Back to Public Website</span>
         </Link>
+        <span className="font-mono text-[11px] font-bold text-gray-500">
+          NIAT PUNE
+        </span>
       </div>
 
       {/* Main Login Card */}
@@ -76,14 +103,14 @@ export const AdminLoginPage: React.FC = () => {
         <div className="text-center space-y-3 mb-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E1DCFF] border-2 border-[#121316] shadow-pop-sm font-mono font-black text-xs uppercase text-[#6C5CE7]">
             <Lock className="w-3.5 h-3.5" />
-            ADMIN PORTAL • NIAT PUNE
+            ADMIN PORTAL
           </div>
 
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-3">
             <img
               src="/atc-shield-logo.png"
               alt="ATC Logo"
-              className="h-10 w-auto object-contain drop-shadow-[1px_2px_0px_#121316]"
+              className="h-11 w-auto object-contain drop-shadow-[2px_2px_0px_#121316]"
             />
             <h1 className="text-3xl font-black text-[#121316] tracking-tight">
               Admin Login
@@ -91,7 +118,7 @@ export const AdminLoginPage: React.FC = () => {
           </div>
 
           <p className="text-xs sm:text-sm font-bold text-gray-600">
-            Sign in with your authorized ATC admin credentials.
+            Advanced Tech Club • Official administrative gateway
           </p>
         </div>
 
@@ -129,37 +156,51 @@ export const AdminLoginPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Password Input */}
+          {/* Password Input with Show/Hide Toggle */}
           <div className="space-y-1.5 text-left">
-            <label className="block text-xs font-mono font-black uppercase text-[#121316]">
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-mono font-black uppercase text-[#121316]">
+                Password
+              </label>
+            </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
                 <Lock className="w-4 h-4" />
               </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 disabled={isSubmitting}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#FAF7F0] border-3 border-[#121316] shadow-pop-sm font-bold text-sm text-[#121316] placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] disabled:opacity-60 transition-all"
+                className="w-full pl-10 pr-11 py-3 rounded-2xl bg-[#FAF7F0] border-3 border-[#121316] shadow-pop-sm font-bold text-sm text-[#121316] placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] disabled:opacity-60 transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-[#121316] transition-colors focus:outline-none cursor-pointer"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting || !email || !password}
-            className="w-full mt-2 py-3.5 px-6 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] disabled:opacity-60 text-[#121316] font-black text-base border-3 border-[#121316] shadow-pop hover:shadow-pop-lg active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all duration-150"
+            disabled={isSubmitting || !email.trim() || !password}
+            className="w-full mt-3 py-3.5 px-6 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] disabled:opacity-60 disabled:cursor-not-allowed text-[#121316] font-black text-base border-3 border-[#121316] shadow-pop hover:shadow-pop-lg active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all duration-150"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Authenticating...</span>
+                <span>Authenticating with Appwrite...</span>
               </>
             ) : (
               <>
