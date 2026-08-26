@@ -1,4 +1,5 @@
 import React from 'react';
+import { Bot, Eye, Radio, Printer, Sparkles, Wrench, Zap, Cpu } from 'lucide-react';
 
 export type LabDomain = 'robotics' | 'ai' | 'iot' | 'prototyping';
 
@@ -12,282 +13,370 @@ export const InteractiveLabScene: React.FC<InteractiveLabSceneProps> = ({
   onDomainSelect,
 }) => {
   return (
-    <div className="relative w-full rounded-[40px] bg-[#121316] border-4 border-[#121316] shadow-pop-xl p-6 sm:p-10 overflow-hidden select-none text-white">
+    <div className="relative w-full rounded-[44px] bg-[#FAF7F0] border-4 border-[#121316] shadow-pop-xl p-6 sm:p-10 paper-pattern overflow-hidden select-none">
       
-      {/* Background Lab Neon Gradients */}
-      <div className="absolute -top-12 -right-12 w-64 h-64 bg-[#6C5CE7]/30 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-[#00D2D3]/20 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Lab Station Telemetry Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b-2 border-white/10 relative z-10 font-mono text-xs">
+      {/* Top Interactive Station Switcher Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b-3 border-[#121316]/15">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-[#2ED573] animate-ping" />
-          <span className="font-black text-[#FFE600] uppercase tracking-wider">
-            NIAT LAB 502 • LIVE WORKSPACE
+          <span className="px-3.5 py-1 rounded-full bg-[#121316] text-[#FFE600] font-mono font-black text-xs uppercase shadow-pop-sm flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#2ED573] animate-ping" />
+            NIAT LAB 502 • LIVE BENCH SIMULATOR
+          </span>
+          <span className="text-xs font-mono font-bold text-gray-600 hidden md:inline">
+            Click any station to trigger hardware diagnostics
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-gray-400">ACTIVE BENCH:</span>
-          <span className="px-2.5 py-0.5 rounded bg-[#6C5CE7] text-white font-black uppercase text-[11px] border border-white/20">
-            {activeDomain === 'robotics' && '🤖 ROBOTICS & ROS ARM'}
-            {activeDomain === 'ai' && '👁️ AI & VISION TELEMETRY'}
-            {activeDomain === 'iot' && '📡 IOT & EMBEDDED SENSORS'}
-            {activeDomain === 'prototyping' && '🖨️ 3D PRINTING & SMD BENCH'}
-          </span>
+        {/* 4 Interactive Switcher Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-white rounded-full border-2 border-[#121316] shadow-pop-sm">
+          {[
+            { id: 'robotics', label: '🦾 Robotics Arm', icon: <Bot className="w-3.5 h-3.5" /> },
+            { id: 'ai', label: '🖥️ AI Telemetry', icon: <Eye className="w-3.5 h-3.5" /> },
+            { id: 'prototyping', label: '🖨️ 3D & SMD', icon: <Printer className="w-3.5 h-3.5" /> },
+            { id: 'iot', label: '🛸 Drone Mesh', icon: <Radio className="w-3.5 h-3.5" /> },
+          ].map((tab) => {
+            const isActive = activeDomain === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onDomainSelect(tab.id as LabDomain)}
+                className={`px-3 sm:px-4 py-1.5 rounded-full font-mono text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-[#FFE600] text-[#121316] border-2 border-[#121316] shadow-pop-sm scale-105'
+                    : 'text-gray-600 hover:text-[#121316] hover:bg-gray-100'
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Large Dynamic SVG Lab Environment */}
-      <div className="relative z-10 w-full aspect-[16/9] max-h-[500px] flex items-center justify-center">
-        <svg viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-          
-          {/* ========================================================= */}
-          {/* LAB ROOM GRID & FLOOR PERSPECTIVE */}
-          {/* ========================================================= */}
-          {/* Grid floor */}
-          <line x1="50" y1="360" x2="750" y2="360" stroke="#2D3436" strokeWidth="2" strokeDasharray="4 4" />
-          <line x1="100" y1="390" x2="700" y2="390" stroke="#2D3436" strokeWidth="2" strokeDasharray="4 4" />
-          <line x1="50" y1="360" x2="0" y2="450" stroke="#2D3436" strokeWidth="2" />
-          <line x1="750" y1="360" x2="800" y2="450" stroke="#2D3436" strokeWidth="2" />
+      {/* ========================================================================= */}
+      {/* 4-STATION VIBRANT MAKER STUDIO GRID */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+        
+        {/* ========================================================= */}
+        {/* STATION 1: ROBOTICS & ARTICULATED ARM */}
+        {/* ========================================================= */}
+        <div
+          onClick={() => onDomainSelect('robotics')}
+          className={`group relative p-6 sm:p-8 rounded-[36px] border-4 border-[#121316] transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+            activeDomain === 'robotics'
+              ? 'bg-[#FFF9DB] shadow-pop-xl ring-4 ring-[#6C5CE7] -translate-y-1.5'
+              : 'bg-white shadow-pop-md hover:shadow-pop-lg hover:-translate-y-1'
+          }`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="px-3 py-1 rounded-full bg-[#6C5CE7] text-white font-mono font-black text-xs uppercase border-2 border-[#121316]">
+              🦾 ROBOTICS & ROS BENCH
+            </span>
+            <span className="text-xs font-mono font-bold text-gray-500">
+              {activeDomain === 'robotics' ? '● CALIBRATED' : 'BENCH #01'}
+            </span>
+          </div>
 
-          {/* Pegboard on Wall */}
-          <rect x="50" y="40" width="700" height="120" rx="12" fill="#1E272E" stroke="#2D3436" strokeWidth="2" />
-          {/* Pegboard holes */}
-          {[100, 160, 220, 280, 340, 400, 460, 520, 580, 640, 700].map((x) => (
-            <React.Fragment key={x}>
-              <circle cx={x} cy="70" r="2" fill="#485460" />
-              <circle cx={x} cy="100" r="2" fill="#485460" />
-              <circle cx={x} cy="130" r="2" fill="#485460" />
-            </React.Fragment>
-          ))}
+          {/* Large Vibrant Illustrated Scene */}
+          <div className="relative w-full aspect-[16/10] bg-[#FAF7F0] rounded-2xl border-3 border-[#121316] p-4 flex items-center justify-center overflow-hidden mb-4 shadow-inner">
+            <svg viewBox="0 0 320 200" fill="none" className="w-full h-full">
+              {/* Floor grid */}
+              <line x1="20" y1="160" x2="300" y2="160" stroke="#121316" strokeWidth="2.5" strokeDasharray="6 6" opacity="0.3" />
+              
+              {/* Articulated Robotic Arm */}
+              <g transform="translate(110, 50)">
+                {/* Heavy Base Turntable */}
+                <rect x="-35" y="90" width="70" height="24" rx="6" fill="#121316" stroke="#121316" strokeWidth="2" />
+                <rect x="-25" y="85" width="50" height="8" rx="2" fill="#FFE600" />
+                {/* Joint 1 Base */}
+                <circle cx="0" cy="80" r="18" fill="#6C5CE7" stroke="#121316" strokeWidth="3" />
+                
+                {/* Primary Arm (Yellow) */}
+                <path d="M 0 80 L -30 20" stroke="#121316" strokeWidth="16" strokeLinecap="round" />
+                <path d="M 0 80 L -30 20" stroke="#FFE600" strokeWidth="10" strokeLinecap="round" />
+                
+                {/* Joint 2 Elbow */}
+                <circle cx="-30" cy="20" r="14" fill="#FF6B6B" stroke="#121316" strokeWidth="3" />
+                
+                {/* Forearm (Cyan) */}
+                <path d="M -30 20 L 45 -25" stroke="#121316" strokeWidth="14" strokeLinecap="round" />
+                <path d="M -30 20 L 45 -25" stroke="#00D2D3" strokeWidth="8" strokeLinecap="round" />
+                
+                {/* End Effector Wrist & Claw */}
+                <circle cx="45" cy="-25" r="10" fill="#121316" stroke="#121316" strokeWidth="2" />
+                <path d="M 45 -25 L 65 -35 M 45 -25 L 65 -15" stroke="#121316" strokeWidth="5" strokeLinecap="round" />
+                
+                {/* Laser Targeting Line */}
+                <line x1="65" y1="-25" x2="110" y2="25" stroke="#FF4757" strokeWidth="2.5" strokeDasharray="4 4" className="animate-pulse" />
+                
+                {/* Target Sensor Cube */}
+                <rect x="100" y="25" width="22" height="22" rx="4" fill="#FFE600" stroke="#121316" strokeWidth="2.5" />
+                <text x="111" y="40" fontFamily="monospace" fontSize="9" fontWeight="900" textAnchor="middle" fill="#121316">AI</text>
+              </g>
 
-          {/* Hanging Tools on Wall */}
-          <rect x="120" y="60" width="10" height="50" rx="3" fill="#FFE600" />
-          <polygon points="120,60 130,60 125,45" fill="#FF7675" />
-          {/* Wire Spools on Wall */}
-          <circle cx="280" cy="90" r="16" fill="#FF4757" stroke="#121316" strokeWidth="2" />
-          <circle cx="320" cy="90" r="16" fill="#2ED573" stroke="#121316" strokeWidth="2" />
-          <circle cx="360" cy="90" r="16" fill="#0984E3" stroke="#121316" strokeWidth="2" />
+              {/* Ground Autonomous Rover */}
+              <g transform="translate(190, 120)">
+                <rect x="0" y="15" width="80" height="35" rx="10" fill="#121316" stroke="#121316" strokeWidth="2.5" />
+                <rect x="5" y="20" width="70" height="10" fill="#FFE600" rx="2" />
+                <rect x="-6" y="20" width="12" height="25" rx="4" fill="#636E72" stroke="#121316" strokeWidth="2" />
+                <rect x="74" y="20" width="12" height="25" rx="4" fill="#636E72" stroke="#121316" strokeWidth="2" />
+                {/* Spinning LiDAR Turret */}
+                <circle cx="40" cy="8" r="12" fill="#6C5CE7" stroke="#121316" strokeWidth="2.5" />
+                <circle cx="40" cy="8" r="4" fill="#2ED573" className="animate-ping" />
+                {/* Headlights */}
+                <circle cx="75" cy="40" r="4" fill="#00D2D3" />
+              </g>
+            </svg>
 
+            {/* Sticker */}
+            <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-white rounded-lg border-2 border-[#121316] text-[10px] font-mono font-black shadow-pop-sm">
+              ⚡ 6-DOF INVERSE KINEMATICS
+            </div>
+          </div>
 
-          {/* ========================================================= */}
-          {/* STATION 1: ROBOTICS & ROS ARM (Left Workbench) */}
-          {/* ========================================================= */}
-          <g 
-            onClick={() => onDomainSelect('robotics')}
-            className="cursor-pointer transition-all duration-300 group"
-          >
-            {/* Workbench Table */}
-            <rect x="50" y="240" width="220" height="120" rx="10" fill="#2C3E50" stroke="#121316" strokeWidth="3" />
-            <rect x="60" y="230" width="200" height="18" rx="4" fill="#34495E" stroke="#121316" strokeWidth="2" />
-            
-            {/* Active Glow Ring if active */}
-            {activeDomain === 'robotics' && (
-              <circle cx="160" cy="200" r="85" stroke="#FFE600" strokeWidth="3" strokeDasharray="8 6" className="animate-spin" />
-            )}
-
-            {/* Articulated Robotic Arm */}
-            <g transform="translate(140, 140)">
-              {/* Heavy Base Turntable */}
-              <rect x="-25" y="70" width="50" height="20" rx="4" fill="#121316" stroke="#FFE600" strokeWidth="2" />
-              {/* Joint 1 */}
-              <circle cx="0" cy="65" r="14" fill="#6C5CE7" stroke="#FFFFFF" strokeWidth="2" />
-              {/* Lower Arm Segment */}
-              <line x1="0" y1="65" x2="-25" y2="10" stroke="#FFE600" strokeWidth="10" strokeLinecap="round" />
-              {/* Joint 2 */}
-              <circle cx="-25" cy="10" r="12" fill="#FF4757" stroke="#FFFFFF" strokeWidth="2" />
-              {/* Upper Arm Segment */}
-              <line x1="-25" y1="10" x2="30" y2="-30" stroke="#00D2D3" strokeWidth="8" strokeLinecap="round" />
-              {/* End Effector Gripper */}
-              <circle cx="30" cy="-30" r="8" fill="#FFFFFF" />
-              <path d="M 30 -30 L 45 -40 M 30 -30 L 45 -20" stroke="#FFE600" strokeWidth="4" strokeLinecap="round" />
-              {/* Laser Beacon */}
-              <line x1="45" y1="-30" x2="80" y2="10" stroke="#FF4757" strokeWidth="2" strokeDasharray="4 4" className="animate-pulse" />
-            </g>
-
-            {/* Mini Autonomous Ground Rover on Floor */}
-            <g transform="translate(90, 360)">
-              <rect x="0" y="0" width="65" height="30" rx="8" fill="#FFE600" stroke="#121316" strokeWidth="2" />
-              <rect x="-5" y="5" width="10" height="20" rx="4" fill="#121316" />
-              <rect x="60" y="5" width="10" height="20" rx="4" fill="#121316" />
-              <circle cx="32" cy="-5" r="8" fill="#6C5CE7" stroke="#FFFFFF" strokeWidth="1.5" />
-              <text x="32" y="18" fontFamily="monospace" fontSize="8" fontWeight="bold" textAnchor="middle" fill="#121316">ROV-01</text>
-            </g>
-
-            {/* Label Badge */}
-            <rect x="80" y="270" width="140" height="24" rx="6" fill="#121316" stroke="#FFE600" strokeWidth="2" />
-            <text x="150" y="286" fontFamily="monospace" fontSize="10" fontWeight="bold" fill="#FFE600" textAnchor="middle">
-              ROBOTICS & ROS BENCH
-            </text>
-          </g>
-
-
-          {/* ========================================================= */}
-          {/* STATION 2: AI & COMPUTER VISION TELEMETRY (Center Monitors) */}
-          {/* ========================================================= */}
-          <g 
-            onClick={() => onDomainSelect('ai')}
-            className="cursor-pointer transition-all duration-300 group"
-          >
-            {/* Center Desk */}
-            <rect x="290" y="230" width="220" height="130" rx="10" fill="#2C3E50" stroke="#121316" strokeWidth="3" />
-            <rect x="280" y="220" width="240" height="18" rx="4" fill="#34495E" stroke="#121316" strokeWidth="2" />
-
-            {/* Active Glow Ring if active */}
-            {activeDomain === 'ai' && (
-              <circle cx="400" cy="170" r="95" stroke="#00D2D3" strokeWidth="3" strokeDasharray="8 6" className="animate-spin" />
-            )}
-
-            {/* Monitor 1 (Main Large Display) */}
-            <rect x="330" y="110" width="140" height="95" rx="8" fill="#0B0F19" stroke="#121316" strokeWidth="3" />
-            <line x1="400" y1="205" x2="400" y2="225" stroke="#121316" strokeWidth="6" />
-            <rect x="375" y="222" width="50" height="6" rx="2" fill="#7F8C8D" />
-
-            {/* AI Screen Content: Bounding Boxes & Neural Nodes */}
-            <g transform="translate(340, 120)">
-              {/* Neural network nodes */}
-              <circle cx="20" cy="20" r="4" fill="#00D2D3" />
-              <circle cx="20" cy="50" r="4" fill="#00D2D3" />
-              <circle cx="60" cy="35" r="5" fill="#FFE600" />
-              <circle cx="100" cy="25" r="4" fill="#FF4757" />
-              <circle cx="100" cy="55" r="4" fill="#2ED573" />
-              <line x1="20" y1="20" x2="60" y2="35" stroke="#00D2D3" strokeWidth="1.5" />
-              <line x1="20" y1="50" x2="60" y2="35" stroke="#00D2D3" strokeWidth="1.5" />
-              <line x1="60" y1="35" x2="100" y2="25" stroke="#FFE600" strokeWidth="1.5" />
-              <line x1="60" y1="35" x2="100" y2="55" stroke="#FFE600" strokeWidth="1.5" />
-              {/* Waveform graph */}
-              <path d="M 10 70 Q 30 55 50 70 T 90 70 T 110 70" stroke="#55EFC4" strokeWidth="2" fill="none" className="animate-pulse" />
-            </g>
-
-            {/* Monitor 2 (Vertical Code Screen on Left of Desk) */}
-            <rect x="295" y="130" width="30" height="75" rx="4" fill="#1E272E" stroke="#121316" strokeWidth="2" />
-            <line x1="300" y1="145" x2="320" y2="145" stroke="#00D2D3" strokeWidth="1.5" />
-            <line x1="300" y1="155" x2="315" y2="155" stroke="#2ED573" strokeWidth="1.5" />
-            <line x1="300" y1="165" x2="322" y2="165" stroke="#FFE600" strokeWidth="1.5" />
-
-            {/* Keyboard & Mouse on desk */}
-            <rect x="360" y="225" width="60" height="12" rx="3" fill="#121316" />
-            <circle cx="435" cy="231" r="4" fill="#FFE600" />
-
-            {/* Label Badge */}
-            <rect x="330" y="270" width="140" height="24" rx="6" fill="#121316" stroke="#00D2D3" strokeWidth="2" />
-            <text x="400" y="286" fontFamily="monospace" fontSize="10" fontWeight="bold" fill="#00D2D3" textAnchor="middle">
-              AI & VISION HUB
-            </text>
-          </g>
+          <p className="text-xs sm:text-sm font-bold text-gray-700">
+            Articulated robotic arm testbed running Micro-ROS firmware & differential drive SLAM navigation.
+          </p>
+        </div>
 
 
-          {/* ========================================================= */}
-          {/* STATION 3: RAPID PROTOTYPING & 3D PRINTER (Right Bench) */}
-          {/* ========================================================= */}
-          <g 
-            onClick={() => onDomainSelect('prototyping')}
-            className="cursor-pointer transition-all duration-300 group"
-          >
-            {/* Right Desk */}
-            <rect x="530" y="240" width="220" height="120" rx="10" fill="#2C3E50" stroke="#121316" strokeWidth="3" />
-            <rect x="520" y="230" width="240" height="18" rx="4" fill="#34495E" stroke="#121316" strokeWidth="2" />
+        {/* ========================================================= */}
+        {/* STATION 2: EDGE AI & VISION TELEMETRY */}
+        {/* ========================================================= */}
+        <div
+          onClick={() => onDomainSelect('ai')}
+          className={`group relative p-6 sm:p-8 rounded-[36px] border-4 border-[#121316] transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+            activeDomain === 'ai'
+              ? 'bg-[#E1F5FE] shadow-pop-xl ring-4 ring-[#00D2D3] -translate-y-1.5'
+              : 'bg-white shadow-pop-md hover:shadow-pop-lg hover:-translate-y-1'
+          }`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="px-3 py-1 rounded-full bg-[#00D2D3] text-[#121316] font-mono font-black text-xs uppercase border-2 border-[#121316]">
+              🖥️ AI & COMPUTER VISION HUB
+            </span>
+            <span className="text-xs font-mono font-bold text-gray-500">
+              {activeDomain === 'ai' ? '● INFERENCE 60FPS' : 'BENCH #02'}
+            </span>
+          </div>
 
-            {/* Active Glow Ring if active */}
-            {activeDomain === 'prototyping' && (
-              <circle cx="640" cy="180" r="90" stroke="#FF6B6B" strokeWidth="3" strokeDasharray="8 6" className="animate-spin" />
-            )}
+          {/* Large Vibrant Illustrated Scene */}
+          <div className="relative w-full aspect-[16/10] bg-[#FAF7F0] rounded-2xl border-3 border-[#121316] p-4 flex items-center justify-center overflow-hidden mb-4 shadow-inner">
+            <svg viewBox="0 0 320 200" fill="none" className="w-full h-full">
+              {/* Main Retro Monitor Frame */}
+              <rect x="50" y="20" width="220" height="135" rx="14" fill="#121316" stroke="#121316" strokeWidth="3" />
+              <rect x="60" y="30" width="200" height="115" rx="8" fill="#1E272E" />
+              
+              {/* Monitor Stand */}
+              <line x1="160" y1="155" x2="160" y2="175" stroke="#121316" strokeWidth="10" strokeLinecap="round" />
+              <rect x="120" y="172" width="80" height="10" rx="3" fill="#7F8C8D" stroke="#121316" strokeWidth="2" />
 
-            {/* 3D Printer Frame */}
-            <g transform="translate(560, 110)">
-              {/* Outer Frame */}
-              <rect x="0" y="0" width="90" height="110" rx="8" fill="#121316" stroke="#FFFFFF" strokeWidth="2.5" />
-              {/* Heated Bed */}
-              <rect x="15" y="80" width="60" height="12" rx="2" fill="#D63031" />
-              {/* Active 3D Printed Part */}
-              <polygon points="45,55 60,80 30,80" fill="#FFE600" stroke="#121316" strokeWidth="1.5" />
-              {/* Gantry Rails */}
-              <line x1="15" y1="15" x2="15" y2="90" stroke="#7F8C8D" strokeWidth="3" />
-              <line x1="75" y1="15" x2="75" y2="90" stroke="#7F8C8D" strokeWidth="3" />
-              {/* Extruder Head & Nozzle */}
-              <rect x="35" y="45" width="20" height="15" rx="3" fill="#0984E3" />
-              <polygon points="43,60 47,60 45,64" fill="#FF7675" />
-              {/* Laser / Heat Glow */}
-              <circle cx="45" cy="65" r="4" fill="#FF4757" className="animate-ping" />
-              {/* Top Filament Spool */}
-              <circle cx="45" cy="-8" r="14" fill="#2ED573" stroke="#FFFFFF" strokeWidth="1.5" />
-            </g>
+              {/* Neural Network Nodes & Tensor Graphs inside screen */}
+              <g transform="translate(80, 45)">
+                {/* Neural layers */}
+                <circle cx="20" cy="20" r="7" fill="#00D2D3" stroke="#FFFFFF" strokeWidth="1.5" />
+                <circle cx="20" cy="65" r="7" fill="#00D2D3" stroke="#FFFFFF" strokeWidth="1.5" />
+                <circle cx="75" cy="42" r="9" fill="#FFE600" stroke="#FFFFFF" strokeWidth="1.5" />
+                <circle cx="130" cy="20" r="7" fill="#FF6B6B" stroke="#FFFFFF" strokeWidth="1.5" />
+                <circle cx="130" cy="65" r="7" fill="#2ED573" stroke="#FFFFFF" strokeWidth="1.5" />
 
-            {/* Soldering Iron Station on Right Bench */}
-            <g transform="translate(670, 180)">
-              <rect x="0" y="20" width="45" height="25" rx="4" fill="#E67E22" stroke="#121316" strokeWidth="1.5" />
-              <text x="22" y="36" fontFamily="monospace" fontSize="8" fontWeight="bold" textAnchor="middle" fill="#FFFFFF">350°C</text>
-              {/* Iron Pen */}
-              <line x1="10" y1="15" x2="35" y2="-10" stroke="#BDC3C7" strokeWidth="4" strokeLinecap="round" />
-              <line x1="35" y1="-10" x2="42" y2="-18" stroke="#F1C40F" strokeWidth="2" />
-              {/* Smoke curling up */}
-              <path d="M 42 -20 Q 40 -35 48 -45" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.6" />
-            </g>
+                {/* Synapse Lines */}
+                <line x1="20" y1="20" x2="75" y2="42" stroke="#00D2D3" strokeWidth="2" />
+                <line x1="20" y1="65" x2="75" y2="42" stroke="#00D2D3" strokeWidth="2" />
+                <line x1="75" y1="42" x2="130" y2="20" stroke="#FFE600" strokeWidth="2" />
+                <line x1="75" y1="42" x2="130" y2="65" stroke="#FFE600" strokeWidth="2" />
 
-            {/* Label Badge */}
-            <rect x="570" y="270" width="140" height="24" rx="6" fill="#121316" stroke="#FF6B6B" strokeWidth="2" />
-            <text x="640" y="286" fontFamily="monospace" fontSize="10" fontWeight="bold" fill="#FF6B6B" textAnchor="middle">
-              3D PRINT & SMD BENCH
-            </text>
-          </g>
+                {/* Bounding Box on Target Object */}
+                <rect x="105" y="10" width="48" height="30" rx="4" fill="none" stroke="#FF4757" strokeWidth="2" strokeDasharray="3 3" />
+                <text x="108" y="8" fontFamily="monospace" fontSize="7" fontWeight="bold" fill="#FF4757">ROVER: 98%</text>
+              </g>
+
+              {/* Waveform Telemetry Graph on bottom of screen */}
+              <path d="M 75 130 Q 110 110 145 130 T 215 130 T 245 130" stroke="#55EFC4" strokeWidth="2.5" fill="none" className="animate-pulse" />
+              
+              {/* Power LED */}
+              <circle cx="250" cy="140" r="3" fill="#2ED573" className="animate-ping" />
+            </svg>
+
+            {/* Sticker */}
+            <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-[#FFE600] rounded-lg border-2 border-[#121316] text-[10px] font-mono font-black shadow-pop-sm text-[#121316]">
+              👁️ JETSON ORIN NANO 40 TOPS
+            </div>
+          </div>
+
+          <p className="text-xs sm:text-sm font-bold text-gray-700">
+            Real-time edge compute cluster executing YOLOv8 computer vision & spatial SLAM point clouds.
+          </p>
+        </div>
 
 
-          {/* ========================================================= */}
-          {/* STATION 4: IOT & DRONE TESTBED (Floating Top Center Drone & Sensors) */}
-          {/* ========================================================= */}
-          <g 
-            onClick={() => onDomainSelect('iot')}
-            className="cursor-pointer transition-all duration-300 group"
-          >
-            {/* Active Glow Ring for Drone */}
-            {activeDomain === 'iot' && (
-              <circle cx="400" cy="65" r="55" stroke="#2ED573" strokeWidth="3" strokeDasharray="8 6" className="animate-spin" />
-            )}
+        {/* ========================================================= */}
+        {/* STATION 3: 3D PRINTING & SMD REWORK BENCH */}
+        {/* ========================================================= */}
+        <div
+          onClick={() => onDomainSelect('prototyping')}
+          className={`group relative p-6 sm:p-8 rounded-[36px] border-4 border-[#121316] transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+            activeDomain === 'prototyping'
+              ? 'bg-[#FFEBF2] shadow-pop-xl ring-4 ring-[#FF6B6B] -translate-y-1.5'
+              : 'bg-white shadow-pop-md hover:shadow-pop-lg hover:-translate-y-1'
+          }`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="px-3 py-1 rounded-full bg-[#FF6B6B] text-white font-mono font-black text-xs uppercase border-2 border-[#121316]">
+              🖨️ 3D PRINT & SMD BENCH
+            </span>
+            <span className="text-xs font-mono font-bold text-gray-500">
+              {activeDomain === 'prototyping' ? '● HEATED 350°C' : 'BENCH #03'}
+            </span>
+          </div>
 
-            {/* Floating Quadcopter Drone */}
-            <g transform="translate(365, 45)" className="animate-float-slow">
-              <rect x="25" y="15" width="20" height="15" rx="4" fill="#FFE600" stroke="#121316" strokeWidth="2" />
-              {/* Drone Arms */}
-              <line x1="0" y1="0" x2="70" y2="40" stroke="#6C5CE7" strokeWidth="3" />
-              <line x1="0" y1="40" x2="70" y2="0" stroke="#6C5CE7" strokeWidth="3" />
-              {/* Spinning Rotors */}
-              <ellipse cx="0" cy="0" rx="14" ry="4" fill="#00D2D3" opacity="0.8" />
-              <ellipse cx="70" cy="0" rx="14" ry="4" fill="#00D2D3" opacity="0.8" />
-              <ellipse cx="0" cy="40" rx="14" ry="4" fill="#00D2D3" opacity="0.8" />
-              <ellipse cx="70" cy="40" rx="14" ry="4" fill="#00D2D3" opacity="0.8" />
-              {/* Blinking Signal Beacon */}
-              <circle cx="35" cy="22" r="3" fill="#FF4757" className="animate-ping" />
-            </g>
+          {/* Large Vibrant Illustrated Scene */}
+          <div className="relative w-full aspect-[16/10] bg-[#FAF7F0] rounded-2xl border-3 border-[#121316] p-4 flex items-center justify-center overflow-hidden mb-4 shadow-inner">
+            <svg viewBox="0 0 320 200" fill="none" className="w-full h-full">
+              {/* 3D Printer Enclosure */}
+              <g transform="translate(45, 20)">
+                <rect x="0" y="0" width="130" height="155" rx="14" fill="#121316" stroke="#121316" strokeWidth="3" />
+                <rect x="10" y="15" width="110" height="125" rx="8" fill="#E1DCFF" />
+                
+                {/* Dual Gantry Rails */}
+                <line x1="25" y1="25" x2="25" y2="125" stroke="#7F8C8D" strokeWidth="4" />
+                <line x1="105" y1="25" x2="105" y2="125" stroke="#7F8C8D" strokeWidth="4" />
+                
+                {/* Heated Bed */}
+                <rect x="25" y="110" width="80" height="14" rx="3" fill="#FF7675" stroke="#121316" strokeWidth="1.5" />
+                
+                {/* Printed Figurine Robot Part */}
+                <polygon points="65,75 85,110 45,110" fill="#FFE600" stroke="#121316" strokeWidth="2" />
+                
+                {/* Extruder Gantry & Hotend */}
+                <rect x="50" y="55" width="30" height="20" rx="4" fill="#0984E3" stroke="#121316" strokeWidth="2" />
+                <polygon points="62,75 68,75 65,82" fill="#FF7675" />
+                <circle cx="65" cy="85" r="5" fill="#FF4757" className="animate-ping" />
 
-            {/* Radio Signal Waves radiating from drone */}
-            <path d="M 370 20 Q 400 5 430 20" stroke="#2ED573" strokeWidth="2" strokeDasharray="3 3" fill="none" opacity="0.8" />
-            <path d="M 355 10 Q 400 -10 445 10" stroke="#2ED573" strokeWidth="2" strokeDasharray="3 3" fill="none" opacity="0.6" />
-          </g>
+                {/* Top Filament Spool */}
+                <circle cx="65" cy="-8" r="18" fill="#2ED573" stroke="#121316" strokeWidth="3" />
+                <circle cx="65" cy="-8" r="6" fill="#FFFFFF" />
+              </g>
 
-        </svg>
-      </div>
+              {/* SMD Soldering Station on Right */}
+              <g transform="translate(200, 45)">
+                {/* Soldering Base Station Unit */}
+                <rect x="0" y="45" width="75" height="55" rx="10" fill="#E67E22" stroke="#121316" strokeWidth="3" />
+                <rect x="10" y="55" width="55" height="22" rx="4" fill="#121316" />
+                <text x="37" y="71" fontFamily="monospace" fontSize="12" fontWeight="900" textAnchor="middle" fill="#FFE600">350°C</text>
+                
+                {/* Soldering Iron Handle & Tip */}
+                <line x1="20" y1="35" x2="55" y2="-10" stroke="#121316" strokeWidth="8" strokeLinecap="round" />
+                <line x1="20" y1="35" x2="55" y2="-10" stroke="#00D2D3" strokeWidth="4" strokeLinecap="round" />
+                <line x1="55" y1="-10" x2="68" y2="-25" stroke="#F1C40F" strokeWidth="3" />
+                
+                {/* Smoke Curling Up */}
+                <path d="M 68 -28 Q 62 -45 75 -58" stroke="#7F8C8D" strokeWidth="2.5" strokeLinecap="round" fill="none" className="animate-pulse" />
 
-      {/* Domain Quick Select Pills at bottom */}
-      <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-center gap-2 relative z-10">
-        {[
-          { id: 'robotics', label: '🤖 Robotics & ROS', color: 'hover:bg-[#FFE600] hover:text-[#121316]' },
-          { id: 'ai', label: '👁️ AI & Vision', color: 'hover:bg-[#00D2D3] hover:text-[#121316]' },
-          { id: 'iot', label: '📡 IoT & Drone Mesh', color: 'hover:bg-[#2ED573] hover:text-[#121316]' },
-          { id: 'prototyping', label: '🖨️ Rapid Prototyping', color: 'hover:bg-[#FF6B6B] hover:text-white]' },
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onDomainSelect(item.id as LabDomain)}
-            className={`px-4 py-2 rounded-full font-mono text-xs font-black transition-all cursor-pointer border-2 ${
-              activeDomain === item.id
-                ? 'bg-[#FFE600] text-[#121316] border-[#FFE600] shadow-pop-sm scale-105'
-                : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+                {/* PCB Board on Bench */}
+                <rect x="-10" y="115" width="95" height="15" rx="3" fill="#27AE60" stroke="#121316" strokeWidth="2" />
+                <circle cx="10" cy="122" r="3" fill="#FFE600" />
+                <circle cx="30" cy="122" r="3" fill="#FFE600" />
+                <circle cx="50" cy="122" r="3" fill="#FFE600" />
+              </g>
+            </svg>
+
+            {/* Sticker */}
+            <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-white rounded-lg border-2 border-[#121316] text-[10px] font-mono font-black shadow-pop-sm">
+              🔥 COREXY 500MM/S + SMD REWORK
+            </div>
+          </div>
+
+          <p className="text-xs sm:text-sm font-bold text-gray-700">
+            High-speed rapid prototyping with Bambu CoreXY 3D printers and precision Hakko SMD rework tools.
+          </p>
+        </div>
+
+
+        {/* ========================================================= */}
+        {/* STATION 4: IOT & DRONE MESH */}
+        {/* ========================================================= */}
+        <div
+          onClick={() => onDomainSelect('iot')}
+          className={`group relative p-6 sm:p-8 rounded-[36px] border-4 border-[#121316] transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+            activeDomain === 'iot'
+              ? 'bg-[#E8F5E9] shadow-pop-xl ring-4 ring-[#2ED573] -translate-y-1.5'
+              : 'bg-white shadow-pop-md hover:shadow-pop-lg hover:-translate-y-1'
+          }`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="px-3 py-1 rounded-full bg-[#2ED573] text-[#121316] font-mono font-black text-xs uppercase border-2 border-[#121316]">
+              🛸 IOT & DRONE TESTBED
+            </span>
+            <span className="text-xs font-mono font-bold text-gray-500">
+              {activeDomain === 'iot' ? '● MESH LINKED' : 'BENCH #04'}
+            </span>
+          </div>
+
+          {/* Large Vibrant Illustrated Scene */}
+          <div className="relative w-full aspect-[16/10] bg-[#FAF7F0] rounded-2xl border-3 border-[#121316] p-4 flex items-center justify-center overflow-hidden mb-4 shadow-inner">
+            <svg viewBox="0 0 320 200" fill="none" className="w-full h-full">
+              
+              {/* Radio wave telemetry arcs */}
+              <circle cx="160" cy="80" r="50" stroke="#2ED573" strokeWidth="2" strokeDasharray="5 5" opacity="0.6" className="animate-ping" />
+              <circle cx="160" cy="80" r="85" stroke="#2ED573" strokeWidth="1.5" strokeDasharray="6 6" opacity="0.4" />
+
+              {/* Floating Quadcopter Drone */}
+              <g transform="translate(115, 45)" className="animate-float-slow">
+                {/* Central Carbon Body */}
+                <rect x="30" y="20" width="30" height="25" rx="8" fill="#121316" stroke="#121316" strokeWidth="2" />
+                <circle cx="45" cy="32" r="6" fill="#FFE600" />
+                
+                {/* 4 Carbon Arms */}
+                <line x1="0" y1="0" x2="90" y2="60" stroke="#6C5CE7" strokeWidth="6" strokeLinecap="round" />
+                <line x1="0" y1="60" x2="90" y2="0" stroke="#6C5CE7" strokeWidth="6" strokeLinecap="round" />
+                
+                {/* Spinning Cyan Rotor Blurs */}
+                <ellipse cx="0" cy="0" rx="20" ry="6" fill="#00D2D3" opacity="0.9" stroke="#121316" strokeWidth="1.5" />
+                <ellipse cx="90" cy="0" rx="20" ry="6" fill="#00D2D3" opacity="0.9" stroke="#121316" strokeWidth="1.5" />
+                <ellipse cx="0" cy="60" rx="20" ry="6" fill="#00D2D3" opacity="0.9" stroke="#121316" strokeWidth="1.5" />
+                <ellipse cx="90" cy="60" rx="20" ry="6" fill="#00D2D3" opacity="0.9" stroke="#121316" strokeWidth="1.5" />
+
+                {/* Strobe Beacon */}
+                <circle cx="45" cy="20" r="4" fill="#FF4757" className="animate-ping" />
+              </g>
+
+              {/* LoRa Mesh Antenna & Solar Node on Bottom Left */}
+              <g transform="translate(35, 120)">
+                <rect x="0" y="20" width="50" height="35" rx="6" fill="#34495E" stroke="#121316" strokeWidth="2" />
+                <line x1="25" y1="20" x2="25" y2="-15" stroke="#121316" strokeWidth="3" strokeLinecap="round" />
+                <circle cx="25" cy="-18" r="5" fill="#FFE600" />
+                {/* Solar Cell Mini */}
+                <polygon points="0,20 20,5 50,5 30,20" fill="#2980B9" stroke="#121316" strokeWidth="1.5" />
+              </g>
+
+              {/* ESP32 Breadboard Node on Bottom Right */}
+              <g transform="translate(225, 130)">
+                <rect x="0" y="10" width="65" height="30" rx="4" fill="#FFFFFF" stroke="#121316" strokeWidth="2" />
+                <rect x="15" y="18" width="35" height="15" rx="2" fill="#121316" />
+                <circle cx="5" cy="25" r="2.5" fill="#2ED573" className="animate-pulse" />
+                <circle cx="58" cy="25" r="2.5" fill="#FF4757" />
+              </g>
+
+            </svg>
+
+            {/* Sticker */}
+            <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-[#2ED573] text-[#121316] rounded-lg border-2 border-[#121316] text-[10px] font-mono font-black shadow-pop-sm">
+              📡 LORAWAN 1.2KM + ESP32 MESH
+            </div>
+          </div>
+
+          <p className="text-xs sm:text-sm font-bold text-gray-700">
+            Autonomous quadcopter waypoint flight testing arena and solar-powered campus environmental sensing mesh.
+          </p>
+        </div>
+
       </div>
 
     </div>
