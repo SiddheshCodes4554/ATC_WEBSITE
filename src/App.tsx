@@ -67,8 +67,11 @@ export const App: React.FC = () => {
           {/* ============================================================= */}
           {/* PROTECTED ADMIN ROUTES (Appwrite Admin Session Required)       */}
           {/* ============================================================= */}
-          <Route path="/admin" element={<ProtectedRoute><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
-          <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+          </Route>
 
           {/* Fallback route */}
           <Route path="*" element={<PublicLayout><HomePage /></PublicLayout>} />
