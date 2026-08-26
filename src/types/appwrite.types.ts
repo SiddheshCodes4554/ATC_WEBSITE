@@ -49,31 +49,7 @@ export interface AdminProfileDocument extends AppwriteBaseDocument {
 /* ========================================================================== */
 /* EVENTS SCHEMA                                                              */
 /* ========================================================================== */
-export type EventCategory = 'Hackathons' | 'Workshops' | 'Tech Talks' | 'Competitions' | 'Experiences';
-export type EventStatus = 'draft' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
-
-export interface EventDocument extends AppwriteBaseDocument {
-  title: string;
-  slug: string;
-  category: EventCategory;
-  status: EventStatus;
-  date: string;
-  time?: string;
-  venue: string;
-  description: string;
-  tagline?: string;
-  cover_image_id?: string;
-  gallery_image_ids?: string[];
-  max_capacity?: number;
-  current_registrations?: number;
-  registration_open: boolean;
-  organized_by?: string;
-  tags?: string[];
-  requirements?: string[];
-  schedule?: string; // JSON stringified schedule items
-  stats?: string; // JSON stringified event metrics
-  featured?: boolean;
-}
+export type { EventStatus, EventType, ATCEvent, EventDocument, CreateEventInput, UpdateEventInput } from './event.types';
 
 /* ========================================================================== */
 /* REGISTRATIONS SCHEMA                                                       */
