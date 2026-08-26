@@ -1,6 +1,5 @@
 import { ID, Query } from 'appwrite';
-import { databases } from '../lib/appwrite/client';
-import { APPWRITE_CONFIG, isAppwriteReady } from '../lib/appwrite/config';
+import { databases, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 import {
   EventDocument,
   RegistrationDocument,

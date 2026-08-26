@@ -1,6 +1,5 @@
 import { ID, ImageGravity, ImageFormat } from 'appwrite';
-import { storage } from '../lib/appwrite/client';
-import { APPWRITE_CONFIG, isAppwriteReady } from '../lib/appwrite/config';
+import { storage, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 import { AppwriteFileMetadata, ServiceResponse } from '../types/appwrite.types';
 import { createPublicReadAdminWritePermissions } from '../lib/appwrite/permissions';
 

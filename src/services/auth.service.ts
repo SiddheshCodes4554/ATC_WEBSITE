@@ -1,6 +1,5 @@
 import { ID, Models, Query } from 'appwrite';
-import { account, databases } from '../lib/appwrite/client';
-import { APPWRITE_CONFIG, isAppwriteReady } from '../lib/appwrite/config';
+import { account, databases, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 import { AdminProfileDocument, AdminRole, ServiceResponse } from '../types/appwrite.types';
 import { createAdminOnlyPermissions, hasAdminPrivilege } from '../lib/appwrite/permissions';
 

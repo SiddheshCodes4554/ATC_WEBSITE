@@ -1,6 +1,5 @@
 import { ExecutionMethod } from 'appwrite';
-import { functions } from '../lib/appwrite/client';
-import { APPWRITE_CONFIG, isAppwriteReady } from '../lib/appwrite/config';
+import { functions, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 import { ServiceResponse } from '../types/appwrite.types';
 
 /**

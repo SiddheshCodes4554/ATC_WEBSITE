@@ -1,5 +1,4 @@
-import { client } from '../lib/appwrite/client';
-import { APPWRITE_CONFIG, isAppwriteReady } from '../lib/appwrite/config';
+import { client, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 
 /**
  * ============================================================================

@@ -1,5 +1,5 @@
 import { Permission, Role } from 'appwrite';
-import { APPWRITE_CONFIG } from './config';
+import { APPWRITE_CONFIG } from '../../services/appwrite';
 import { AdminRole } from '../../types/appwrite.types';
 
 /**
