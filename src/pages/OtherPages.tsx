@@ -1,18 +1,11 @@
 import React from 'react';
 import { PlaceholderPage } from './PlaceholderPage';
 
-export const ProjectsPage: React.FC = () => (
-  <PlaceholderPage 
-    title="OUR PROJECTS" 
-    subtitle="From Ideas to Prototypes to Real Impact. Robotics, AI, Web3 & Edge Computing." 
-    nextUp={true}
-  />
-);
-
 export const LabPage: React.FC = () => (
   <PlaceholderPage 
     title="ATC 5.0 LAB" 
     subtitle="Where Ideas Become Hardware. Rapid Prototyping, ROS, and PCB Stations." 
+    nextUp={true}
   />
 );
 
