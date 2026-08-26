@@ -13,6 +13,8 @@ import { GalleryPage } from './pages/GalleryPage';
 import { JoinPage } from './pages/JoinPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminEventsPage } from './pages/admin/AdminEventsPage';
+import { AdminCreateEventPage } from './pages/admin/AdminCreateEventPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { PartyModeEasterEgg } from './components/common/PartyModeEasterEgg';
@@ -70,6 +72,8 @@ export const App: React.FC = () => {
           <Route path="/admin" element={<ProtectedRoute />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="events" element={<AdminEventsPage />} />
+            <Route path="events/create" element={<AdminCreateEventPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
 

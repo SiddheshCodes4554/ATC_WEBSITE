@@ -31,7 +31,8 @@ export const AdminDashboardPage: React.FC = () => {
       icon: <Calendar className="w-6 h-6 text-[#121316]" />,
       badge: 'EVENTS',
       color: 'bg-[#FFF9DB]',
-      linkText: 'Events Module ↗',
+      linkText: 'Open Events ↗',
+      path: '/admin/events',
     },
     {
       title: 'Participant Registrations',
@@ -200,6 +201,14 @@ export const AdminDashboardPage: React.FC = () => {
                       <span>{mod.linkText}</span>
                       <ArrowUpRight className="w-3.5 h-3.5 stroke-[3]" />
                     </a>
+                  ) : mod.path ? (
+                    <Link
+                      to={mod.path}
+                      className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7]"
+                    >
+                      <span>{mod.linkText}</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 stroke-[3]" />
+                    </Link>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-gray-500">
                       <span>Ready for Backend Sync</span>

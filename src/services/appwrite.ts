@@ -25,7 +25,7 @@ export const APPWRITE_CONFIG = {
 
   COLLECTIONS: {
     ADMIN_PROFILES: import.meta.env.VITE_APPWRITE_COLLECTION_ADMIN_PROFILES || 'admin_profiles',
-    EVENTS: import.meta.env.VITE_APPWRITE_COLLECTION_EVENTS || 'events',
+    EVENTS: import.meta.env.VITE_APPWRITE_TABLE_EVENTS || import.meta.env.VITE_APPWRITE_COLLECTION_EVENTS || 'events',
     REGISTRATIONS: import.meta.env.VITE_APPWRITE_COLLECTION_REGISTRATIONS || 'registrations',
     TEAM_MEMBERS: import.meta.env.VITE_APPWRITE_COLLECTION_TEAM_MEMBERS || 'team_members',
     PROJECTS: import.meta.env.VITE_APPWRITE_COLLECTION_PROJECTS || 'projects',
