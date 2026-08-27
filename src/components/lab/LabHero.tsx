@@ -54,12 +54,12 @@ export const LabHero: React.FC<LabHeroProps> = ({ activeDomain, onDomainSelect }
           {/* Quick Action CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <PlayfulButton
-              href="#lab-status"
+              to="/lab-access"
               variant="primary"
               size="md"
               icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
             >
-              Lab Status (72%)
+              Book Lab Slot
             </PlayfulButton>
 
             <PlayfulButton

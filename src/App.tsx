@@ -25,6 +25,8 @@ import { AdminProjectsPage } from './pages/admin/AdminProjectsPage';
 import { AdminCreateProjectPage } from './pages/admin/AdminCreateProjectPage';
 import { AdminEditProjectPage } from './pages/admin/AdminEditProjectPage';
 import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
+import { AdminLabPage } from './pages/admin/AdminLabPage';
+import { LabAccessPage } from './pages/LabAccessPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { PartyModeEasterEgg } from './components/common/PartyModeEasterEgg';
@@ -69,6 +71,7 @@ export const App: React.FC = () => {
           <Route path="/projects" element={<PublicLayout><ProjectsPage /></PublicLayout>} />
           <Route path="/projects/:slug" element={<PublicLayout><ProjectDetailsPage /></PublicLayout>} />
           <Route path="/lab" element={<PublicLayout><LabPage /></PublicLayout>} />
+          <Route path="/lab-access" element={<PublicLayout><LabAccessPage /></PublicLayout>} />
           <Route path="/team" element={<PublicLayout><TeamPage /></PublicLayout>} />
           <Route path="/gallery" element={<PublicLayout><GalleryPage /></PublicLayout>} />
           <Route path="/join" element={<PublicLayout><JoinPage /></PublicLayout>} />
@@ -97,6 +100,7 @@ export const App: React.FC = () => {
             <Route path="projects/:id/edit" element={<AdminEditProjectPage />} />
             <Route path="projects/edit/:id" element={<AdminEditProjectPage />} />
             <Route path="gallery" element={<AdminGalleryPage />} />
+            <Route path="lab" element={<AdminLabPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
 

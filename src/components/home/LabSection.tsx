@@ -75,19 +75,19 @@ export const LabSection: React.FC = () => {
             {/* Interactive Explore CTA Button */}
             <div className="pt-2 flex flex-wrap items-center gap-4">
               <PlayfulButton
-                to="/lab"
+                to="/lab-access"
                 variant="primary"
                 size="lg"
                 icon={<ArrowUpRight className="w-5 h-5 text-[#121316] stroke-[3]" />}
               >
-                Explore the Lab
+                Book Lab Slot
               </PlayfulButton>
 
               <Link
-                to="/projects"
+                to="/lab"
                 className="px-5 py-3 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-md border-2 border-white/20 text-xs font-mono font-bold text-white shadow-pop-sm transition-all hover:scale-105"
               >
-                <span>View Hardware Projects ↗</span>
+                <span>Explore Lab 5.0 ↗</span>
               </Link>
             </div>
           </div>

@@ -14,7 +14,8 @@ import {
   ArrowUpRight,
   Plus,
   Ticket,
-  ChevronRight
+  ChevronRight,
+  Clock,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -76,6 +77,16 @@ export const AdminDashboardPage: React.FC = () => {
       color: 'bg-[#E8F5E9]',
       linkText: 'Manage Gallery',
       path: '/admin/gallery',
+      isInternal: true,
+    },
+    {
+      title: 'Lab Access & Slots',
+      desc: 'Create time blocks, review maker requests, manage capacity, and supervise auto-promoting waitlists.',
+      icon: <Clock className="w-6 h-6 text-[#121316]" />,
+      badge: 'LAB 5.0',
+      color: 'bg-[#FFF9DB]',
+      linkText: 'Manage Lab Slots',
+      path: '/admin/lab',
       isInternal: true,
     },
     {
@@ -199,6 +210,14 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <Image className="w-3.5 h-3.5" />
               <span>Manage Gallery</span>
+            </Link>
+
+            <Link
+              to="/admin/lab"
+              className="px-5 py-2.5 rounded-full bg-[#FFF9DB] hover:bg-[#FFF3B0] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Lab Slots</span>
             </Link>
           </div>
 

@@ -34,6 +34,8 @@ export const APPWRITE_CONFIG = {
     PROJECTS: import.meta.env.VITE_APPWRITE_COLLECTION_PROJECTS || 'projects',
     EVENT_GALLERY: import.meta.env.VITE_APPWRITE_COLLECTION_EVENT_GALLERY || 'event_gallery',
     GALLERY: import.meta.env.VITE_APPWRITE_COLLECTION_GALLERY || 'gallery',
+    LAB_SLOTS: import.meta.env.VITE_APPWRITE_COLLECTION_LAB_SLOTS || 'lab_slots',
+    LAB_REQUESTS: import.meta.env.VITE_APPWRITE_COLLECTION_LAB_REQUESTS || 'lab_requests',
     WEBSITE_CONTENT: import.meta.env.VITE_APPWRITE_COLLECTION_WEBSITE_CONTENT || 'website_content',
   },
 
