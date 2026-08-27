@@ -9,7 +9,8 @@ import {
   FormFieldInput,
 } from '../types/form.types';
 import { EventService } from './eventService';
-import { CreateEventInput, ATCEvent, EventServiceResult } from '../types/event.types';
+import { StorageService } from './storage.service';
+import { CreateEventInput, UpdateEventInput, ATCEvent, EventServiceResult } from '../types/event.types';
 
 /**
  * ============================================================================
@@ -257,6 +258,160 @@ export class FormService {
       success: true,
       data: createdEvent,
     };
+  }
+
+  /**
+   * Unified Master Coordinator: Updates Event + Form + Form Fields in one clean sequence
+   */
+  static async updateCompleteEvent(
+    eventId: string,
+    eventInput: UpdateEventInput,
+    formFields?: FormFieldInput[],
+    formTitle?: string,
+    formDescription?: string
+  ): Promise<EventServiceResult<ATCEvent>> {
+    // 1. Update event document
+    const eventResult = await EventService.updateEvent(eventId, eventInput);
+    if (!eventResult.success || !eventResult.data) {
+      return eventResult;
+    }
+
+    const updatedEvent = eventResult.data;
+
+    // 2. If registration is enabled, sync form and fields
+    if (eventInput.registrationEnabled && formFields) {
+      try {
+        // Check for existing form
+        const existingFormRes = await databases.listDocuments<EventFormDocument>(
+          this.databaseId,
+          this.formCollectionId,
+          [Query.equal('eventId', eventId), Query.limit(1)]
+        );
+
+        let formId: string;
+        if (existingFormRes.documents.length > 0) {
+          formId = existingFormRes.documents[0].$id;
+          // Update form document
+          await databases.updateDocument(this.databaseId, this.formCollectionId, formId, {
+            title: formTitle || `${updatedEvent.title} Registration`,
+            description: formDescription || 'Please fill in your details to register.',
+            isActive: true,
+          });
+
+          // Delete previous form_fields
+          try {
+            const oldFields = await databases.listDocuments<FormFieldDocument>(
+              this.databaseId,
+              this.fieldsCollectionId,
+              [Query.equal('formId', formId), Query.limit(100)]
+            );
+            for (const oldField of oldFields.documents) {
+              await databases.deleteDocument(this.databaseId, this.fieldsCollectionId, oldField.$id);
+            }
+          } catch (delErr) {
+            console.warn('[FormService] Could not clear old fields:', delErr);
+          }
+        } else {
+          // Create new form
+          formId = ID.unique();
+          await databases.createDocument(
+            this.databaseId,
+            this.formCollectionId,
+            formId,
+            {
+              eventId: eventId,
+              title: formTitle || `${updatedEvent.title} Registration`,
+              description: formDescription || 'Please fill in your details to register.',
+              isActive: true,
+            },
+            this.getStandardPermissions()
+          );
+        }
+
+        // Re-create form_fields
+        for (let i = 0; i < formFields.length; i++) {
+          const field = formFields[i];
+          const fieldId = ID.unique();
+          const optionsString = field.options && field.options.length > 0 ? JSON.stringify(field.options) : '';
+
+          try {
+            await databases.createDocument(
+              this.databaseId,
+              this.fieldsCollectionId,
+              fieldId,
+              {
+                formId: formId,
+                label: field.label.trim(),
+                fieldType: field.fieldType,
+                placeholder: field.placeholder?.trim() || '',
+                required: Boolean(field.required),
+                options: optionsString,
+                position: field.position ?? i,
+              },
+              this.getStandardPermissions()
+            );
+          } catch (fErr) {
+            console.warn('[FormService] Notice: Could not save updated form field:', fErr);
+          }
+        }
+      } catch (formErr) {
+        console.warn('[FormService] Notice: Error syncing registration form on event update:', formErr);
+      }
+    }
+
+    return {
+      success: true,
+      data: updatedEvent,
+    };
+  }
+
+  /**
+   * Unified Master Coordinator: Deletes Event + associated cover image + Form + Form Fields
+   */
+  static async deleteCompleteEvent(
+    eventId: string,
+    coverImageId?: string | null
+  ): Promise<EventServiceResult<void>> {
+    // 1. Delete cover image from storage if present
+    if (coverImageId) {
+      try {
+        await StorageService.deleteEventImage(coverImageId);
+      } catch (imgErr) {
+        console.warn('[FormService] Could not delete event cover image:', imgErr);
+      }
+    }
+
+    // 2. Delete event_forms & form_fields
+    try {
+      const formResponse = await databases.listDocuments<EventFormDocument>(
+        this.databaseId,
+        this.formCollectionId,
+        [Query.equal('eventId', eventId), Query.limit(10)]
+      );
+
+      for (const formDoc of formResponse.documents) {
+        // Delete form_fields
+        try {
+          const fieldsResponse = await databases.listDocuments<FormFieldDocument>(
+            this.databaseId,
+            this.fieldsCollectionId,
+            [Query.equal('formId', formDoc.$id), Query.limit(100)]
+          );
+          for (const fieldDoc of fieldsResponse.documents) {
+            await databases.deleteDocument(this.databaseId, this.fieldsCollectionId, fieldDoc.$id);
+          }
+        } catch (fErr) {
+          console.warn('[FormService] Could not delete form fields:', fErr);
+        }
+
+        await databases.deleteDocument(this.databaseId, this.formCollectionId, formDoc.$id);
+      }
+    } catch (formErr) {
+      console.warn('[FormService] Could not delete associated event form:', formErr);
+    }
+
+    // 3. Delete event document
+    return EventService.deleteEvent(eventId);
   }
 }
 
