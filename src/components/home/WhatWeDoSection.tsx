@@ -128,14 +128,14 @@ export const WhatWeDoSection: React.FC = () => {
 
   return (
     <section className="relative bg-[#FAF7F0] py-20 paper-pattern border-b-4 border-[#121316] overflow-hidden">
-      
+
       {/* Decorative Doodles */}
       <div className="absolute top-10 right-12 opacity-50 pointer-events-none hidden md:block">
         <SparkleDoodle className="w-10 h-10" color="#FFD32A" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="flex flex-col items-center text-center mb-16">
           <div className="relative inline-block">
@@ -167,11 +167,9 @@ export const WhatWeDoSection: React.FC = () => {
                 key={pillar.title}
                 onMouseEnter={() => setHoveredIndex(idx)}
                 onMouseLeave={() => setHoveredIndex(null)}
-                className={`group relative p-6 border-3 border-[#121316] transition-all duration-200 cursor-pointer ${
-                  pillar.bg
-                } ${pillar.shape} ${pillar.rotation} ${
-                  isHovered ? 'shadow-pop-xl -translate-y-3 scale-105 z-20' : 'shadow-pop hover:shadow-pop-lg'
-                }`}
+                className={`group relative p-6 border-3 border-[#121316] transition-all duration-200 cursor-pointer ${pillar.bg
+                  } ${pillar.shape} ${pillar.rotation} ${isHovered ? 'shadow-pop-xl -translate-y-3 scale-105 z-20' : 'shadow-pop hover:shadow-pop-lg'
+                  }`}
               >
                 {/* Top Icon and Stat Tag */}
                 <div className="flex items-center justify-between mb-5">
@@ -196,9 +194,8 @@ export const WhatWeDoSection: React.FC = () => {
                 </p>
 
                 {/* Hidden Easter Egg Detail revealed on hover */}
-                <div className={`mt-4 pt-3 border-t-2 border-[#121316]/20 text-xs font-hand font-bold text-[#121316] transition-opacity duration-200 ${
-                  isHovered ? 'opacity-100' : 'opacity-75 sm:opacity-0'
-                }`}>
+                <div className={`mt-4 pt-3 border-t-2 border-[#121316]/20 text-xs font-hand font-bold text-[#121316] transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-75 sm:opacity-0'
+                  }`}>
                   <span className="flex items-center gap-1">
                     {pillar.hiddenDetail}
                   </span>
@@ -206,15 +203,6 @@ export const WhatWeDoSection: React.FC = () => {
               </div>
             );
           })}
-        </div>
-
-        {/* Friday Demo Banner Callout */}
-        <div className="mt-12 flex justify-center">
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-[#FFE600] border-3 border-[#121316] shadow-pop font-extrabold text-xs sm:text-sm text-[#121316]">
-            <span>💡</span>
-            <span>Weekly Open Demos: Every Friday 5:00 PM in Lab 502</span>
-            <span className="font-mono text-xs bg-black text-white px-2.5 py-0.5 rounded-md">NIAT Pune</span>
-          </div>
         </div>
 
       </div>
