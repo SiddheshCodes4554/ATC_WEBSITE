@@ -214,12 +214,25 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           </span>
         </div>
 
-        {/* Large Expressive Vector Illustration Showcase */}
+        {/* Large Expressive Vector Illustration / Cover Image Showcase */}
         <Link to={`/events/${event.id}`} className="block">
-          <div className="p-4 bg-white/80 rounded-2xl border-3 border-[#121316] shadow-inner mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-            <div className="w-full max-w-[260px]">
-              {event.illustration}
-            </div>
+          <div className="rounded-2xl border-3 border-[#121316] shadow-inner mb-6 overflow-hidden bg-white/80 group-hover:scale-105 transition-transform duration-300">
+            {event.coverImageUrl ? (
+              <img
+                src={event.coverImageUrl}
+                alt={event.title}
+                className="w-full h-44 object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                }}
+              />
+            ) : (
+              <div className="p-4 flex items-center justify-center">
+                <div className="w-full max-w-[260px]">
+                  {event.illustration}
+                </div>
+              </div>
+            )}
           </div>
         </Link>
 

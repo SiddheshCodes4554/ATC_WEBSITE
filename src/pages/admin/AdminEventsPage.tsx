@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { EventService } from '../../services/eventService';
+import { StorageService } from '../../services/storage.service';
 import { ATCEvent, EventStatus } from '../../types/event.types';
 import { 
   Calendar, 
@@ -280,6 +281,19 @@ export const AdminEventsPage: React.FC = () => {
                       {getStatusBadge(evt.status)}
                     </div>
                   </div>
+
+                  {evt.coverImageId && (
+                    <div className="w-full h-32 rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 mb-2">
+                      <img
+                        src={StorageService.getEventCoverUrl(evt.coverImageId, 400)}
+                        alt={evt.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget.parentElement as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
 
                   <h3 className="text-xl font-black text-[#121316] tracking-tight leading-tight line-clamp-2">
                     {evt.title}

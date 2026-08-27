@@ -4,6 +4,7 @@ import { EventCard, WorstUIUXIllustration, GitHubGSoCIllustration, BlockchainIll
 import { EventItem } from '../components/events/EventDetailsModal';
 import { UpcomingTeaser } from '../components/events/UpcomingTeaser';
 import { EventService } from '../services/eventService';
+import { StorageService } from '../services/storage.service';
 import { ATCEvent } from '../types/event.types';
 import { Sparkles, Calendar, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -175,6 +176,8 @@ export const EventsPage: React.FC = () => {
       cancelled: 'Cancelled',
     };
 
+    const coverUrl = evt.coverImageId ? StorageService.getEventCoverUrl(evt.coverImageId, 600) : '';
+
     return {
       id: evt.slug, // Use unique slug as routing key
       title: evt.title,
@@ -198,6 +201,7 @@ export const EventsPage: React.FC = () => {
       ],
       color: 'bg-white',
       badgeBg: 'bg-[#6C5CE7]',
+      coverImageUrl: coverUrl,
       illustration: (
         <div className="w-full h-32 rounded-xl flex items-center justify-center border-2 border-[#121316] shadow-pop-sm" style={{ backgroundColor: evt.accentColor || '#FFE600' }}>
           <Calendar className="w-12 h-12 text-[#121316]" />

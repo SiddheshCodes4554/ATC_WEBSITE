@@ -81,12 +81,20 @@ export class StorageService {
 
   static getEventCoverUrl(fileId?: string, width = 800): string {
     if (!fileId) return '';
-    return this.getFilePreviewUrl(APPWRITE_CONFIG.BUCKETS.EVENT_COVERS, fileId, { width });
+    if (fileId.startsWith('http://') || fileId.startsWith('https://') || fileId.startsWith('data:')) {
+      return fileId;
+    }
+    return this.getFilePreviewUrl(APPWRITE_CONFIG.BUCKETS.EVENT_COVERS, fileId, { width }) ||
+      this.getFileViewUrl(APPWRITE_CONFIG.BUCKETS.EVENT_COVERS, fileId);
   }
 
   static getGalleryImageUrl(fileId?: string, width = 600): string {
     if (!fileId) return '';
-    return this.getFilePreviewUrl(APPWRITE_CONFIG.BUCKETS.EVENT_GALLERY, fileId, { width });
+    if (fileId.startsWith('http://') || fileId.startsWith('https://') || fileId.startsWith('data:')) {
+      return fileId;
+    }
+    return this.getFilePreviewUrl(APPWRITE_CONFIG.BUCKETS.EVENT_GALLERY, fileId, { width }) ||
+      this.getFileViewUrl(APPWRITE_CONFIG.BUCKETS.EVENT_GALLERY, fileId);
   }
 
   static getTeamMemberAvatarUrl(fileId?: string, size = 300): string {

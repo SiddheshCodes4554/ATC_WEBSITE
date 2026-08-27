@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FormService } from '../../services/formService';
+import { StorageService } from '../../services/storage.service';
+import { APPWRITE_CONFIG } from '../../services/appwrite';
 import { EventStatus, EventType } from '../../types/event.types';
 import { FormFieldInput, FormFieldType } from '../../types/form.types';
 import { 
@@ -257,6 +259,24 @@ export const AdminCreateEventPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // 1. Upload Cover Image if provided
+      let finalCoverImageId: string | null = null;
+      if (coverImageFile) {
+        try {
+          const uploadRes = await StorageService.uploadFile(
+            APPWRITE_CONFIG.BUCKETS.EVENT_COVERS,
+            coverImageFile
+          );
+          if (uploadRes.success && uploadRes.data?.file_id) {
+            finalCoverImageId = uploadRes.data.file_id;
+          } else {
+            console.warn('[AdminCreateEventPage] Cover image upload notice:', uploadRes.error);
+          }
+        } catch (uploadErr) {
+          console.warn('[AdminCreateEventPage] Could not upload cover image to storage:', uploadErr);
+        }
+      }
+
       const isoStartDate = new Date(startDate).toISOString();
       const isoEndDate = endDate ? new Date(endDate).toISOString() : null;
       const isoDeadline = registrationDeadline ? new Date(registrationDeadline).toISOString() : null;
@@ -271,7 +291,7 @@ export const AdminCreateEventPage: React.FC = () => {
         startDate: isoStartDate,
         endDate: isoEndDate,
         venue: venue.trim(),
-        coverImageId: null, // Image upload ready for future storage step
+        coverImageId: finalCoverImageId,
         accentColor,
         featured,
         status: targetStatus,

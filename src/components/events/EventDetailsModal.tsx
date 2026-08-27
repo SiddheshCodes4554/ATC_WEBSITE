@@ -17,6 +17,7 @@ export interface EventItem {
   color: string;
   badgeBg: string;
   illustration: React.ReactNode;
+  coverImageUrl?: string;
 }
 
 interface EventDetailsModalProps {

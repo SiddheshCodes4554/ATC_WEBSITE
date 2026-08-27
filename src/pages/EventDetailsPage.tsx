@@ -52,6 +52,7 @@ export const EventDetailsPage: React.FC = () => {
   const [isLegacyArchive, setIsLegacyArchive] = useState<boolean>(false);
   const [legacyEventData, setLegacyEventData] = useState<any>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +64,7 @@ export const EventDetailsPage: React.FC = () => {
         return;
       }
 
+      setImageError(false);
       setLoading(true);
       setEvent(null);
       setEventForm(null);
@@ -284,12 +286,13 @@ export const EventDetailsPage: React.FC = () => {
           style={{ borderTopColor: accentColor, borderTopWidth: '10px' }}
         >
           {/* Cover Graphic / Visual Header */}
-          {coverUrl ? (
+          {coverUrl && !imageError ? (
             <div className="w-full h-64 sm:h-96 border-b-4 border-[#121316] bg-gray-100 overflow-hidden relative">
               <img
                 src={coverUrl}
                 alt={event.title}
                 className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
               />
             </div>
           ) : (
