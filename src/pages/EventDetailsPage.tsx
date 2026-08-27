@@ -119,6 +119,20 @@ export const EventDetailsPage: React.FC = () => {
                 previewUrl: g.imgUrl || '',
               }));
               if (isMounted) setGalleryImages(defaultWorstUiGallery);
+            } else if (loadedEvent.slug?.includes('git') || loadedEvent.$id?.includes('git')) {
+              const defaultGitGallery: EventGalleryImage[] = (eventsArchive['git-github-gsoc']?.gallery || []).map((g, idx) => ({
+                $id: `git-${idx}`,
+                eventId: loadedEvent.$id,
+                fileId: `git-${idx}`,
+                caption: g.caption,
+                displayOrder: idx,
+                isFeatured: idx === 0,
+                $createdAt: loadedEvent.$createdAt || new Date().toISOString(),
+                $updatedAt: loadedEvent.$updatedAt || new Date().toISOString(),
+                imageUrl: g.imgUrl || '',
+                previewUrl: g.imgUrl || '',
+              }));
+              if (isMounted) setGalleryImages(defaultGitGallery);
             }
           } catch (galleryErr) {
             console.warn('Notice: Gallery fetch error:', galleryErr);

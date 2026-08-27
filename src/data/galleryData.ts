@@ -47,13 +47,14 @@ export const galleryMemories: GalleryItem[] = [
   {
     id: 'mem-2',
     title: 'Git Merge Conflicts War',
-    caption: 'Git push. Panic. Repeat.',
+    caption: 'Live CLI debugging and upstream PRs in Tech Auditorium.',
     category: 'Workshops',
     format: 'screenshot',
     date: 'Feb 07, 2026',
     location: 'Tech Auditorium',
     rotation: 'rotate-1',
     svgSceneType: 'git-push-panic',
+    imgUrl: '/events/git-workshop-terminal-demo.jpg',
   },
   {
     id: 'mem-3',

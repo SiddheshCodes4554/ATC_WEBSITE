@@ -19,6 +19,7 @@ import {
   Sparkles 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { EventGalleryRenderer } from '../event-gallery/EventGalleryRenderer';
 
 export const TerminalExperience: React.FC<EventExperienceProps> = (props) => {
   const {
@@ -288,6 +289,15 @@ export const TerminalExperience: React.FC<EventExperienceProps> = (props) => {
 
         </div>
       </section>
+
+      {/* Terminal Themed Event Photo Gallery */}
+      {props.galleryImages && props.galleryImages.length > 0 && (
+        <EventGalleryRenderer
+          images={props.galleryImages}
+          visualTheme="terminal"
+          isCompleted={event.status === 'completed'}
+        />
+      )}
 
     </div>
   );
