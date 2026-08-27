@@ -27,13 +27,14 @@ export interface GalleryItem {
     | 'hackathon-podium'
     | 'drone-flight'
     | 'sticky-quote';
+  imgUrl?: string;
 }
 
 export const galleryMemories: GalleryItem[] = [
   {
     id: 'mem-1',
-    title: 'Worst UI/UX Madness',
-    caption: 'Someone definitely broke the UI.',
+    title: 'Worst UI/UX Squad',
+    caption: '80+ makers breaking every rule in NIAT Lab 5.0.',
     category: 'Events',
     format: 'polaroid',
     date: 'Dec 13, 2025',
@@ -41,6 +42,7 @@ export const galleryMemories: GalleryItem[] = [
     tapeColor: '#FFE600',
     rotation: '-rotate-2',
     svgSceneType: 'worst-ui-demo',
+    imgUrl: '/events/worst-ui-ux-group.jpg',
   },
   {
     id: 'mem-2',
@@ -67,8 +69,8 @@ export const galleryMemories: GalleryItem[] = [
   },
   {
     id: 'mem-4',
-    title: 'Backstage Operations',
-    caption: 'Behind every smooth event is organized chaos.',
+    title: 'Lab 5.0 Chaos & Cheering',
+    caption: 'When code breaks and everyone bursts into laughter.',
     category: 'Behind the Scenes',
     format: 'torn-paper',
     date: 'Dec 13, 2025',
@@ -76,6 +78,7 @@ export const galleryMemories: GalleryItem[] = [
     tapeColor: '#6C5CE7',
     rotation: 'rotate-2',
     svgSceneType: 'organized-chaos',
+    imgUrl: '/events/worst-ui-ux-cheering.jpg',
   },
   {
     id: 'mem-5',

@@ -3,6 +3,8 @@ import { GalleryItem } from '../../data/galleryData';
 import { X, ChevronLeft, ChevronRight, MapPin, Calendar, Sparkles } from 'lucide-react';
 import { MemoryVectorScene } from './ScrapbookMemoryCard';
 
+import { OptimizedImage } from '../common/OptimizedImage';
+
 interface GalleryLightboxModalProps {
   items: GalleryItem[];
   currentIndex: number | null;
@@ -79,9 +81,19 @@ export const GalleryLightboxModal: React.FC<GalleryLightboxModalProps> = ({
         className="relative w-full max-w-2xl bg-white rounded-[36px] border-4 border-[#121316] shadow-pop-xl p-6 sm:p-10 paper-pattern my-8"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Memory Vector Showcase */}
+        {/* Memory Photo / Vector Showcase */}
         <div className="relative mb-6">
-          <MemoryVectorScene type={currentItem.svgSceneType} />
+          {currentItem.imgUrl ? (
+            <div className="w-full max-h-[60vh] rounded-2xl border-3 border-[#121316] overflow-hidden bg-black flex items-center justify-center">
+              <OptimizedImage
+                src={currentItem.imgUrl}
+                alt={currentItem.title}
+                className="w-full h-auto max-h-[60vh] object-contain"
+              />
+            </div>
+          ) : (
+            <MemoryVectorScene type={currentItem.svgSceneType} />
+          )}
         </div>
 
         {/* Narrative Details */}

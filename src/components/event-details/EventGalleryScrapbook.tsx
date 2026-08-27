@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Camera, X, ChevronLeft, ChevronRight, Sparkles, ZoomIn } from 'lucide-react';
 import { GalleryPhoto } from '../../data/eventsData';
 import { SparkleDoodle } from '../doodles/DoodleSvgs';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 // Vector Art Scene for Gallery Polaroid Placeholders
 const GalleryVectorScene: React.FC<{ type: GalleryPhoto['svgSceneType']; title: string }> = ({ type, title }) => {
@@ -153,12 +154,23 @@ export const EventGalleryScrapbook: React.FC<EventGalleryScrapbookProps> = ({ ga
                 style={{ backgroundColor: photo.tapeColor || '#FFE600' }}
               />
 
-              {/* Photo Area with Vector Scene */}
+              {/* Photo Area: Real Image or Vector Scene */}
               <div className="relative mb-4">
-                <GalleryVectorScene type={photo.svgSceneType} title={photo.category} />
+                {photo.imgUrl ? (
+                  <div className="w-full aspect-[4/3] rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 relative">
+                    <OptimizedImage
+                      src={photo.imgUrl}
+                      alt={photo.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      containerClassName="w-full h-full"
+                    />
+                  </div>
+                ) : (
+                  <GalleryVectorScene type={photo.svgSceneType} title={photo.category} />
+                )}
                 
                 {/* Zoom in hover icon badge */}
-                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center text-white">
+                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white">
                   <div className="p-3 bg-[#FFE600] text-[#121316] rounded-full border-2 border-[#121316] shadow-pop-sm flex items-center gap-1 font-bold text-xs">
                     <ZoomIn className="w-4 h-4" /> View Fullscreen
                   </div>
@@ -226,10 +238,20 @@ export const EventGalleryScrapbook: React.FC<EventGalleryScrapbookProps> = ({ ga
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative mb-6">
-              <GalleryVectorScene 
-                type={gallery[lightboxIndex].svgSceneType} 
-                title={gallery[lightboxIndex].category} 
-              />
+              {gallery[lightboxIndex].imgUrl ? (
+                <div className="w-full max-h-[60vh] rounded-2xl border-3 border-[#121316] overflow-hidden bg-black flex items-center justify-center">
+                  <OptimizedImage
+                    src={gallery[lightboxIndex].imgUrl!}
+                    alt={gallery[lightboxIndex].title}
+                    className="w-full h-auto max-h-[60vh] object-contain"
+                  />
+                </div>
+              ) : (
+                <GalleryVectorScene 
+                  type={gallery[lightboxIndex].svgSceneType} 
+                  title={gallery[lightboxIndex].category} 
+                />
+              )}
             </div>
 
             <div className="space-y-2 text-center">

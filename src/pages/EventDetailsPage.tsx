@@ -105,6 +105,20 @@ export const EventDetailsPage: React.FC = () => {
                 previewUrl: StorageService.getEventImageUrl(fileId, 800),
               }));
               if (isMounted) setGalleryImages(fallbackItems);
+            } else if (loadedEvent.slug?.includes('worst-ui') || loadedEvent.$id?.includes('worst-ui')) {
+              const defaultWorstUiGallery: EventGalleryImage[] = (eventsArchive['worst-ui-ux']?.gallery || []).map((g, idx) => ({
+                $id: `worst-ui-${idx}`,
+                eventId: loadedEvent.$id,
+                fileId: `worst-ui-${idx}`,
+                caption: g.caption,
+                displayOrder: idx,
+                isFeatured: idx === 0,
+                $createdAt: loadedEvent.$createdAt || new Date().toISOString(),
+                $updatedAt: loadedEvent.$updatedAt || new Date().toISOString(),
+                imageUrl: g.imgUrl || '',
+                previewUrl: g.imgUrl || '',
+              }));
+              if (isMounted) setGalleryImages(defaultWorstUiGallery);
             }
           } catch (galleryErr) {
             console.warn('Notice: Gallery fetch error:', galleryErr);
@@ -163,6 +177,22 @@ export const EventDetailsPage: React.FC = () => {
             setEvent(convertedEvent);
             setLegacyEventData(legacyMatch);
             setIsLegacyArchive(false);
+
+            if (legacyMatch.gallery && legacyMatch.gallery.length > 0) {
+              const legacyGalleryItems: EventGalleryImage[] = legacyMatch.gallery.map((g: any, idx: number) => ({
+                $id: `legacy-${idx}`,
+                eventId: legacyMatch.id || normalizedSlug,
+                fileId: `legacy-${idx}`,
+                caption: g.caption,
+                displayOrder: idx,
+                isFeatured: idx === 0,
+                $createdAt: new Date().toISOString(),
+                $updatedAt: new Date().toISOString(),
+                imageUrl: g.imgUrl || '',
+                previewUrl: g.imgUrl || '',
+              }));
+              setGalleryImages(legacyGalleryItems);
+            }
           } else {
             setEvent(null);
             setIsLegacyArchive(false);
@@ -206,6 +236,22 @@ export const EventDetailsPage: React.FC = () => {
             setEvent(convertedEvent);
             setLegacyEventData(legacyMatch);
             setIsLegacyArchive(false);
+
+            if (legacyMatch.gallery && legacyMatch.gallery.length > 0) {
+              const legacyGalleryItems: EventGalleryImage[] = legacyMatch.gallery.map((g: any, idx: number) => ({
+                $id: `legacy-${idx}`,
+                eventId: legacyMatch.id || normalizedSlug,
+                fileId: `legacy-${idx}`,
+                caption: g.caption,
+                displayOrder: idx,
+                isFeatured: idx === 0,
+                $createdAt: new Date().toISOString(),
+                $updatedAt: new Date().toISOString(),
+                imageUrl: g.imgUrl || '',
+                previewUrl: g.imgUrl || '',
+              }));
+              setGalleryImages(legacyGalleryItems);
+            }
           } else {
             setEvent(null);
           }

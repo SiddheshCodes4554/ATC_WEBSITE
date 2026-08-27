@@ -1,6 +1,7 @@
 import React from 'react';
 import { GalleryItem } from '../../data/galleryData';
 import { Sparkles, ZoomIn, Pin, Calendar, MapPin } from 'lucide-react';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 export const MemoryVectorScene: React.FC<{ type: GalleryItem['svgSceneType'] }> = ({ type }) => {
   switch (type) {
@@ -208,11 +209,22 @@ export const ScrapbookMemoryCard: React.FC<ScrapbookMemoryCardProps> = ({ item, 
         <div className="tape-strip pointer-events-none bg-[#FFE600]" />
       )}
 
-      {/* Vector Scene Artwork with Zoom Hover Overlay */}
+      {/* Photo / Vector Scene Artwork with Zoom Hover Overlay */}
       <div className="relative mb-4">
-        <MemoryVectorScene type={item.svgSceneType} />
+        {item.imgUrl ? (
+          <div className="w-full aspect-[4/3] rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 relative">
+            <OptimizedImage
+              src={item.imgUrl}
+              alt={item.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              containerClassName="w-full h-full"
+            />
+          </div>
+        ) : (
+          <MemoryVectorScene type={item.svgSceneType} />
+        )}
 
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center text-white">
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white">
           <div className="px-4 py-2 bg-[#FFE600] text-[#121316] rounded-full border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 font-bold text-xs">
             <ZoomIn className="w-4 h-4" /> View Full Memory
           </div>
