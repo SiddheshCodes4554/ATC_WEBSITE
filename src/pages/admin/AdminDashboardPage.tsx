@@ -184,6 +184,14 @@ export const AdminDashboardPage: React.FC = () => {
               <Users className="w-3.5 h-3.5" />
               <span>Manage Team</span>
             </Link>
+
+            <Link
+              to="/admin/projects"
+              className="px-5 py-2.5 rounded-full bg-[#E1F5FE] hover:bg-[#B3E5FC] text-[#0288D1] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <FolderGit2 className="w-3.5 h-3.5" />
+              <span>Manage Projects</span>
+            </Link>
           </div>
 
           {/* Decorative Sparkle */}
