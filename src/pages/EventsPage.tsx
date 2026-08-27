@@ -16,8 +16,8 @@ export const EventsPage: React.FC = () => {
 
   const categories = ['All Events', 'Workshops', 'Hackathons', 'Tech Talks', 'Competitions'];
 
-  // Static showcase items with matching slugs
-  const defaultShowcaseEvents: EventItem[] = [
+  // Authentic ATC Flagship Events
+  const authenticAtcEvents: EventItem[] = [
     {
       id: 'worst-ui-ux',
       title: 'Worst UI/UX Hackathon',
@@ -26,11 +26,11 @@ export const EventsPage: React.FC = () => {
       location: 'NIAT Pune • Lab 5.0',
       status: 'Completed',
       tagline: 'Break every UX rule possible.',
-      description: 'A deliberately chaotic 24-hour design jam where builders competed to create the most infuriating, hilarious, and absurdly creative user interfaces.',
+      description: 'A deliberately chaotic 4-hour design jam where builders competed to create the most infuriating, hilarious, and absurdly creative user interfaces.',
       stats: [
-        { label: 'Participants', value: '120+' },
-        { label: 'Broken UIs', value: '28' },
-        { label: 'Prize Pool', value: '₹30,000' },
+        { label: 'Participants', value: '80+' },
+        { label: 'Broken UIs', value: '20+' },
+        { label: 'Prize Pool', value: 'Podium Swag' },
       ],
       highlights: [
         'Comic Sans supremacy rule enforced',
@@ -47,7 +47,7 @@ export const EventsPage: React.FC = () => {
       title: 'Git & GitHub: Road to GSoC',
       category: 'Workshops',
       date: 'Feb 07, 2026',
-      location: 'NIAT Pune • Tech Audi',
+      location: 'NIAT Pune • Tech Audi & Lab 5.0',
       status: 'Completed',
       tagline: 'Learn. Contribute. Build in public.',
       description: 'A hands-on deep dive from zero Git knowledge to landing your first open-source pull requests and crafting winning Google Summer of Code proposals.',
@@ -71,7 +71,7 @@ export const EventsPage: React.FC = () => {
       title: 'MST Blockchain Workshop',
       category: 'Workshops',
       date: 'Feb 27, 2026',
-      location: 'NIAT Pune • Computer Wing',
+      location: 'NIAT Pune • Computer Wing & Lab 5.0',
       status: 'Completed',
       tagline: 'Exploring decentralized technology.',
       description: 'Demystifying cryptographic primitives, consensus mechanisms, smart contracts in Solidity, and zero-knowledge proofs from the ground up.',
@@ -90,54 +90,6 @@ export const EventsPage: React.FC = () => {
       badgeBg: 'bg-[#10AC84]',
       illustration: <BlockchainIllustration />,
     },
-    {
-      id: 'ros-robotics-bootcamp',
-      title: 'ROS 2.0 Autonomous Robotics Bootcamp',
-      category: 'Workshops',
-      date: 'Apr 18, 2026',
-      location: 'NIAT Pune • ATC 5.0 Lab',
-      status: 'Completed',
-      tagline: 'Where hardware meets autonomous perception.',
-      description: 'Building differential drive autonomous rovers with LiDAR mapping, SLAM navigation, and real-time obstacle avoidance in ROS 2 Humble.',
-      stats: [
-        { label: 'Rovers Built', value: '8' },
-        { label: 'Lab Hours', value: '16' },
-        { label: 'Hardware Kits', value: '8' },
-      ],
-      highlights: [
-        'LiDAR 2D SLAM mapping live demo',
-        'Micro-ROS firmware flashing',
-        'Autonomous maze navigation test',
-        'Custom PCB sensor integration',
-      ],
-      color: 'bg-[#F0EBFF]',
-      badgeBg: 'bg-[#6C5CE7]',
-      illustration: <RoboticsBootcampIllustration />,
-    },
-    {
-      id: 'national-codesprint',
-      title: 'National CodeSprint 2026',
-      category: 'Competitions',
-      date: 'Apr 24, 2026',
-      location: 'Online & NIAT Pune Arena',
-      status: 'Completed',
-      tagline: 'Algorithmic speed, concurrency, and architecture.',
-      description: 'Competitive programming and rapid prototype challenge pitting engineering teams across universities against tough algorithmic problem sets.',
-      stats: [
-        { label: 'Teams', value: '95' },
-        { label: 'Submissions', value: '1,420' },
-        { label: 'Winners', value: 'Top 3' },
-      ],
-      highlights: [
-        'Live dynamic scoreboard ticker',
-        'Automated test runner benchmarks',
-        'Speed round bonus multipliers',
-        'National tech trophy awarded',
-      ],
-      color: 'bg-[#FFF3A8]',
-      badgeBg: 'bg-[#FF793F]',
-      illustration: <CodeSprintIllustration />,
-    },
   ];
 
   // Fetch real Appwrite events
@@ -145,9 +97,16 @@ export const EventsPage: React.FC = () => {
     const fetchAppwriteEvents = async () => {
       try {
         setLoading(true);
+        // Attempt to auto-sync default events if database is empty
         const result = await EventService.getPublicEvents({ limit: 50 });
         if (result.success && result.data && result.data.length > 0) {
           setDbEvents(result.data);
+        } else {
+          // If no events returned from query, try auto-seeding to Appwrite
+          const syncRes = await EventService.syncDefaultEventsToAppwrite();
+          if (syncRes.success && syncRes.data && syncRes.data.length > 0) {
+            setDbEvents(syncRes.data);
+          }
         }
       } catch (err) {
         console.error('Error fetching public events from Appwrite:', err);
@@ -176,7 +135,23 @@ export const EventsPage: React.FC = () => {
       cancelled: 'Cancelled',
     };
 
-    const coverUrl = evt.coverImageId ? StorageService.getEventCoverUrl(evt.coverImageId, 600) : '';
+    const coverUrl = evt.coverImageId ? StorageService.getEventImageUrl(evt.coverImageId, 600) : '';
+
+    // Assign appropriate illustration based on slug
+    let customIllustration = (
+      <div className="w-full h-32 rounded-xl flex items-center justify-center border-2 border-[#121316] shadow-pop-sm" style={{ backgroundColor: evt.accentColor || '#FFE600' }}>
+        <Calendar className="w-12 h-12 text-[#121316]" />
+      </div>
+    );
+
+    const s = evt.slug.toLowerCase();
+    if (s.includes('worst-ui') || s.includes('ui-ux')) {
+      customIllustration = <WorstUIUXIllustration />;
+    } else if (s.includes('git') || s.includes('gsoc') || s.includes('github')) {
+      customIllustration = <GitHubGSoCIllustration />;
+    } else if (s.includes('blockchain') || s.includes('mst') || s.includes('web3')) {
+      customIllustration = <BlockchainIllustration />;
+    }
 
     return {
       id: evt.slug, // Use unique slug as routing key
@@ -202,18 +177,19 @@ export const EventsPage: React.FC = () => {
       color: 'bg-white',
       badgeBg: 'bg-[#6C5CE7]',
       coverImageUrl: coverUrl,
-      illustration: (
-        <div className="w-full h-32 rounded-xl flex items-center justify-center border-2 border-[#121316] shadow-pop-sm" style={{ backgroundColor: evt.accentColor || '#FFE600' }}>
-          <Calendar className="w-12 h-12 text-[#121316]" />
-        </div>
-      ),
+      illustration: customIllustration,
     };
   };
 
-  // Combine database events (priority) with default showcase events
-  const displayedItems: EventItem[] = dbEvents.length > 0
-    ? dbEvents.map(mapDbEventToItem)
-    : defaultShowcaseEvents;
+  // Seamlessly merge DB events with authentic ATC fallback events (deduplicated by slug/id)
+  const dbItems = dbEvents.map(mapDbEventToItem);
+  const dbSlugs = new Set(dbItems.map((e) => e.id.toLowerCase()));
+
+  const missingAuthenticEvents = authenticAtcEvents.filter(
+    (a) => !dbSlugs.has(a.id.toLowerCase())
+  );
+
+  const displayedItems: EventItem[] = [...dbItems, ...missingAuthenticEvents];
 
   const filteredEvents = selectedCategory === 'All Events'
     ? displayedItems

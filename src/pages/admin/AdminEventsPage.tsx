@@ -41,6 +41,7 @@ export const AdminEventsPage: React.FC = () => {
   const [eventToDelete, setEventToDelete] = useState<ATCEvent | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   const fetchEvents = async () => {
     try {
@@ -48,16 +49,45 @@ export const AdminEventsPage: React.FC = () => {
       setError(null);
 
       const result = await EventService.getAllEvents({ limit: 100 });
-      if (result.success && result.data) {
+      if (result.success && result.data && result.data.length > 0) {
         setEvents(result.data);
       } else {
-        setError(result.error || 'Failed to fetch events.');
+        // If Appwrite events collection is empty, auto-sync official ATC events
+        const syncRes = await EventService.syncDefaultEventsToAppwrite();
+        if (syncRes.success && syncRes.data && syncRes.data.length > 0) {
+          setEvents(syncRes.data);
+        } else if (result.data) {
+          setEvents(result.data);
+        } else {
+          setError(result.error || 'Failed to fetch events.');
+        }
       }
     } catch (err: any) {
       console.error('Error fetching admin events:', err);
       setError(err?.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSyncOfficialEvents = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await EventService.syncDefaultEventsToAppwrite();
+      if (res.success && res.data) {
+        setEvents(res.data);
+        confetti({
+          particleCount: 80,
+          spread: 80,
+          origin: { y: 0.6 },
+        });
+      } else {
+        alert(res.error || 'Failed to sync events to Appwrite.');
+      }
+    } catch (err: any) {
+      alert(err?.message || 'Error syncing events.');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -200,6 +230,20 @@ export const AdminEventsPage: React.FC = () => {
               title="Refresh events list"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+
+            <button
+              onClick={handleSyncOfficialEvents}
+              disabled={isSyncing || loading}
+              className="px-4 py-2.5 rounded-full bg-[#E1DCFF] hover:bg-[#6C5CE7] hover:text-white border-2 border-[#121316] shadow-pop-sm font-mono text-xs font-black text-[#121316] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              title="Ensure all 3 official ATC events are populated in Appwrite"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-[#6C5CE7]" />
+              )}
+              <span>Sync ATC Events</span>
             </button>
 
             <Link

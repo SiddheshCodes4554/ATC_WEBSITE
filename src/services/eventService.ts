@@ -415,6 +415,78 @@ export class EventService {
       };
     }
   }
+
+  /**
+   * Auto-seed or Synchronize Official ATC Events into Appwrite Database
+   */
+  static async syncDefaultEventsToAppwrite(): Promise<EventServiceResult<ATCEvent[]>> {
+    try {
+      if (!isAppwriteReady()) {
+        return { success: false, error: 'Appwrite is not configured in environment.' };
+      }
+
+      const defaultEvents: CreateEventInput[] = [
+        {
+          title: 'Worst UI/UX Hackathon',
+          slug: 'worst-ui-ux',
+          shortDescription: 'Break every UX rule possible in a 4-hour creative sprint.',
+          description: 'In every software engineering syllabus, students are taught how to design intuitive, clean, and seamless user experiences. We wanted to flip that completely on its head.\n\nThe Worst UI/UX Hackathon challenged builders across NIAT Pune to intentionally violate every rule in the Human Interface Guidelines: unclickable buttons, backward progress bars, inverted scroll mechanics, Comic Sans typography, and multi-step captchas written in ancient languages.',
+          eventType: 'hackathon',
+          startDate: '2025-12-13T10:00:00.000Z',
+          venue: 'Lab 5.0, NIAT Pune',
+          accentColor: '#FF6B6B',
+          visualTheme: 'playful',
+          featured: true,
+          status: 'completed',
+          registrationEnabled: false,
+        },
+        {
+          title: 'Git & GitHub: Road to GSoC',
+          slug: 'git-github-road-to-gsoc',
+          shortDescription: 'Learn. Contribute. Build in public.',
+          description: 'A hands-on deep dive from zero Git knowledge to landing your first open-source pull requests and crafting winning Google Summer of Code proposals.\n\nCovering branch workflows, merge conflict resolution, interactive rebasing, open-source licensing, and proposal clinics.',
+          eventType: 'workshop',
+          startDate: '2026-02-07T10:00:00.000Z',
+          venue: 'NIAT Audi & Lab 5.0, Pune',
+          accentColor: '#2ED573',
+          visualTheme: 'terminal',
+          featured: true,
+          status: 'completed',
+          registrationEnabled: false,
+        },
+        {
+          title: 'MST Blockchain Workshop',
+          slug: 'mst-blockchain-workshop',
+          shortDescription: 'Exploring decentralized technology & smart contracts.',
+          description: 'Demystifying cryptographic primitives, consensus mechanisms, smart contracts in Solidity, and zero-knowledge proofs from the ground up.\n\nHands-on Solidity contract development, Remix IDE and testnet deployments on the NIAT Lab 5.0 cluster.',
+          eventType: 'workshop',
+          startDate: '2026-02-27T10:00:00.000Z',
+          venue: 'NIAT Computer Wing & Lab 5.0, Pune',
+          accentColor: '#00D2D3',
+          visualTheme: 'futuristic',
+          featured: true,
+          status: 'completed',
+          registrationEnabled: false,
+        },
+      ];
+
+      for (const evt of defaultEvents) {
+        const isAvailable = await this.isSlugAvailable(evt.slug);
+        if (isAvailable) {
+          try {
+            await this.createEvent(evt);
+          } catch (seedErr) {
+            console.warn(`[EventService] Could not auto-seed ${evt.slug}:`, seedErr);
+          }
+        }
+      }
+
+      const all = await this.getAllEvents({ limit: 50 });
+      return { success: true, data: all.data || [] };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to sync default events.' };
+    }
+  }
 }
 
 export default EventService;
