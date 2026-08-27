@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { GalleryLightbox } from '../event-gallery/GalleryLightbox';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 interface AdminEventGalleryManagerProps {
   eventId: string;
@@ -375,10 +376,11 @@ export const AdminEventGalleryManager: React.FC<AdminEventGalleryManagerProps> =
             >
               {/* Thumbnail Stage */}
               <div className="relative aspect-[4/3] bg-gray-100 border-b-2 border-[#121316] overflow-hidden group">
-                <img
+                <OptimizedImage
                   src={item.previewUrl || item.imageUrl}
                   alt={item.caption || `Photo ${idx + 1}`}
                   className="w-full h-full object-cover"
+                  containerClassName="w-full h-full"
                 />
 
                 {/* Top Actions Overlay */}

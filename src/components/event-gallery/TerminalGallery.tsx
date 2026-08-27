@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { EventGalleryImage } from '../../types/eventGallery.types';
 import { GalleryLightbox } from './GalleryLightbox';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { Terminal, Maximize2, Star, Folder, FileCode, Check } from 'lucide-react';
 
 interface TerminalGalleryProps {
@@ -73,14 +74,14 @@ export const TerminalGallery: React.FC<TerminalGalleryProps> = ({ images, isComp
 
                   {/* Thumbnail Stage */}
                   <div className="aspect-[4/3] w-full rounded-xl overflow-hidden bg-black/60 relative border border-emerald-500/20">
-                    <img
+                    <OptimizedImage
                       src={item.previewUrl || item.imageUrl}
                       alt={item.caption || filename}
-                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100"
+                      containerClassName="w-full h-full bg-black/60"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="px-3 py-1 rounded-lg bg-[#0F172A] border border-emerald-400 text-emerald-400 font-mono text-xs flex items-center gap-1.5 shadow-lg">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                      <span className="px-3 py-1 rounded-lg bg-[#0F172A] border border-emerald-400 text-emerald-400 font-mono text-xs flex items-center gap-1.5 shadow-lg pointer-events-auto">
                         <Maximize2 className="w-3.5 h-3.5" />
                         <span>inspect()</span>
                       </span>

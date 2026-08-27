@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { SparkleDoodle, RetroRobotMascot } from '../components/doodles/DoodleSvgs';
 import { PlayfulButton } from '../components/ui/PlayfulButton';
+import { OptimizedImage } from '../components/common/OptimizedImage';
 
 const GithubIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -279,10 +280,11 @@ export const ProjectsPage: React.FC = () => {
                                 to={`/projects/${proj.slug}`}
                                 className="block w-full h-56 sm:h-64 rounded-[28px] border-3 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm group-hover:scale-[1.01] transition-transform"
                               >
-                                <img
+                                <OptimizedImage
                                   src={coverUrl}
                                   alt={proj.title}
                                   className="w-full h-full object-cover"
+                                  containerClassName="w-full h-full"
                                 />
                               </Link>
                             )}
@@ -382,10 +384,11 @@ export const ProjectsPage: React.FC = () => {
                               to={`/projects/${proj.slug}`}
                               className="block w-full h-44 rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100"
                             >
-                              <img
+                              <OptimizedImage
                                 src={coverUrl}
                                 alt={proj.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                containerClassName="w-full h-full"
                               />
                             </Link>
                           ) : (

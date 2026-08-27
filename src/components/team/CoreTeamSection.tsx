@@ -82,6 +82,8 @@ export const CoreTeamSection: React.FC<CoreTeamSectionProps> = ({
                         <img
                           src={avatarUrl}
                           alt={member.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover rounded-full"
                           onError={(e) => {
                             (e.currentTarget as HTMLElement).style.display = 'none';

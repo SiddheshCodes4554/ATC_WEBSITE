@@ -3,6 +3,7 @@ import { Calendar, MapPin, ArrowUpRight, CheckCircle2, AlertTriangle, GitBranch,
 import { Link } from 'react-router-dom';
 import { EventItem } from './EventDetailsModal';
 import { PlayfulButton } from '../ui/PlayfulButton';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 // 1. Worst UI/UX Vector Art (Chaotic & Funny)
 export const WorstUIUXIllustration: React.FC = () => (
@@ -218,13 +219,11 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
         <Link to={`/events/${event.id}`} className="block">
           <div className="rounded-2xl border-3 border-[#121316] shadow-inner mb-6 overflow-hidden bg-white/80 group-hover:scale-105 transition-transform duration-300">
             {event.coverImageUrl ? (
-              <img
+              <OptimizedImage
                 src={event.coverImageUrl}
                 alt={event.title}
                 className="w-full h-44 object-cover"
-                onError={(e) => {
-                  (e.currentTarget as HTMLElement).style.display = 'none';
-                }}
+                containerClassName="w-full h-44"
               />
             ) : (
               <div className="p-4 flex items-center justify-center">

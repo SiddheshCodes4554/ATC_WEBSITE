@@ -2,6 +2,7 @@ import { ID, ImageGravity, ImageFormat } from 'appwrite';
 import { storage, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 import { AppwriteFileMetadata, ServiceResponse } from '../types/appwrite.types';
 import { createPublicReadAdminWritePermissions } from '../lib/appwrite/permissions';
+import { compressImageFile } from '../utils/imageOptimizer';
 
 /**
  * Supported Event Image MIME types
@@ -279,10 +280,17 @@ export class StorageService {
 
       const fileId = customFileId || ID.unique();
 
+      // Optimize/compress image client-side to save bandwidth & speed up page loads
+      const optimizedFile = await compressImageFile(file, {
+        maxWidth: 1920,
+        maxHeight: 1440,
+        quality: 0.82,
+      });
+
       const uploaded = await storage.createFile(
         bucketId,
         fileId,
-        file,
+        optimizedFile,
         createPublicReadAdminWritePermissions()
       );
 

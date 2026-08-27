@@ -92,6 +92,8 @@ export const LeadershipSection: React.FC<LeadershipSectionProps> = ({
                         <img
                           src={avatarUrl}
                           alt={leader.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover rounded-full"
                           onError={(e) => {
                             (e.currentTarget as HTMLElement).style.display = 'none';

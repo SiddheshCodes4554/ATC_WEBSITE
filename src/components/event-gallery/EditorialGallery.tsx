@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { EventGalleryImage } from '../../types/eventGallery.types';
 import { GalleryLightbox } from './GalleryLightbox';
-import { Camera, Maximize2, Star } from 'lucide-react';
+import { OptimizedImage } from '../common/OptimizedImage';
+import { Camera, Maximize2, Star, Eye } from 'lucide-react';
 
 interface EditorialGalleryProps {
   images: EventGalleryImage[];
@@ -56,11 +57,11 @@ export const EditorialGallery: React.FC<EditorialGalleryProps> = ({ images, isCo
             >
               {/* Photo Box */}
               <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100 relative">
-                <img
+                <OptimizedImage
                   src={item.previewUrl || item.imageUrl}
                   alt={item.caption || `Event moment ${idx + 1}`}
-                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  containerClassName="w-full h-full"
                 />
 
                 {item.isFeatured && (
@@ -69,8 +70,8 @@ export const EditorialGallery: React.FC<EditorialGalleryProps> = ({ images, isCo
                   </div>
                 )}
 
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="px-3.5 py-1.5 rounded-full bg-white font-mono text-xs font-bold text-[#121316] shadow-md flex items-center gap-1.5">
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <span className="px-3.5 py-1.5 rounded-full bg-white font-mono text-xs font-bold text-[#121316] shadow-md flex items-center gap-1.5 pointer-events-auto">
                     <Maximize2 className="w-3.5 h-3.5" />
                     <span>View Image</span>
                   </span>

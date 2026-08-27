@@ -6,6 +6,7 @@ import { StorageService } from '../services/storage.service';
 import { EventGalleryImage } from '../types/eventGallery.types';
 import { ATCEvent } from '../types/event.types';
 import { GalleryLightbox } from '../components/event-gallery/GalleryLightbox';
+import { OptimizedImage } from '../components/common/OptimizedImage';
 import {
   Camera,
   Sparkles,
@@ -268,16 +269,16 @@ export const GalleryPage: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Real Image Container */}
+                    {/* Real Image Container with Smooth Shimmer Loading */}
                     <div className="aspect-[4/3] w-full rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 relative mt-1">
-                      <img
+                      <OptimizedImage
                         src={item.previewUrl || item.imageUrl}
                         alt={item.caption || item.eventTitle || `ATC Photo ${idx + 1}`}
-                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        containerClassName="w-full h-full"
                       />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="px-3.5 py-1.5 rounded-full bg-white border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5">
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <span className="px-3.5 py-1.5 rounded-full bg-white border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5 pointer-events-auto">
                           <Maximize2 className="w-3.5 h-3.5" />
                           <span>View Full Size</span>
                         </span>

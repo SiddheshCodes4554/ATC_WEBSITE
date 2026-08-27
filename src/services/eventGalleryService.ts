@@ -10,6 +10,7 @@ import {
   UploadGalleryProgress,
 } from '../types/eventGallery.types';
 import { StorageService, ALLOWED_IMAGE_TYPES, MAX_EVENT_IMAGE_BYTES } from './storage.service';
+import { compressImageFile } from '../utils/imageOptimizer';
 
 /**
  * ============================================================================
@@ -43,7 +44,7 @@ export class EventGalleryService {
   }
 
   /**
-   * Helper: Transforms Appwrite Document to typed EventGalleryImage
+   * Helper: Transforms Appwrite Document to typed EventGalleryImage with optimized URLs
    */
   private static mapDocumentToGalleryImage(doc: EventGalleryImageDocument): EventGalleryImage {
     return {
@@ -55,15 +56,15 @@ export class EventGalleryService {
       isFeatured: Boolean(doc.isFeatured),
       $createdAt: doc.$createdAt,
       $updatedAt: doc.$updatedAt,
-      imageUrl: this.getGalleryImageUrl(doc.fileId, 1600),
-      previewUrl: this.getGalleryImageUrl(doc.fileId, 800),
+      imageUrl: this.getGalleryImageUrl(doc.fileId, 1400, undefined, 85),
+      previewUrl: this.getGalleryImageUrl(doc.fileId, 600, undefined, 80),
     };
   }
 
   /**
    * Resolves public preview / full view URL for a gallery image file
    */
-  static getGalleryImageUrl(fileId?: string, width = 800, height?: number, quality = 85): string {
+  static getGalleryImageUrl(fileId?: string, width = 600, height?: number, quality = 80): string {
     if (!fileId?.trim()) return '';
     const cleanId = fileId.trim();
 
@@ -84,7 +85,14 @@ export class EventGalleryService {
             width,
             height,
             ImageGravity.Center,
-            quality
+            quality,
+            undefined, // borderWidth
+            undefined, // borderColor
+            undefined, // borderRadius
+            undefined, // opacity
+            undefined, // rotation
+            undefined, // background
+            'webp' as any // output format
           )
         );
       }
@@ -227,12 +235,19 @@ export class EventGalleryService {
             });
           }
 
+          // Optimize/compress image client-side to save bandwidth & speed up page loads
+          const optimizedFile = await compressImageFile(file, {
+            maxWidth: 1920,
+            maxHeight: 1440,
+            quality: 0.82,
+          });
+
           // Upload image to Storage bucket
           const fileId = ID.unique();
           const storageFile = await storage.createFile(
             this.bucketId,
             fileId,
-            file,
+            optimizedFile,
             this.getGalleryPermissions()
           );
 

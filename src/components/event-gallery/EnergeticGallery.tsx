@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { EventGalleryImage } from '../../types/eventGallery.types';
 import { GalleryLightbox } from './GalleryLightbox';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { Flame, Zap, Maximize2, Star } from 'lucide-react';
 
 interface EnergeticGalleryProps {
@@ -48,11 +49,11 @@ export const EnergeticGallery: React.FC<EnergeticGalleryProps> = ({ images, isCo
             >
               {/* Photo Box */}
               <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden bg-gray-100 relative border-2 border-[#121316]">
-                <img
+                <OptimizedImage
                   src={item.previewUrl || item.imageUrl}
                   alt={item.caption || `High-energy moment ${idx + 1}`}
-                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  containerClassName="w-full h-full"
                 />
 
                 {item.isFeatured && (
@@ -61,8 +62,8 @@ export const EnergeticGallery: React.FC<EnergeticGalleryProps> = ({ images, isCo
                   </div>
                 )}
 
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="px-3.5 py-1.5 rounded-full bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5">
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <span className="px-3.5 py-1.5 rounded-full bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5 pointer-events-auto">
                     <Maximize2 className="w-3.5 h-3.5" />
                     <span>Enlarge</span>
                   </span>

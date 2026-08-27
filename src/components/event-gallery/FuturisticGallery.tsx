@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { EventGalleryImage } from '../../types/eventGallery.types';
 import { GalleryLightbox } from './GalleryLightbox';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { Cpu, Maximize2, Star, Shield, Layers } from 'lucide-react';
 
 interface FuturisticGalleryProps {
@@ -57,15 +58,15 @@ export const FuturisticGallery: React.FC<FuturisticGalleryProps> = ({ images, is
 
               {/* Holographic Frame */}
               <div className="aspect-[4/3] w-full rounded-2xl overflow-hidden bg-black/60 relative border border-cyan-500/30">
-                <img
+                <OptimizedImage
                   src={item.previewUrl || item.imageUrl}
                   alt={item.caption || `Telemetry snapshot ${idx + 1}`}
-                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100"
+                  containerClassName="w-full h-full bg-black/60"
                 />
 
-                <div className="absolute inset-0 bg-cyan-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="px-3.5 py-1.5 rounded-xl bg-cyan-400 text-[#0B0F19] font-mono text-xs font-black flex items-center gap-1.5 shadow-lg">
+                <div className="absolute inset-0 bg-cyan-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <span className="px-3.5 py-1.5 rounded-xl bg-cyan-400 text-[#0B0F19] font-mono text-xs font-black flex items-center gap-1.5 shadow-lg pointer-events-auto">
                     <Maximize2 className="w-3.5 h-3.5" />
                     <span>Expand Node</span>
                   </span>
