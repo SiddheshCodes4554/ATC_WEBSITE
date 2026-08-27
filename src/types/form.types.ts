@@ -97,6 +97,7 @@ export interface FormFieldInput {
  * Registration Document Schema
  */
 export type RegistrationStatus = 'registered' | 'cancelled' | 'checked_in';
+export type PassStatus = 'active' | 'used' | 'cancelled';
 
 export interface EventRegistration {
   $id?: string;
@@ -107,6 +108,8 @@ export interface EventRegistration {
   phone?: string;
   status: RegistrationStatus;
   registeredAt: string;
+  passId?: string;
+  passStatus?: PassStatus;
 }
 
 export interface EventRegistrationDocument extends Models.Document {
@@ -117,6 +120,8 @@ export interface EventRegistrationDocument extends Models.Document {
   phone?: string;
   status: RegistrationStatus;
   registeredAt: string;
+  passId?: string;
+  passStatus?: PassStatus;
 }
 
 /**
@@ -148,11 +153,31 @@ export interface RegistrationSubmissionResult {
   success: boolean;
   registrationId?: string;
   registration?: EventRegistration;
+  passId?: string;
   error?: string;
   fieldErrors?: Record<string, string>;
   isDuplicate?: boolean;
   isCapacityReached?: boolean;
   isDeadlinePassed?: boolean;
+}
+
+/**
+ * Sanitized Public Event Pass for public verification & ticket viewing
+ */
+export interface PublicEventPass {
+  passId: string;
+  passStatus: PassStatus;
+  name: string;
+  eventId: string;
+  eventTitle: string;
+  eventSlug: string;
+  eventType: string;
+  startDate: string;
+  endDate?: string | null;
+  venue: string;
+  coverImageId?: string | null;
+  accentColor?: string;
+  registeredAt: string;
 }
 
 /**

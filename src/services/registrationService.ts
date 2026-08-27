@@ -1,5 +1,6 @@
 import { ID, Query, Permission, Role } from 'appwrite';
 import { databases, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
+import { EventService } from './eventService';
 import { ATCEvent } from '../types/event.types';
 import {
   EventForm,
@@ -10,14 +11,17 @@ import {
   RegistrationAnswerDocument,
   RegistrationSubmissionResult,
   RegistrationStats,
+  PublicEventPass,
+  PassStatus,
+  RegistrationStatus,
 } from '../types/form.types';
 
 /**
  * ============================================================================
  * ATC Appwrite Registration Service
  * ============================================================================
- * Handles public event registration submissions, dynamic field validation,
- * duplicate checks, capacity limit enforcement, and atomic rollback on failure.
+ * Handles public event registration submissions, unique pass generation,
+ * duplicate checks, capacity limit enforcement, dynamic answers, and admin management.
  */
 export class RegistrationService {
   private static get databaseId(): string {
@@ -43,6 +47,58 @@ export class RegistrationService {
       Permission.delete(Role.users()),
     ];
   }
+
+  /* ======================================================================== */
+  /* UNIQUE PASS ID GENERATION                                                */
+  /* ======================================================================== */
+
+  /**
+   * Generates a 6-character random alphanumeric suffix (excluding ambiguous 0/O, 1/I)
+   */
+  private static generateRandomPassSuffix(length = 6): string {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * chars.length);
+      result += chars[randomIndex];
+    }
+    return result;
+  }
+
+  /**
+   * Generates a unique, URL-safe pass ID in the format ATC-{YEAR}-{RANDOM}
+   * Example: ATC-2026-A7X9K2
+   */
+  static async generateUniquePassId(maxAttempts = 5): Promise<string> {
+    const year = new Date().getFullYear();
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const candidate = `ATC-${year}-${this.generateRandomPassSuffix(6)}`;
+      try {
+        if (!isAppwriteReady()) return candidate;
+
+        const existing = await databases.listDocuments<EventRegistrationDocument>(
+          this.databaseId,
+          this.registrationsCollection,
+          [Query.equal('passId', candidate), Query.limit(1)]
+        );
+
+        if (existing.documents.length === 0) {
+          return candidate;
+        }
+      } catch (err) {
+        // If query fails (e.g. index not ready), return candidate
+        return candidate;
+      }
+    }
+
+    // Fallback safe ID if collision persists
+    return `ATC-${year}-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+  }
+
+  /* ======================================================================== */
+  /* FIELD VALIDATION                                                         */
+  /* ======================================================================== */
 
   /**
    * Validates dynamic form field values according to field types and required flags
@@ -82,7 +138,6 @@ export class RegistrationService {
         }
 
         case 'phone': {
-          // Allows +, digits, spaces, hyphens, min 7 digits
           const cleaned = String(val).replace(/[\s\-()]/g, '');
           const phoneRegex = /^\+?[0-9]{7,15}$/;
           if (!phoneRegex.test(cleaned)) {
@@ -146,6 +201,10 @@ export class RegistrationService {
     };
   }
 
+  /* ======================================================================== */
+  /* AVAILABILITY & DUPLICATE CHECKS                                          */
+  /* ======================================================================== */
+
   /**
    * Checks event availability: registration enabled, status, deadline, and capacity limit
    */
@@ -182,7 +241,7 @@ export class RegistrationService {
           [
             Query.equal('eventId', event.$id),
             Query.notEqual('status', 'cancelled'),
-            Query.limit(1), // total in countRes.total
+            Query.limit(1),
           ]
         );
 
@@ -237,8 +296,12 @@ export class RegistrationService {
     return { isDuplicate: false };
   }
 
+  /* ======================================================================== */
+  /* REGISTRATION SUBMISSION                                                  */
+  /* ======================================================================== */
+
   /**
-   * Master Method: Validates, checks constraints, and atomic saves registration + answers
+   * Master Method: Validates inputs, generates passId, creates registration + answers atomically
    */
   static async submitRegistration({
     event,
@@ -300,7 +363,6 @@ export class RegistrationService {
       } else if (field.systemKey === 'phone') {
         participantPhone = stringVal;
       } else {
-        // Fallback detection if systemKey was not explicitly assigned
         if (!participantName && (field.fieldType === 'short_text' && /name/i.test(field.label))) {
           participantName = stringVal;
         }
@@ -313,7 +375,6 @@ export class RegistrationService {
       }
     }
 
-    // Ensure fallback name if not detected
     if (!participantName) {
       participantName = 'Participant';
     }
@@ -330,7 +391,10 @@ export class RegistrationService {
       }
     }
 
-    // 5. Create Registration Document in Appwrite
+    // 5. Generate unique digital pass ID (ATC-{YEAR}-{RANDOM})
+    const passId = await this.generateUniquePassId();
+
+    // 6. Create Registration Document in Appwrite
     const registrationId = ID.unique();
     const registeredAt = new Date().toISOString();
     let createdRegistrationDoc: EventRegistrationDocument | null = null;
@@ -349,6 +413,8 @@ export class RegistrationService {
           phone: participantPhone,
           status: 'registered',
           registeredAt,
+          passId,
+          passStatus: 'active',
         },
         this.getParticipantPermissions()
       );
@@ -360,7 +426,7 @@ export class RegistrationService {
       };
     }
 
-    // 6. Create Individual Registration Answer Documents for every field
+    // 7. Create Individual Registration Answer Documents for every field
     try {
       for (const field of formFields) {
         const key = field.$id || field.label;
@@ -391,6 +457,7 @@ export class RegistrationService {
       return {
         success: true,
         registrationId: createdRegistrationDoc.$id,
+        passId,
         registration: {
           $id: createdRegistrationDoc.$id,
           eventId: createdRegistrationDoc.eventId,
@@ -400,12 +467,14 @@ export class RegistrationService {
           phone: createdRegistrationDoc.phone,
           status: createdRegistrationDoc.status,
           registeredAt: createdRegistrationDoc.registeredAt,
+          passId,
+          passStatus: 'active',
         },
       };
     } catch (answerError: any) {
       console.error('[RegistrationService] Error saving registration answers. Initiating rollback...', answerError);
 
-      // 7. Atomic Rollback: delete created answers and registration document
+      // Rollback: delete created answers and registration document
       for (const ansId of createdAnswerDocIds) {
         try {
           await databases.deleteDocument(this.databaseId, this.answersCollection, ansId);
@@ -425,6 +494,70 @@ export class RegistrationService {
       return {
         success: false,
         error: 'An unexpected error occurred while saving your responses. Please try again.',
+      };
+    }
+  }
+
+  /* ======================================================================== */
+  /* PUBLIC DIGITAL EVENT PASS LOOKUP                                         */
+  /* ======================================================================== */
+
+  /**
+   * Public: Securely fetches sanitized event pass information by passId
+   * (Does NOT expose email, phone number, form answers, or other participant records)
+   */
+  static async getPublicPassByPassId(
+    passId: string
+  ): Promise<{ success: boolean; data?: PublicEventPass; error?: string }> {
+    try {
+      if (!isAppwriteReady() || !passId?.trim()) {
+        return { success: false, error: 'Invalid or missing pass ID.' };
+      }
+
+      const cleanPassId = passId.trim().toUpperCase();
+
+      const response = await databases.listDocuments<EventRegistrationDocument>(
+        this.databaseId,
+        this.registrationsCollection,
+        [Query.equal('passId', cleanPassId), Query.limit(1)]
+      );
+
+      if (response.documents.length === 0) {
+        return { success: false, error: 'Pass could not be found. Please check your Pass ID.' };
+      }
+
+      const regDoc = response.documents[0];
+
+      // Fetch Event details
+      const eventRes = await EventService.getEventById(regDoc.eventId);
+      if (!eventRes.success || !eventRes.data) {
+        return { success: false, error: 'Associated event could not be found.' };
+      }
+
+      const evt = eventRes.data;
+
+      const publicPass: PublicEventPass = {
+        passId: regDoc.passId || cleanPassId,
+        passStatus: (regDoc.passStatus as PassStatus) || (regDoc.status === 'cancelled' ? 'cancelled' : 'active'),
+        name: regDoc.name || 'Participant',
+        eventId: evt.$id,
+        eventTitle: evt.title,
+        eventSlug: evt.slug,
+        eventType: evt.eventType,
+        startDate: evt.startDate,
+        endDate: evt.endDate,
+        venue: evt.venue,
+        coverImageId: evt.coverImageId,
+        accentColor: evt.accentColor || '#FFE600',
+        registeredAt: regDoc.registeredAt,
+      };
+
+      return { success: true, data: publicPass };
+    } catch (error: any) {
+      console.error('[RegistrationService] Error retrieving public event pass:', error);
+      return {
+        success: false,
+        error: error?.message || 'Unable to retrieve event pass.',
       };
     }
   }
@@ -474,6 +607,8 @@ export class RegistrationService {
         phone: doc.phone,
         status: doc.status,
         registeredAt: doc.registeredAt,
+        passId: doc.passId,
+        passStatus: doc.passStatus || (doc.status === 'cancelled' ? 'cancelled' : 'active'),
       }));
 
       return {
@@ -518,6 +653,8 @@ export class RegistrationService {
           phone: doc.phone,
           status: doc.status,
           registeredAt: doc.registeredAt,
+          passId: doc.passId,
+          passStatus: doc.passStatus || (doc.status === 'cancelled' ? 'cancelled' : 'active'),
         },
       };
     } catch (error: any) {
@@ -572,7 +709,6 @@ export class RegistrationService {
         return { success: true, data: {} };
       }
 
-      // Query answers in chunks if needed
       const answerMap: Record<string, Record<string, string>> = {};
 
       const response = await databases.listDocuments<RegistrationAnswerDocument>(
@@ -657,12 +793,12 @@ export class RegistrationService {
   }
 
   /**
-   * Admin: Updates registration status (registered, cancelled, checked_in) with capacity check
+   * Admin: Updates registration status and synchronizes passStatus with capacity protection
    */
   static async updateRegistrationStatus(
     registrationId: string,
     eventId: string,
-    newStatus: 'registered' | 'cancelled' | 'checked_in',
+    newStatus: RegistrationStatus,
     currentEventLimit?: number | null
   ): Promise<{ success: boolean; data?: EventRegistration; error?: string }> {
     try {
@@ -683,11 +819,22 @@ export class RegistrationService {
         }
       }
 
+      // Synchronize passStatus
+      const passStatus: PassStatus =
+        newStatus === 'cancelled'
+          ? 'cancelled'
+          : newStatus === 'checked_in'
+          ? 'used'
+          : 'active';
+
       const updated = await databases.updateDocument<EventRegistrationDocument>(
         this.databaseId,
         this.registrationsCollection,
         registrationId.trim(),
-        { status: newStatus }
+        {
+          status: newStatus,
+          passStatus,
+        }
       );
 
       return {
@@ -701,6 +848,8 @@ export class RegistrationService {
           phone: updated.phone,
           status: updated.status,
           registeredAt: updated.registeredAt,
+          passId: updated.passId,
+          passStatus: updated.passStatus || passStatus,
         },
       };
     } catch (error: any) {

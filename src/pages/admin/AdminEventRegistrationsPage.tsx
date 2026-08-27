@@ -225,10 +225,12 @@ export const AdminEventRegistrationsPage: React.FC = () => {
       // CSV Header Row
       const headers = [
         'Registration ID',
+        'Pass ID',
         'Participant Name',
         'Email Address',
         'Phone Number',
         'Status',
+        'Pass Status',
         'Registered At',
         ...customHeaders.map((h) => h.label),
       ];
@@ -258,10 +260,12 @@ export const AdminEventRegistrationsPage: React.FC = () => {
 
         return [
           escapeCSV(reg.$id),
+          escapeCSV(reg.passId || 'N/A'),
           escapeCSV(reg.name),
           escapeCSV(reg.email),
           escapeCSV(reg.phone || ''),
           escapeCSV(reg.status),
+          escapeCSV(reg.passStatus || 'active'),
           escapeCSV(new Date(reg.registeredAt).toLocaleString()),
           ...customValues,
         ].join(',');
@@ -741,19 +745,34 @@ export const AdminEventRegistrationsPage: React.FC = () => {
 
                 <div className="space-y-1">
                   <span className="font-mono text-[10px] font-black uppercase text-gray-500">
-                    REGISTRATION TIMESTAMP
+                    DIGITAL PASS ID
                   </span>
-                  <p className="font-mono text-xs font-bold text-gray-700">
-                    {formatDate(selectedRegistration.registeredAt)}
-                  </p>
+                  {selectedRegistration.passId ? (
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-black text-[#6C5CE7] select-all">
+                        {selectedRegistration.passId}
+                      </span>
+                      <Link
+                        to={`/pass/${selectedRegistration.passId}`}
+                        target="_blank"
+                        className="p-1 rounded-lg bg-white border border-[#121316] text-[#6C5CE7] hover:bg-[#FFE600] text-[10px] font-bold inline-flex items-center gap-1 shadow-pop-sm"
+                        title="Open digital pass"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>View Pass</span>
+                      </Link>
+                    </div>
+                  ) : (
+                    <p className="font-mono text-xs text-gray-400">Legacy registration (No pass ID)</p>
+                  )}
                 </div>
 
                 <div className="space-y-1">
                   <span className="font-mono text-[10px] font-black uppercase text-gray-500">
-                    REGISTRATION ID
+                    REGISTRATION TIMESTAMP
                   </span>
-                  <p className="font-mono text-[11px] font-bold text-[#6C5CE7] select-all truncate">
-                    {selectedRegistration.$id}
+                  <p className="font-mono text-xs font-bold text-gray-700">
+                    {formatDate(selectedRegistration.registeredAt)}
                   </p>
                 </div>
               </div>

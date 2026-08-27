@@ -38,8 +38,10 @@ import {
   FileText,
   Lock,
   Check,
-  PartyPopper
+  PartyPopper,
+  Ticket
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { PlayfulButton } from '../components/ui/PlayfulButton';
 import confetti from 'canvas-confetti';
 
@@ -489,59 +491,89 @@ export const EventDetailsPage: React.FC = () => {
             /* ============================================================= */
             /* REGISTRATION SUCCESS EXPERIENCE                               */
             /* ============================================================= */
-            <div className="p-8 sm:p-12 rounded-[32px] bg-[#E8F8F0] border-4 border-[#2ED573] text-center space-y-6 animate-fadeIn shadow-pop">
-              <div className="w-20 h-20 rounded-3xl bg-[#2ED573] border-3 border-[#121316] shadow-pop flex items-center justify-center mx-auto text-[#121316] animate-bounce">
-                <Check className="w-10 h-10 stroke-[4]" />
+            <div className="p-6 sm:p-10 rounded-[32px] bg-[#E8F8F0] border-4 border-[#2ED573] text-center space-y-6 animate-fadeIn shadow-pop">
+              <div className="w-16 h-16 rounded-3xl bg-[#2ED573] border-3 border-[#121316] shadow-pop flex items-center justify-center mx-auto text-[#121316] animate-bounce">
+                <Check className="w-9 h-9 stroke-[4]" />
               </div>
 
               <div className="space-y-2">
                 <span className="px-3.5 py-1 rounded-full bg-white border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] shadow-pop-sm">
-                  ✓ REGISTRATION CONFIRMED
+                  ✓ REGISTRATION CONFIRMED 🎉
                 </span>
                 <h3 className="text-2xl sm:text-4xl font-black text-[#121316] tracking-tight">
                   You're officially on the list!
                 </h3>
                 <p className="text-sm font-bold text-gray-700 max-w-md mx-auto">
-                  Thank you, <span className="text-[#121316] font-black">{submissionResult.name}</span>. Your registration for <span className="text-[#6C5CE7] font-black">"{event.title}"</span> has been saved in our database.
+                  Thank you, <span className="text-[#121316] font-black">{submissionResult.name}</span>. Your digital pass has been generated and confirmed.
                 </p>
               </div>
 
-              {/* Event Ticket Info Recap */}
-              <div className="max-w-md mx-auto p-5 rounded-2xl bg-white border-3 border-[#121316] shadow-pop-sm text-left space-y-3 font-mono text-xs">
-                <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-                  <span className="text-gray-500 font-bold">EVENT</span>
-                  <span className="font-black text-[#121316] truncate max-w-[200px]">{event.title}</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-                  <span className="text-gray-500 font-bold">DATE & TIME</span>
-                  <span className="font-bold text-[#121316]">{formatDate(event.startDate)}</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-                  <span className="text-gray-500 font-bold">VENUE</span>
-                  <span className="font-bold text-[#121316] truncate max-w-[200px]">{event.venue}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500 font-bold">CONFIRMATION EMAIL</span>
-                  <span className="font-bold text-[#6C5CE7] truncate max-w-[200px]">{submissionResult.email || 'N/A'}</span>
-                </div>
-              </div>
+              {/* Digital Pass Preview Card */}
+              {submissionResult.passId && (
+                <div className="max-w-md mx-auto rounded-3xl bg-white border-3 border-[#121316] shadow-pop-md overflow-hidden text-left space-y-4">
+                  <div className="p-4 bg-[#FAF7F0] border-b-2 border-[#121316] flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-mono text-xs font-black text-[#6C5CE7]">
+                      <Ticket className="w-4 h-4" />
+                      <span>ATC EVENT PASS</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#2ED573] text-[#121316] border border-[#121316] font-mono text-[9px] font-black uppercase">
+                      ● VALID PASS
+                    </span>
+                  </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+                  <div className="p-5 space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <span className="font-mono text-[10px] font-bold text-gray-400 uppercase">ATTENDEE</span>
+                        <h4 className="font-black text-lg text-[#121316]">{submissionResult.name}</h4>
+                        <p className="font-mono text-xs text-gray-600 font-bold">{event.title}</p>
+                      </div>
+
+                      {/* Small QR Code Thumbnail */}
+                      <div className="p-2 bg-white rounded-2xl border-2 border-[#121316] shadow-pop-sm flex-shrink-0">
+                        <QRCodeSVG
+                          value={`${typeof window !== 'undefined' ? window.location.origin : ''}/pass/${submissionResult.passId}`}
+                          size={72}
+                          level="M"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between font-mono text-xs">
+                      <span className="text-gray-500 font-bold">Pass ID:</span>
+                      <span className="font-black text-[#6C5CE7]">{submissionResult.passId}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                {submissionResult.passId && (
+                  <Link
+                    to={`/pass/${submissionResult.passId}`}
+                    className="px-7 py-3.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black border-3 border-[#121316] shadow-pop hover:shadow-pop-lg flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <Ticket className="w-4 h-4 stroke-[2.5]" />
+                    <span>VIEW MY PASS →</span>
+                  </Link>
+                )}
+
                 <Link
                   to="/events"
-                  className="px-6 py-3 rounded-full bg-[#121316] hover:bg-[#6C5CE7] text-white font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm transition-all"
+                  className="px-6 py-3.5 rounded-full bg-[#121316] hover:bg-gray-800 text-white font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm transition-all"
                 >
-                  Browse Other Events
+                  Back to Events
                 </Link>
+
                 <button
                   type="button"
                   onClick={() => {
                     setSubmissionResult(null);
                     setFormValues({});
                   }}
-                  className="px-6 py-3 rounded-full bg-white hover:bg-gray-100 text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm transition-all cursor-pointer"
+                  className="px-5 py-3 rounded-full bg-white hover:bg-gray-100 text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm transition-all cursor-pointer"
                 >
-                  Register Another Attendee
+                  Register Another
                 </button>
               </div>
             </div>

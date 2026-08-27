@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { EventsPage } from './pages/EventsPage';
 import { EventDetailsPage } from './pages/EventDetailsPage';
+import { EventPassPage } from './pages/EventPassPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { LabPage } from './pages/LabPage';
 import { TeamPage } from './pages/TeamPage';
@@ -57,6 +58,7 @@ export const App: React.FC = () => {
           <Route path="/about" element={<PublicLayout><AboutPage /></PublicLayout>} />
           <Route path="/events" element={<PublicLayout><EventsPage /></PublicLayout>} />
           <Route path="/events/:slug" element={<PublicLayout><EventDetailsPage /></PublicLayout>} />
+          <Route path="/pass/:passId" element={<PublicLayout><EventPassPage /></PublicLayout>} />
           <Route path="/projects" element={<PublicLayout><ProjectsPage /></PublicLayout>} />
           <Route path="/lab" element={<PublicLayout><LabPage /></PublicLayout>} />
           <Route path="/team" element={<PublicLayout><TeamPage /></PublicLayout>} />
