@@ -16,37 +16,39 @@ export const EventsPage: React.FC = () => {
 
   const categories = ['All Events', 'Workshops', 'Hackathons', 'Tech Talks', 'Competitions'];
 
-  // Authentic ATC Flagship Events
+  // Authentic ATC Flagship Events (Ordered by Latest Date)
   const authenticAtcEvents: EventItem[] = [
     {
-      id: 'worst-ui-ux',
-      title: 'Worst UI/UX Hackathon',
-      category: 'Hackathons',
-      date: 'Dec 13, 2025',
-      location: 'NIAT Pune • Lab 5.0',
+      id: 'mst-blockchain-workshop',
+      title: 'MST Blockchain Workshop',
+      category: 'Workshops',
+      date: 'Feb 27, 2026',
+      startDate: '2026-02-27T10:00:00.000Z',
+      location: 'NIAT Pune • Computer Wing & Lab 5.0',
       status: 'Completed',
-      tagline: 'Break every UX rule possible.',
-      description: 'A deliberately chaotic 4-hour design jam where builders competed to create the most infuriating, hilarious, and absurdly creative user interfaces.',
+      tagline: 'Exploring decentralized technology.',
+      description: 'Demystifying cryptographic primitives, consensus mechanisms, smart contracts in Solidity, and zero-knowledge proofs from the ground up.',
       stats: [
-        { label: 'Participants', value: '80+' },
-        { label: 'Broken UIs', value: '20+' },
-        { label: 'Prize Pool', value: 'Podium Swag' },
+        { label: 'Builders', value: '140+' },
+        { label: 'Smart Contracts', value: '60+' },
+        { label: 'Testnet TXs', value: '1,200+' },
       ],
       highlights: [
-        'Comic Sans supremacy rule enforced',
-        'Inverted scroll speed obstacle',
-        'Live judge rage-quit score multiplier',
-        'Pizza & late-night debugging session',
+        'Solidity smart contract live coding',
+        'Remix IDE & Hardhat deployment',
+        'Gas optimization challenge',
+        'Web3 developer toolkit setup',
       ],
-      color: 'bg-[#FFF9DB]',
-      badgeBg: 'bg-[#FF6B6B]',
-      illustration: <WorstUIUXIllustration />,
+      color: 'bg-[#E8F5E9]',
+      badgeBg: 'bg-[#10AC84]',
+      illustration: <BlockchainIllustration />,
     },
     {
       id: 'git-github-road-to-gsoc',
       title: 'Git & GitHub: Road to GSoC',
       category: 'Workshops',
       date: 'Feb 07, 2026',
+      startDate: '2026-02-07T10:00:00.000Z',
       location: 'NIAT Pune • Tech Audi & Lab 5.0',
       status: 'Completed',
       tagline: 'Learn. Contribute. Build in public.',
@@ -67,28 +69,29 @@ export const EventsPage: React.FC = () => {
       illustration: <GitHubGSoCIllustration />,
     },
     {
-      id: 'mst-blockchain-workshop',
-      title: 'MST Blockchain Workshop',
-      category: 'Workshops',
-      date: 'Feb 27, 2026',
-      location: 'NIAT Pune • Computer Wing & Lab 5.0',
+      id: 'worst-ui-ux',
+      title: 'Worst UI/UX Hackathon',
+      category: 'Hackathons',
+      date: 'Dec 13, 2025',
+      startDate: '2025-12-13T10:00:00.000Z',
+      location: 'NIAT Pune • Lab 5.0',
       status: 'Completed',
-      tagline: 'Exploring decentralized technology.',
-      description: 'Demystifying cryptographic primitives, consensus mechanisms, smart contracts in Solidity, and zero-knowledge proofs from the ground up.',
+      tagline: 'Break every UX rule possible.',
+      description: 'A deliberately chaotic 4-hour design jam where builders competed to create the most infuriating, hilarious, and absurdly creative user interfaces.',
       stats: [
-        { label: 'Builders', value: '140+' },
-        { label: 'Smart Contracts', value: '60+' },
-        { label: 'Testnet TXs', value: '1,200+' },
+        { label: 'Participants', value: '80+' },
+        { label: 'Broken UIs', value: '20+' },
+        { label: 'Prize Pool', value: 'Podium Swag' },
       ],
       highlights: [
-        'Solidity smart contract live coding',
-        'Remix IDE & Hardhat deployment',
-        'Gas optimization challenge',
-        'Web3 developer toolkit setup',
+        'Comic Sans supremacy rule enforced',
+        'Inverted scroll speed obstacle',
+        'Live judge rage-quit score multiplier',
+        'Pizza & late-night debugging session',
       ],
-      color: 'bg-[#E8F5E9]',
-      badgeBg: 'bg-[#10AC84]',
-      illustration: <BlockchainIllustration />,
+      color: 'bg-[#FFF9DB]',
+      badgeBg: 'bg-[#FF6B6B]',
+      illustration: <WorstUIUXIllustration />,
     },
   ];
 
@@ -162,6 +165,7 @@ export const EventsPage: React.FC = () => {
         day: 'numeric',
         year: 'numeric',
       }),
+      startDate: evt.startDate,
       location: evt.venue,
       status: statusMap[evt.status] || evt.status,
       tagline: evt.shortDescription,
@@ -189,7 +193,12 @@ export const EventsPage: React.FC = () => {
     (a) => !dbSlugs.has(a.id.toLowerCase())
   );
 
-  const displayedItems: EventItem[] = [...dbItems, ...missingAuthenticEvents];
+  // Sort ALL events by latest date first (descending order)
+  const displayedItems: EventItem[] = [...dbItems, ...missingAuthenticEvents].sort((a, b) => {
+    const timeA = a.startDate ? new Date(a.startDate).getTime() : new Date(a.date).getTime();
+    const timeB = b.startDate ? new Date(b.startDate).getTime() : new Date(b.date).getTime();
+    return timeB - timeA;
+  });
 
   const filteredEvents = selectedCategory === 'All Events'
     ? displayedItems

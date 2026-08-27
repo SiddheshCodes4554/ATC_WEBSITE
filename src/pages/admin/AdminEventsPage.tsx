@@ -182,21 +182,27 @@ export const AdminEventsPage: React.FC = () => {
     }
   };
 
-  // Filter events by tab & search query
-  const filteredEvents = events.filter((evt) => {
-    const matchesTab = 
-      activeTab === 'all' ? true :
-      activeTab === 'upcoming' ? evt.status === 'upcoming' || evt.status === 'ongoing' :
-      activeTab === 'draft' ? evt.status === 'draft' :
-      activeTab === 'completed' ? evt.status === 'completed' : true;
+  // Filter & sort events by latest date first (descending)
+  const upcomingCount = events.filter((e) => e.status === 'upcoming' || e.status === 'ongoing').length;
+  const completedCount = events.filter((e) => e.status === 'completed').length;
+  const draftCount = events.filter((e) => e.status === 'draft').length;
 
-    const matchesSearch = 
-      evt.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      evt.venue?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      evt.slug?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredEvents = events
+    .filter((evt) => {
+      const matchesTab = 
+        activeTab === 'all' ? true :
+        activeTab === 'upcoming' ? evt.status === 'upcoming' || evt.status === 'ongoing' :
+        activeTab === 'draft' ? evt.status === 'draft' :
+        activeTab === 'completed' ? evt.status === 'completed' : true;
 
-    return matchesTab && matchesSearch;
-  });
+      const matchesSearch = 
+        evt.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        evt.venue?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        evt.slug?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesTab && matchesSearch;
+    })
+    .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 
   return (
     <div className="min-h-screen bg-[#FAF7F0] py-10 px-4 sm:px-6 lg:px-8 paper-pattern select-none">
@@ -262,10 +268,10 @@ export const AdminEventsPage: React.FC = () => {
           {/* Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
             {[
-              { id: 'all', label: `All (${events.length})` },
-              { id: 'upcoming', label: 'Upcoming' },
-              { id: 'draft', label: 'Drafts' },
-              { id: 'completed', label: 'Completed' },
+              { id: 'all', label: `All Events (${events.length})` },
+              { id: 'upcoming', label: `Upcoming & Live (${upcomingCount})` },
+              { id: 'completed', label: `Past / Completed (${completedCount})` },
+              { id: 'draft', label: `Drafts (${draftCount})` },
             ].map((tab) => (
               <button
                 key={tab.id}
