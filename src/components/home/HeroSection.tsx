@@ -21,7 +21,7 @@ const OriginalHeroIllustration: React.FC = () => {
 
   return (
     <div className="relative w-full max-w-[540px] aspect-square flex items-center justify-center select-none">
-      
+
       {/* Dynamic Ambient Background Flow Shapes */}
       <svg className="absolute inset-0 w-full h-full -z-0 overflow-visible" viewBox="0 0 500 500" fill="none">
         {/* Soft Colorful Backdrop Blobs with hand-drawn black outlines */}
@@ -66,7 +66,7 @@ const OriginalHeroIllustration: React.FC = () => {
       </div>
 
       {/* Interactive Glowing Light Bulb / Idea Symbol (Top Left) */}
-      <div 
+      <div
         onClick={() => setBulbLit(!bulbLit)}
         className="absolute top-6 left-6 sm:left-10 p-3 rounded-2xl bg-[#FFF385] border-3 border-[#121316] shadow-pop transition-transform duration-200 hover:scale-110 hover:-rotate-6 cursor-pointer animate-float-fast"
         title="Click to toggle idea spark!"
@@ -94,7 +94,7 @@ const OriginalHeroIllustration: React.FC = () => {
       </div>
 
       {/* Small Robot Mascot with moving antenna (Bottom Right) */}
-      <div 
+      <div
         onClick={handleMascotClick}
         className={`absolute bottom-2 right-4 sm:right-8 z-20 cursor-pointer group transition-transform hover:scale-110 ${antennaWiggle ? 'animate-wiggle' : ''}`}
         title="Click me!"
@@ -117,7 +117,7 @@ const OriginalHeroIllustration: React.FC = () => {
       {/* Central Hero Character: Student Builder at Laptop */}
       <div className="relative z-10 flex flex-col items-center justify-center">
         <svg viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-64 sm:w-80 h-auto drop-shadow-xl">
-          
+
           {/* Student Body / Hoodie */}
           <path
             d="M 80 230 C 80 180, 110 160, 140 160 C 170 160, 200 180, 200 230 Z"
@@ -131,7 +131,7 @@ const OriginalHeroIllustration: React.FC = () => {
 
           {/* Student Head */}
           <circle cx="140" cy="115" r="38" fill="#F8C291" stroke="#121316" strokeWidth="3.5" />
-          
+
           {/* Spiky Creative Hair */}
           <path
             d="M 102 110 C 95 80, 115 55, 140 55 C 165 55, 185 80, 178 110 C 170 100, 160 95, 145 95 C 130 95, 115 100, 102 110 Z"
@@ -145,7 +145,7 @@ const OriginalHeroIllustration: React.FC = () => {
           <rect x="112" y="105" width="22" height="16" rx="4" fill="#FFFFFF" stroke="#121316" strokeWidth="2.5" />
           <rect x="146" y="105" width="22" height="16" rx="4" fill="#FFFFFF" stroke="#121316" strokeWidth="2.5" />
           <line x1="134" y1="112" x2="146" y2="112" stroke="#121316" strokeWidth="2.5" />
-          
+
           {/* Eyes & Smile */}
           <circle cx="123" cy="113" r="2.5" fill="#121316" />
           <circle cx="157" cy="113" r="2.5" fill="#121316" />
@@ -159,7 +159,7 @@ const OriginalHeroIllustration: React.FC = () => {
           <polygon points="65,240 215,240 200,215 80,215" fill="#2D3436" stroke="#121316" strokeWidth="3.5" />
           {/* Glowing Laptop Screen */}
           <polygon points="80,215 200,215 190,150 90,150" fill="#48DBFB" stroke="#121316" strokeWidth="3.5" />
-          
+
           {/* ATC Logo on Laptop screen glow */}
           <rect x="118" y="168" width="44" height="24" rx="6" fill="#FFE600" stroke="#121316" strokeWidth="2" />
           <text x="140" y="184" fontFamily="sans-serif" fontWeight="900" fontSize="11" textAnchor="middle" fill="#121316">
@@ -178,7 +178,7 @@ const OriginalHeroIllustration: React.FC = () => {
 export const HeroSection: React.FC = () => {
   return (
     <section className="relative bg-[#FAF7F0] pt-12 sm:pt-16 pb-16 sm:pb-24 overflow-hidden paper-pattern border-b-4 border-[#121316]">
-      
+
       {/* Decorative Twinkling Sparkles */}
       <div className="absolute top-12 left-8 opacity-60 pointer-events-none hidden md:block animate-pulse">
         <SparkleDoodle className="w-8 h-8" color="#6C5CE7" />
@@ -189,10 +189,10 @@ export const HeroSection: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          
+
           {/* Left Column: Strong Editorial Typography */}
           <div className="lg:col-span-7 space-y-6 sm:space-y-8">
-            
+
             {/* Club Pill Tag */}
             <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#FFE600] border-3 border-[#121316] shadow-pop-sm">
               <img
@@ -207,7 +207,7 @@ export const HeroSection: React.FC = () => {
 
             {/* Main Editorial Heading */}
             <div className="space-y-4">
-              
+
               {/* Part 1: THINK. CODE. BUILD. */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-black text-2xl sm:text-3xl md:text-4xl tracking-tight text-[#121316]">
                 <span>THINK.</span>
@@ -258,20 +258,6 @@ export const HeroSection: React.FC = () => {
               >
                 Join the Community
               </PlayfulButton>
-            </div>
-
-            {/* Live Student Stats Badge */}
-            <div className="pt-2 flex flex-wrap items-center gap-4 text-xs sm:text-sm font-mono font-bold text-gray-600">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border-2 border-[#121316] shadow-pop-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                400+ Active Builders
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border-2 border-[#121316] shadow-pop-sm">
-                ⚡ 18+ Projects Shipped
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border-2 border-[#121316] shadow-pop-sm">
-                📍 Lab 502
-              </span>
             </div>
 
           </div>
