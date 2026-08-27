@@ -91,6 +91,7 @@ export const EventsPage: React.FC = () => {
       ],
       color: 'bg-[#FFF9DB]',
       badgeBg: 'bg-[#FF6B6B]',
+      coverImageUrl: '/events/worst-ui-ux-poster.png',
       illustration: <WorstUIUXIllustration />,
     },
   ];

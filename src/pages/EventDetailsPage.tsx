@@ -445,7 +445,13 @@ export const EventDetailsPage: React.FC = () => {
   }
 
   // Dynamic Public Appwrite Event Landing Page
-  const coverUrl = event.coverImageId ? StorageService.getEventImageUrl(event.coverImageId, 1200) : '';
+  const coverUrl = event.coverImageId
+    ? (event.coverImageId.startsWith('/') || event.coverImageId.startsWith('http')
+        ? event.coverImageId
+        : StorageService.getEventImageUrl(event.coverImageId, 1200))
+    : (event.slug?.includes('worst-ui') || event.$id?.includes('worst-ui'))
+    ? '/events/worst-ui-ux-poster.png'
+    : '';
   const accentColor = event.accentColor || '#FFE600';
   const isRegistrationActive = event.registrationEnabled && (event.status === 'upcoming' || event.status === 'ongoing');
 

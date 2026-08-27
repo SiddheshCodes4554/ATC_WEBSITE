@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { DetailedEvent } from '../../data/eventsData';
 import { WorstUIUXHeroCover } from './WorstUIUXHeroCover';
 import { SparkleDoodle, LoopyArrow } from '../doodles/DoodleSvgs';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 interface EventHeroSectionProps {
   event: DetailedEvent;
@@ -88,8 +89,19 @@ export const EventHeroSection: React.FC<EventHeroSectionProps> = ({ event }) => 
 
         </div>
 
-        {/* Large Custom Event Cover Illustration Showcase */}
-        <div className="relative">
+        {/* Large Custom Event Cover Illustration / Poster Showcase */}
+        <div className="relative space-y-8">
+          {event.coverUrl && (
+            <div className="max-w-2xl mx-auto rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-xl overflow-hidden p-3 relative rotate-[0.5deg]">
+              <div className="rounded-[28px] overflow-hidden border-2 border-[#121316] bg-gray-50 flex items-center justify-center">
+                <OptimizedImage
+                  src={event.coverUrl}
+                  alt={event.title}
+                  className="w-full max-h-[520px] object-contain mx-auto"
+                />
+              </div>
+            </div>
+          )}
           <WorstUIUXHeroCover />
         </div>
 

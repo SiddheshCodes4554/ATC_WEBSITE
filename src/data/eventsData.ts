@@ -89,6 +89,7 @@ export interface DetailedEvent {
   learnings: LearningItem[];
   winners: WinnerProject[];
   quotes: EventQuote[];
+  coverUrl?: string;
 }
 
 export const eventsArchive: Record<string, DetailedEvent> = {
@@ -101,6 +102,7 @@ export const eventsArchive: Record<string, DetailedEvent> = {
     venue: 'Lab 5.0, NIAT Pune',
     organizedBy: 'Advanced Tech Club • NIAT Pune',
     eventType: '4-Hour Creative Chaos Hackathon',
+    coverUrl: '/events/worst-ui-ux-poster.png',
     heroTheme: {
       accentColor: '#FF6B6B',
       badgeBg: 'bg-[#FF6B6B]',
@@ -275,6 +277,16 @@ export const eventsArchive: Record<string, DetailedEvent> = {
         category: 'Award Ceremony',
         svgSceneType: 'trophy',
         imgUrl: '/events/worst-ui-ux-winners-team3.jpg',
+      },
+      {
+        id: 'g9',
+        title: 'Official Winner Certificate • Close-Up',
+        caption: 'Presented for demonstrating exceptional creativity and resilience during the Worst UI/UX Hackathon on 13th December 2025.',
+        tapeColor: '#FFE600',
+        rotation: '-rotate-2',
+        category: 'Certificate',
+        svgSceneType: 'trophy',
+        imgUrl: '/events/worst-ui-ux-certificate-closeup.jpg',
       },
     ],
     learnings: [
