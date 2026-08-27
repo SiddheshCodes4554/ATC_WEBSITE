@@ -25,6 +25,13 @@ import {
   Image as ImageIcon,
   X,
   Maximize2,
+  CheckSquare,
+  Square,
+  Rocket,
+  GraduationCap,
+  Award,
+  Gift,
+  CheckCircle2,
 } from 'lucide-react';
 import { SparkleDoodle, PlanetDoodle, SpiralScribble } from '../doodles/DoodleSvgs';
 import { Link } from 'react-router-dom';
@@ -97,6 +104,29 @@ export const PlayfulExperience: React.FC<EventExperienceProps> = (props) => {
       confetti({ particleCount: 40, spread: 70, colors: ['#FFE600', '#2ED573', '#6C5CE7'] });
     }, 1200);
   };
+
+  // Generic Interactive Builder Readiness Checklist
+  const [checklist, setChecklist] = useState<Record<string, boolean>>({
+    laptop: true,
+    ide: true,
+    github: false,
+    curiosity: true,
+  });
+
+  const toggleChecklistItem = (key: string) => {
+    setChecklist((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      const allDone = Object.values(next).every(Boolean);
+      if (allDone) {
+        confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
+      }
+      return next;
+    });
+  };
+
+  const completedCount = Object.values(checklist).filter(Boolean).length;
+  const totalCount = Object.keys(checklist).length;
+  const progressPercent = Math.round((completedCount / totalCount) * 100);
 
   return (
     <div className="min-h-screen bg-[#FAF7F0] paper-pattern pb-24 select-none relative overflow-hidden">
@@ -253,8 +283,8 @@ export const PlayfulExperience: React.FC<EventExperienceProps> = (props) => {
       {/* ========================================================================= */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid lg:grid-cols-12 gap-8 items-start">
-          {/* Left 7 Cols: Narrative & Bespoke Interactive Widgets */}
-          <div className="lg:col-span-7 space-y-8">
+          {/* Left 7 Cols: Narrative, Takeaways & Interactive Widgets */}
+          <div className="lg:col-span-7 space-y-6">
             {/* 1. About Story Box */}
             <div className="p-6 sm:p-8 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-lg space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b-2 border-[#121316]/10">
@@ -273,8 +303,7 @@ export const PlayfulExperience: React.FC<EventExperienceProps> = (props) => {
               </div>
             </div>
 
-            {/* 2. BESPOKE INTERACTIVE ELEMENTS BASED ON EVENT TOPIC */}
-
+            {/* 2. BESPOKE INTERACTIVE ELEMENTS */}
             {/* CASE A: WORST UI/UX HACKATHON -> RUNAWAY BUTTON EASTER EGG */}
             {isWorstUi && (
               <div className="p-6 sm:p-8 rounded-[36px] bg-[#FFF080] border-4 border-[#121316] shadow-pop-lg space-y-4 relative overflow-hidden">
@@ -409,9 +438,148 @@ export const PlayfulExperience: React.FC<EventExperienceProps> = (props) => {
               </div>
             )}
 
-            {/* 3. HIGHLIGHTS & PERKS STICKERS (Website Palette) */}
+            {/* CASE D: BUILDER READINESS CHECKLIST (For All Events) */}
+            {!isWorstUi && !isGitGsoc && !isBlockchain && (
+              <div className="p-6 sm:p-8 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-lg space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b-2 border-[#121316]/10">
+                  <div className="flex items-center gap-2">
+                    <CheckSquare className="w-5 h-5 text-[#2ED573]" />
+                    <span className="font-mono text-xs font-black uppercase text-[#121316]">
+                      BUILDER READINESS CHECKLIST
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#FFE600] border border-[#121316] font-mono text-[11px] font-black">
+                    {completedCount}/{totalCount} READY ({progressPercent}%)
+                  </span>
+                </div>
+
+                <p className="text-xs sm:text-sm font-bold text-gray-700">
+                  Toggle items below to get your workspace set up before arriving at NIAT Lab:
+                </p>
+
+                {/* Progress Bar */}
+                <div className="w-full h-3 rounded-full bg-[#FAF7F0] border-2 border-[#121316] overflow-hidden">
+                  <div
+                    className="h-full bg-[#2ED573] transition-all duration-300"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => toggleChecklistItem('laptop')}
+                    className={`p-3 rounded-2xl border-2 border-[#121316] text-left font-mono text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                      checklist.laptop ? 'bg-[#EAFBF1] text-[#121316]' : 'bg-[#FAF7F0] text-gray-600'
+                    }`}
+                  >
+                    {checklist.laptop ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#2ED573] flex-shrink-0" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    )}
+                    <span>Laptop & Charger Ready ⚡</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleChecklistItem('ide')}
+                    className={`p-3 rounded-2xl border-2 border-[#121316] text-left font-mono text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                      checklist.ide ? 'bg-[#EAFBF1] text-[#121316]' : 'bg-[#FAF7F0] text-gray-600'
+                    }`}
+                  >
+                    {checklist.ide ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#2ED573] flex-shrink-0" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    )}
+                    <span>VS Code / IDE Installed 💻</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleChecklistItem('github')}
+                    className={`p-3 rounded-2xl border-2 border-[#121316] text-left font-mono text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                      checklist.github ? 'bg-[#EAFBF1] text-[#121316]' : 'bg-[#FAF7F0] text-gray-600'
+                    }`}
+                  >
+                    {checklist.github ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#2ED573] flex-shrink-0" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    )}
+                    <span>GitHub Account Active 🐙</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleChecklistItem('curiosity')}
+                    className={`p-3 rounded-2xl border-2 border-[#121316] text-left font-mono text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                      checklist.curiosity ? 'bg-[#EAFBF1] text-[#121316]' : 'bg-[#FAF7F0] text-gray-600'
+                    }`}
+                  >
+                    {checklist.curiosity ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#2ED573] flex-shrink-0" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    )}
+                    <span>Curiosity & Team Energy 🚀</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 3. WHAT YOU'LL LEARN & BUILD PILLARS */}
+            <div className="p-6 sm:p-8 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-lg space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b-2 border-[#121316]/10">
+                <Rocket className="w-5 h-5 text-[#6C5CE7]" />
+                <span className="font-mono text-xs font-black uppercase tracking-wider text-[#121316]">
+                  WHAT YOU WILL BUILD & EXPERIENCE
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] space-y-1">
+                  <h5 className="font-black text-xs text-[#121316] flex items-center gap-1.5">
+                    <span>⚡</span> Hands-On Sprint
+                  </h5>
+                  <p className="text-[11px] font-bold text-gray-600 leading-relaxed">
+                    Build functional solutions and write real code rather than watching theoretical slides.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] space-y-1">
+                  <h5 className="font-black text-xs text-[#121316] flex items-center gap-1.5">
+                    <span>👥</span> Peer Networking
+                  </h5>
+                  <p className="text-[11px] font-bold text-gray-600 leading-relaxed">
+                    Form project teams, connect with fellow student engineers, and discover co-founders.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] space-y-1">
+                  <h5 className="font-black text-xs text-[#121316] flex items-center gap-1.5">
+                    <span>🧠</span> Lead Mentorship
+                  </h5>
+                  <p className="text-[11px] font-bold text-gray-600 leading-relaxed">
+                    Direct architectural guidance, live debugging help, and code review from club leads.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] space-y-1">
+                  <h5 className="font-black text-xs text-[#121316] flex items-center gap-1.5">
+                    <span>📜</span> Verified Digital Pass
+                  </h5>
+                  <p className="text-[11px] font-bold text-gray-600 leading-relaxed">
+                    Instant QR gate entry pass and verifiable credentials to showcase on LinkedIn.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. HIGHLIGHTS & PERKS STICKERS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-5 rounded-3xl bg-[#FFF9DB] border-3 border-[#121316] shadow-pop-sm rotate-[-1.5deg] space-y-1">
+              <div className="p-5 rounded-3xl bg-[#FFF9DB] border-3 border-[#121316] shadow-pop-sm rotate-[-1deg] space-y-1">
                 <div className="text-2xl">🍕</div>
                 <h4 className="font-black text-sm text-[#121316]">
                   Refreshments & Community
@@ -421,7 +589,7 @@ export const PlayfulExperience: React.FC<EventExperienceProps> = (props) => {
                 </p>
               </div>
 
-              <div className="p-5 rounded-3xl bg-[#E1DCFF] border-3 border-[#121316] shadow-pop-sm rotate-[1.5deg] space-y-1">
+              <div className="p-5 rounded-3xl bg-[#E1DCFF] border-3 border-[#121316] shadow-pop-sm rotate-[1deg] space-y-1">
                 <div className="text-2xl">🏆</div>
                 <h4 className="font-black text-sm text-[#121316]">
                   Verified Digital Passes & Certs
@@ -430,30 +598,93 @@ export const PlayfulExperience: React.FC<EventExperienceProps> = (props) => {
                   Instant QR access badge and verifiable student certificates.
                 </p>
               </div>
+
+              <div className="p-5 rounded-3xl bg-[#EAFBF1] border-3 border-[#121316] shadow-pop-sm rotate-[1deg] space-y-1">
+                <div className="text-2xl">💬</div>
+                <h4 className="font-black text-sm text-[#121316]">
+                  Discord Builder Access
+                </h4>
+                <p className="text-xs font-bold text-gray-700">
+                  Private channels for project collabs, source repos, and lab updates.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-3xl bg-[#FFE5E5] border-3 border-[#121316] shadow-pop-sm rotate-[-1deg] space-y-1">
+                <div className="text-2xl">🎁</div>
+                <h4 className="font-black text-sm text-[#121316]">
+                  ATC Swag & Laptop Decals
+                </h4>
+                <p className="text-xs font-bold text-gray-700">
+                  Sticker packs and exclusive club merch for active participants.
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Right 5 Cols: Dynamic Registration Form (Sticky) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-8">
-            <DynamicRegistrationFormSection
-              theme="playful"
-              eventTitle={event.title}
-              isRegistrationActive={isRegistrationActive}
-              eventStatus={event.status}
-              registrationDeadline={event.registrationDeadline}
-              registrationLimit={event.registrationLimit}
-              displayedFields={displayedFields}
-              formValues={formValues}
-              onFieldChange={onFieldChange}
-              onSubmit={onSubmit}
-              isSubmitting={isSubmitting}
-              submissionResult={submissionResult}
-              formErrorMessage={formErrorMessage}
-              fieldErrors={fieldErrors}
-              formLoading={formLoading}
-              accentColor={accentColor}
-              formatDate={formatDate}
-            />
+          {/* Right 5 Cols: Dynamic Registration Form (Sticky) OR Event Recap */}
+          <div className="lg:col-span-5 lg:sticky lg:top-8 space-y-6">
+            {isRegistrationActive ? (
+              <DynamicRegistrationFormSection
+                theme="playful"
+                eventTitle={event.title}
+                isRegistrationActive={isRegistrationActive}
+                eventStatus={event.status}
+                registrationDeadline={event.registrationDeadline}
+                registrationLimit={event.registrationLimit}
+                displayedFields={displayedFields}
+                formValues={formValues}
+                onFieldChange={onFieldChange}
+                onSubmit={onSubmit}
+                isSubmitting={isSubmitting}
+                submissionResult={submissionResult}
+                formErrorMessage={formErrorMessage}
+                fieldErrors={fieldErrors}
+                formLoading={formLoading}
+                accentColor={accentColor}
+                formatDate={formatDate}
+              />
+            ) : (
+              <div className="p-8 sm:p-10 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-xl space-y-6">
+                <div className="space-y-3 pb-6 border-b-2 border-[#121316]/10">
+                  <span className="px-3 py-1 rounded-full bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] inline-block shadow-pop-sm">
+                    {event.status === 'completed' ? '✓ EVENT CONCLUDED' : 'REGISTRATION CLOSED'}
+                  </span>
+                  <h3 className="text-2xl font-black text-[#121316] tracking-tight">
+                    Chapter Highlights & Recap
+                  </h3>
+                  <p className="text-xs sm:text-sm font-bold text-gray-600 leading-relaxed">
+                    This event has wrapped up at NIAT Lab. Check out the memory scrapbook below or explore our next upcoming sprints!
+                  </p>
+                </div>
+
+                <div className="space-y-3 font-mono text-xs font-bold">
+                  <div className="p-3.5 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] flex items-center justify-between">
+                    <span className="text-gray-500">EVENT VENUE</span>
+                    <span className="text-[#121316]">{event.venue || 'NIAT Lab 5.0, Pune'}</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] flex items-center justify-between">
+                    <span className="text-gray-500">HELD ON</span>
+                    <span className="text-[#121316]">{formatDate(event.startDate)}</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] flex items-center justify-between">
+                    <span className="text-gray-500">DIGITAL CERTS</span>
+                    <span className="text-[#2ED573] font-black">Issued to Participants ✓</span>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Link
+                    to="/events"
+                    className="w-full py-3.5 rounded-2xl bg-[#FFE600] hover:bg-[#FFD32A] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop flex items-center justify-center gap-2 transition-all"
+                  >
+                    <span>Browse Next Upcoming Events</span>
+                    <ArrowUpRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
