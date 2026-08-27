@@ -97,6 +97,7 @@ export class FormService {
                 required: Boolean(field.required),
                 options: optionsString,
                 position: field.position ?? i,
+                ...(field.systemKey ? { systemKey: field.systemKey } : {}),
               },
               this.getStandardPermissions()
             );
@@ -197,6 +198,7 @@ export class FormService {
             required: f.required,
             options: parsedOptions,
             position: f.position,
+            systemKey: (f.systemKey as any) || undefined,
           };
         });
       } catch (fErr) {
@@ -347,6 +349,7 @@ export class FormService {
                 required: Boolean(field.required),
                 options: optionsString,
                 position: field.position ?? i,
+                ...(field.systemKey ? { systemKey: field.systemKey } : {}),
               },
               this.getStandardPermissions()
             );

@@ -16,6 +16,11 @@ export type FormFieldType =
   | 'url';
 
 /**
+ * Known system keys for participant identification
+ */
+export type FormFieldSystemKey = 'name' | 'email' | 'phone' | null;
+
+/**
  * Definition of a single Form Field inside an Event Registration Form
  */
 export interface FormField {
@@ -27,6 +32,7 @@ export interface FormField {
   required: boolean;
   options?: string[]; // Array of strings (e.g. for dropdown, multiple_choice, checkbox)
   position: number;
+  systemKey?: FormFieldSystemKey;
 }
 
 /**
@@ -40,6 +46,7 @@ export interface FormFieldDocument extends Models.Document {
   required: boolean;
   options?: string; // JSON serialized string array in Appwrite database
   position: number;
+  systemKey?: string | null;
 }
 
 /**
@@ -83,26 +90,67 @@ export interface FormFieldInput {
   required: boolean;
   options?: string[];
   position: number;
+  systemKey?: FormFieldSystemKey;
 }
 
 /**
  * Registration Document Schema
  */
+export type RegistrationStatus = 'registered' | 'cancelled' | 'checked_in';
+
+export interface EventRegistration {
+  $id?: string;
+  eventId: string;
+  formId?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  status: RegistrationStatus;
+  registeredAt: string;
+}
+
 export interface EventRegistrationDocument extends Models.Document {
   eventId: string;
   formId?: string;
   name: string;
   email: string;
   phone?: string;
-  status: 'registered' | 'cancelled' | 'checked_in';
+  status: RegistrationStatus;
   registeredAt: string;
 }
 
 /**
  * Registration Custom Answer Document Schema
  */
+export interface RegistrationAnswer {
+  $id?: string;
+  registrationId: string;
+  fieldId: string;
+  value: string;
+}
+
 export interface RegistrationAnswerDocument extends Models.Document {
   registrationId: string;
   fieldId: string;
   value: string;
+}
+
+/**
+ * Payload for student submission
+ */
+export interface SubmitRegistrationInput {
+  eventId: string;
+  formId?: string;
+  answers: Record<string, any>; // field identifier -> user submitted value
+}
+
+export interface RegistrationSubmissionResult {
+  success: boolean;
+  registrationId?: string;
+  registration?: EventRegistration;
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  isDuplicate?: boolean;
+  isCapacityReached?: boolean;
+  isDeadlinePassed?: boolean;
 }

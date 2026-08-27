@@ -75,9 +75,10 @@ export const AdminCreateEventPage: React.FC = () => {
       id: 'field-1',
       label: 'Full Name',
       fieldType: 'short_text',
-      placeholder: 'e.g. Alex Sharma',
+      placeholder: 'e.g. Alex Rivera',
       required: true,
       position: 0,
+      systemKey: 'name',
     },
     {
       id: 'field-2',
@@ -86,6 +87,7 @@ export const AdminCreateEventPage: React.FC = () => {
       placeholder: 'alex@example.com',
       required: true,
       position: 1,
+      systemKey: 'email',
     },
     {
       id: 'field-3',
@@ -94,6 +96,7 @@ export const AdminCreateEventPage: React.FC = () => {
       placeholder: '+91 98765 43210',
       required: false,
       position: 2,
+      systemKey: 'phone',
     },
   ]);
 

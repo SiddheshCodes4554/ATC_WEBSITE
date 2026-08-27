@@ -168,12 +168,13 @@ export const AdminEditEventPage: React.FC = () => {
                 required: f.required,
                 options: f.options,
                 position: f.position ?? idx,
+                systemKey: f.systemKey,
               })));
             } else {
               setFormFields([
-                { id: 'field-1', label: 'Full Name', fieldType: 'short_text', placeholder: 'Enter full name', required: true, position: 0 },
-                { id: 'field-2', label: 'Email Address', fieldType: 'email', placeholder: 'Enter email', required: true, position: 1 },
-                { id: 'field-3', label: 'Phone Number', fieldType: 'phone', placeholder: 'Enter phone number', required: false, position: 2 },
+                { id: 'field-1', label: 'Full Name', fieldType: 'short_text', placeholder: 'Enter full name', required: true, position: 0, systemKey: 'name' },
+                { id: 'field-2', label: 'Email Address', fieldType: 'email', placeholder: 'Enter email', required: true, position: 1, systemKey: 'email' },
+                { id: 'field-3', label: 'Phone Number', fieldType: 'phone', placeholder: 'Enter phone number', required: false, position: 2, systemKey: 'phone' },
               ]);
             }
           } catch (formErr) {
