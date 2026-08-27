@@ -81,6 +81,7 @@ export const App: React.FC = () => {
             <Route path="events" element={<AdminEventsPage />} />
             <Route path="events/create" element={<AdminCreateEventPage />} />
             <Route path="events/edit/:eventId" element={<AdminEditEventPage />} />
+            <Route path="events/:eventId/edit" element={<AdminEditEventPage />} />
             <Route path="events/:eventId/registrations" element={<AdminEventRegistrationsPage />} />
             <Route path="events/:eventId/check-in" element={<AdminEventCheckInPage />} />
             <Route path="team" element={<AdminTeamPage />} />

@@ -96,11 +96,44 @@ export const EventDetailsPage: React.FC = () => {
             }
           }
         } else {
-          // 3. Check if this slug exists as a legacy retrospective archive
-          const legacyMatch = eventsArchive[slug.toLowerCase()] || eventsArchive[slug];
+          // 3. Check if this slug exists as a retrospective archive
+          const normalizedSlug = slug.toLowerCase().trim();
+          const legacyMatch =
+            eventsArchive[normalizedSlug] ||
+            eventsArchive[normalizedSlug === 'git-github-road-to-gsoc' ? 'git-github-gsoc' : normalizedSlug] ||
+            eventsArchive[normalizedSlug === 'mst-blockchain-workshop' ? 'mst-blockchain' : normalizedSlug] ||
+            eventsArchive[normalizedSlug === 'git-github-gsoc' ? 'git-github-road-to-gsoc' : normalizedSlug] ||
+            eventsArchive[normalizedSlug === 'mst-blockchain' ? 'mst-blockchain-workshop' : normalizedSlug];
+
           if (legacyMatch) {
+            const convertedEvent: ATCEvent = {
+              $id: legacyMatch.id || normalizedSlug,
+              $createdAt: new Date().toISOString(),
+              $updatedAt: new Date().toISOString(),
+              title: legacyMatch.title,
+              slug: normalizedSlug,
+              shortDescription: legacyMatch.tagline,
+              description: legacyMatch.about?.paragraphs?.join('\n\n') || legacyMatch.tagline,
+              eventType: (legacyMatch.category || 'workshop').toLowerCase(),
+              startDate: normalizedSlug.includes('worst')
+                ? '2025-12-13T10:00:00.000Z'
+                : normalizedSlug.includes('git')
+                ? '2026-02-07T10:00:00.000Z'
+                : '2026-02-27T10:00:00.000Z',
+              venue: legacyMatch.venue || 'NIAT Lab 5.0, Pune',
+              accentColor: legacyMatch.heroTheme?.accentColor || '#FFE600',
+              visualTheme: normalizedSlug.includes('worst')
+                ? 'playful'
+                : normalizedSlug.includes('git')
+                ? 'terminal'
+                : 'futuristic',
+              featured: true,
+              status: 'completed',
+              registrationEnabled: false,
+            };
+            setEvent(convertedEvent);
             setLegacyEventData(legacyMatch);
-            setIsLegacyArchive(true);
+            setIsLegacyArchive(false);
           } else {
             setEvent(null);
             setIsLegacyArchive(false);
@@ -109,10 +142,41 @@ export const EventDetailsPage: React.FC = () => {
       } catch (err: any) {
         console.error('Error fetching event data:', err);
         if (isMounted) {
-          const legacyMatch = eventsArchive[slug.toLowerCase()] || eventsArchive[slug];
+          const normalizedSlug = slug.toLowerCase().trim();
+          const legacyMatch =
+            eventsArchive[normalizedSlug] ||
+            eventsArchive[normalizedSlug === 'git-github-road-to-gsoc' ? 'git-github-gsoc' : normalizedSlug] ||
+            eventsArchive[normalizedSlug === 'mst-blockchain-workshop' ? 'mst-blockchain' : normalizedSlug];
+
           if (legacyMatch) {
+            const convertedEvent: ATCEvent = {
+              $id: legacyMatch.id || normalizedSlug,
+              $createdAt: new Date().toISOString(),
+              $updatedAt: new Date().toISOString(),
+              title: legacyMatch.title,
+              slug: normalizedSlug,
+              shortDescription: legacyMatch.tagline,
+              description: legacyMatch.about?.paragraphs?.join('\n\n') || legacyMatch.tagline,
+              eventType: (legacyMatch.category || 'workshop').toLowerCase(),
+              startDate: normalizedSlug.includes('worst')
+                ? '2025-12-13T10:00:00.000Z'
+                : normalizedSlug.includes('git')
+                ? '2026-02-07T10:00:00.000Z'
+                : '2026-02-27T10:00:00.000Z',
+              venue: legacyMatch.venue || 'NIAT Lab 5.0, Pune',
+              accentColor: legacyMatch.heroTheme?.accentColor || '#FFE600',
+              visualTheme: normalizedSlug.includes('worst')
+                ? 'playful'
+                : normalizedSlug.includes('git')
+                ? 'terminal'
+                : 'futuristic',
+              featured: true,
+              status: 'completed',
+              registrationEnabled: false,
+            };
+            setEvent(convertedEvent);
             setLegacyEventData(legacyMatch);
-            setIsLegacyArchive(true);
+            setIsLegacyArchive(false);
           } else {
             setEvent(null);
           }

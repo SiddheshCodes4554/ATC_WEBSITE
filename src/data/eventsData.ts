@@ -711,3 +711,8 @@ export const eventsArchive: Record<string, DetailedEvent> = {
     ],
   },
 };
+
+// Explicit slug aliases for route compatibility
+eventsArchive['git-github-road-to-gsoc'] = eventsArchive['git-github-gsoc'];
+eventsArchive['mst-blockchain-workshop'] = eventsArchive['mst-blockchain'];
+
