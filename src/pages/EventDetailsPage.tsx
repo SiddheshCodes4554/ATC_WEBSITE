@@ -482,7 +482,7 @@ export const EventDetailsPage: React.FC = () => {
     : (event.slug?.includes('git') || event.$id?.includes('git'))
     ? '/events/git-workshop-poster.jpg'
     : (event.slug?.includes('blockchain') || event.$id?.includes('blockchain'))
-    ? '/events/blockchain-workshop-group.jpg'
+    ? '/events/blockchain-workshop-poster.png'
     : '';
   const accentColor = event.accentColor || '#FFE600';
   const isRegistrationActive = event.registrationEnabled && (event.status === 'upcoming' || event.status === 'ongoing');

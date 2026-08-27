@@ -670,7 +670,7 @@ export const eventsArchive: Record<string, DetailedEvent> = {
     venue: 'Computer Wing, NIAT Pune',
     organizedBy: 'Advanced Tech Club • Web3 & Systems',
     eventType: 'Hands-on Smart Contract Engineering Lab',
-    coverUrl: '/events/blockchain-workshop-group.jpg',
+    coverUrl: '/events/blockchain-workshop-poster.png',
     heroTheme: {
       accentColor: '#10AC84',
       badgeBg: 'bg-[#10AC84]',
@@ -796,6 +796,16 @@ export const eventsArchive: Record<string, DetailedEvent> = {
         category: 'Auditorium',
         svgSceneType: 'hacking',
         imgUrl: '/events/blockchain-workshop-attentive-student.jpg',
+      },
+      {
+        id: 'bcg6',
+        title: 'Packed Auditorium & Live Keynote',
+        caption: 'Wide-angle view of 140+ students filling the tech auditorium for the Campus Verse session.',
+        tapeColor: '#FFA502',
+        rotation: 'rotate-1',
+        category: 'Auditorium',
+        svgSceneType: 'presentation',
+        imgUrl: '/events/blockchain-workshop-packed-auditorium.jpg',
       },
     ],
     learnings: [
