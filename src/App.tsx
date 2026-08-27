@@ -8,6 +8,7 @@ import { EventsPage } from './pages/EventsPage';
 import { EventDetailsPage } from './pages/EventDetailsPage';
 import { EventPassPage } from './pages/EventPassPage';
 import { ProjectsPage } from './pages/ProjectsPage';
+import { ProjectDetailsPage } from './pages/ProjectDetailsPage';
 import { LabPage } from './pages/LabPage';
 import { TeamPage } from './pages/TeamPage';
 import { GalleryPage } from './pages/GalleryPage';
@@ -20,6 +21,9 @@ import { AdminEditEventPage } from './pages/admin/AdminEditEventPage';
 import { AdminEventRegistrationsPage } from './pages/admin/AdminEventRegistrationsPage';
 import { AdminEventCheckInPage } from './pages/admin/AdminEventCheckInPage';
 import { AdminTeamPage } from './pages/admin/AdminTeamPage';
+import { AdminProjectsPage } from './pages/admin/AdminProjectsPage';
+import { AdminCreateProjectPage } from './pages/admin/AdminCreateProjectPage';
+import { AdminEditProjectPage } from './pages/admin/AdminEditProjectPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { PartyModeEasterEgg } from './components/common/PartyModeEasterEgg';
@@ -62,6 +66,7 @@ export const App: React.FC = () => {
           <Route path="/events/:slug" element={<PublicLayout><EventDetailsPage /></PublicLayout>} />
           <Route path="/pass/:passId" element={<PublicLayout><EventPassPage /></PublicLayout>} />
           <Route path="/projects" element={<PublicLayout><ProjectsPage /></PublicLayout>} />
+          <Route path="/projects/:slug" element={<PublicLayout><ProjectDetailsPage /></PublicLayout>} />
           <Route path="/lab" element={<PublicLayout><LabPage /></PublicLayout>} />
           <Route path="/team" element={<PublicLayout><TeamPage /></PublicLayout>} />
           <Route path="/gallery" element={<PublicLayout><GalleryPage /></PublicLayout>} />
@@ -85,6 +90,11 @@ export const App: React.FC = () => {
             <Route path="events/:eventId/registrations" element={<AdminEventRegistrationsPage />} />
             <Route path="events/:eventId/check-in" element={<AdminEventCheckInPage />} />
             <Route path="team" element={<AdminTeamPage />} />
+            <Route path="projects" element={<AdminProjectsPage />} />
+            <Route path="projects/new" element={<AdminCreateProjectPage />} />
+            <Route path="projects/create" element={<AdminCreateProjectPage />} />
+            <Route path="projects/:id/edit" element={<AdminEditProjectPage />} />
+            <Route path="projects/edit/:id" element={<AdminEditProjectPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
 

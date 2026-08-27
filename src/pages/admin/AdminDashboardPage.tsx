@@ -60,12 +60,12 @@ export const AdminDashboardPage: React.FC = () => {
     },
     {
       title: 'Student Projects Showcase',
-      desc: 'Showcase student hardware builds, software apps, AI experiments & lab incubations.',
+      desc: 'Create, edit, order, feature & publish student hardware builds, software apps, and lab innovations.',
       icon: <FolderGit2 className="w-6 h-6 text-[#121316]" />,
       badge: 'PROJECTS',
       color: 'bg-[#E1F5FE]',
-      linkText: 'Explore Projects',
-      path: '/projects',
+      linkText: 'Manage Projects',
+      path: '/admin/projects',
       isInternal: true,
     },
     {
