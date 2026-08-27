@@ -132,10 +132,16 @@ export const AdminCreateEventPage: React.FC = () => {
     setSlug(generateSlug(e.target.value));
   };
 
-  // Image selection handling
+  // Image selection handling with validation
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const validation = StorageService.validateImageFile(file);
+      if (!validation.valid) {
+        setError(validation.error || 'Invalid image file.');
+        return;
+      }
       setCoverImageFile(file);
       setCoverImagePreview(URL.createObjectURL(file));
     }
@@ -258,23 +264,18 @@ export const AdminCreateEventPage: React.FC = () => {
 
     setIsSubmitting(true);
 
+    let uploadedFileId: string | null = null;
+
     try {
-      // 1. Upload Cover Image if provided
-      let finalCoverImageId: string | null = null;
+      // 1. Upload Cover Image to Appwrite Storage (atc_event_images) if provided
       if (coverImageFile) {
-        try {
-          const uploadRes = await StorageService.uploadFile(
-            APPWRITE_CONFIG.BUCKETS.EVENT_COVERS,
-            coverImageFile
-          );
-          if (uploadRes.success && uploadRes.data?.file_id) {
-            finalCoverImageId = uploadRes.data.file_id;
-          } else {
-            console.warn('[AdminCreateEventPage] Cover image upload notice:', uploadRes.error);
-          }
-        } catch (uploadErr) {
-          console.warn('[AdminCreateEventPage] Could not upload cover image to storage:', uploadErr);
+        const uploadRes = await StorageService.uploadEventImage(coverImageFile);
+        if (!uploadRes.success || !uploadRes.data?.file_id) {
+          setError(uploadRes.error || 'Failed to upload cover image to Appwrite Storage.');
+          setIsSubmitting(false);
+          return;
         }
+        uploadedFileId = uploadRes.data.file_id;
       }
 
       const isoStartDate = new Date(startDate).toISOString();
@@ -291,7 +292,7 @@ export const AdminCreateEventPage: React.FC = () => {
         startDate: isoStartDate,
         endDate: isoEndDate,
         venue: venue.trim(),
-        coverImageId: finalCoverImageId,
+        coverImageId: uploadedFileId,
         accentColor,
         featured,
         status: targetStatus,
@@ -318,10 +319,26 @@ export const AdminCreateEventPage: React.FC = () => {
 
         navigate('/admin/events');
       } else {
+        // Rollback: delete uploaded file if event creation failed
+        if (uploadedFileId) {
+          try {
+            await StorageService.deleteEventImage(uploadedFileId);
+          } catch (delErr) {
+            console.warn('[AdminCreateEventPage] Could not delete orphaned image during rollback:', delErr);
+          }
+        }
         setError(result.error || 'Failed to save event to Appwrite.');
       }
     } catch (err: any) {
       console.error('Error saving event with form:', err);
+      // Rollback uploaded file
+      if (uploadedFileId) {
+        try {
+          await StorageService.deleteEventImage(uploadedFileId);
+        } catch (delErr) {
+          console.warn('[AdminCreateEventPage] Could not delete orphaned image during rollback:', delErr);
+        }
+      }
       setError(err?.message || 'An unexpected error occurred while saving the event.');
     } finally {
       setIsSubmitting(false);

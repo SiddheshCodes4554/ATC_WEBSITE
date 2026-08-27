@@ -37,7 +37,8 @@ export const APPWRITE_CONFIG = {
   },
 
   BUCKETS: {
-    EVENT_COVERS: import.meta.env.VITE_APPWRITE_BUCKET_EVENT_COVERS || 'event-covers',
+    EVENT_IMAGES: import.meta.env.VITE_APPWRITE_BUCKET_EVENT_IMAGES || import.meta.env.VITE_APPWRITE_BUCKET_EVENT_COVERS || 'atc_event_images',
+    EVENT_COVERS: import.meta.env.VITE_APPWRITE_BUCKET_EVENT_IMAGES || import.meta.env.VITE_APPWRITE_BUCKET_EVENT_COVERS || 'atc_event_images',
     EVENT_GALLERY: import.meta.env.VITE_APPWRITE_BUCKET_EVENT_GALLERY || 'event-gallery',
     TEAM_IMAGES: import.meta.env.VITE_APPWRITE_BUCKET_TEAM_IMAGES || 'team-images',
     PROJECT_IMAGES: import.meta.env.VITE_APPWRITE_BUCKET_PROJECT_IMAGES || 'project-images',
