@@ -31,7 +31,7 @@ const AnimatedLabScene: React.FC = () => {
           </span>
         </div>
         <span className="text-xs font-mono bg-black/40 px-2.5 py-1 rounded-md border border-white/15 text-purple-200">
-          NIAT ROOM 502 • PUNE
+          NIAT LAB 5.0 • PUNE
         </span>
       </div>
 
@@ -211,7 +211,7 @@ export const LabSection: React.FC = () => {
               </PlayfulButton>
 
               <span className="text-xs font-mono text-purple-200">
-                📍 NIAT Campus, Room 502
+                📍 NIAT Campus, Lab 5.0
               </span>
             </div>
 

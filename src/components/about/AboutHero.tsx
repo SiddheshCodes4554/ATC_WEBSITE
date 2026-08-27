@@ -193,18 +193,18 @@ export const AboutHero: React.FC = () => {
               Advanced Tech Club, NIAT Pune is a student-run community where students explore emerging technologies, build real-world projects, learn together and turn curiosity into action.
             </p>
 
-            {/* Quick Metrics Badges */}
+            {/* Quick Community Highlights */}
             <div className="pt-2 grid grid-cols-2 sm:grid-cols-3 gap-3 font-mono text-xs sm:text-sm font-extrabold text-[#121316]">
               <div className="p-3 bg-white rounded-2xl border-2 border-[#121316] shadow-pop-sm flex flex-col">
-                <span className="text-2xl font-black text-[#6C5CE7]">400+</span>
-                <span className="text-gray-600 font-sans text-xs">Student Builders</span>
+                <span className="text-xl sm:text-2xl font-black text-[#6C5CE7]">Nov 2025</span>
+                <span className="text-gray-600 font-sans text-xs">Founded at NIAT</span>
               </div>
               <div className="p-3 bg-white rounded-2xl border-2 border-[#121316] shadow-pop-sm flex flex-col">
-                <span className="text-2xl font-black text-[#FF6B6B]">18+</span>
-                <span className="text-gray-600 font-sans text-xs">Shipped Projects</span>
+                <span className="text-xl sm:text-2xl font-black text-[#FF6B6B]">Lab 5.0</span>
+                <span className="text-gray-600 font-sans text-xs">Innovation Space</span>
               </div>
               <div className="p-3 bg-white rounded-2xl border-2 border-[#121316] shadow-pop-sm flex flex-col col-span-2 sm:col-span-1">
-                <span className="text-2xl font-black text-[#2ED573]">100%</span>
+                <span className="text-xl sm:text-2xl font-black text-[#2ED573]">100%</span>
                 <span className="text-gray-600 font-sans text-xs">Student Powered</span>
               </div>
             </div>

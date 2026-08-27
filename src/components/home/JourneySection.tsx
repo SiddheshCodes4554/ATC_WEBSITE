@@ -91,7 +91,7 @@ export const JourneySection: React.FC = () => {
 
             {/* Bottom Meta */}
             <div className="mt-5 pt-3 border-t-2 border-[#121316]/20 flex items-center justify-between text-xs font-mono font-bold text-gray-700">
-              <span>📅 Mar 30, 2026</span>
+              <span>📅 13 Dec 2025</span>
               <span className="text-emerald-700 font-extrabold">Completed ✓</span>
             </div>
           </div>
@@ -143,7 +143,7 @@ export const JourneySection: React.FC = () => {
 
             {/* Bottom Meta */}
             <div className="mt-5 pt-3 border-t-2 border-[#121316]/20 flex items-center justify-between text-xs font-mono font-bold text-gray-700">
-              <span>📅 Apr 05, 2026</span>
+              <span>📅 7 Feb 2026</span>
               <span className="text-emerald-700 font-extrabold">Completed ✓</span>
             </div>
           </div>
@@ -160,7 +160,7 @@ export const JourneySection: React.FC = () => {
                   03
                 </span>
                 <span className="text-[11px] font-mono font-bold bg-[#388E3C] text-white px-2 py-0.5 rounded-full border border-[#121316]">
-                  WEB3 & CRYPTO
+                  WEB3 & SYSTEMS
                 </span>
               </div>
 
@@ -193,7 +193,7 @@ export const JourneySection: React.FC = () => {
 
             {/* Bottom Meta */}
             <div className="mt-5 pt-3 border-t-2 border-[#121316]/20 flex items-center justify-between text-xs font-mono font-bold text-gray-700">
-              <span>📅 Apr 12, 2026</span>
+              <span>📅 27 Feb 2026</span>
               <span className="text-emerald-700 font-extrabold">Completed ✓</span>
             </div>
           </div>
@@ -219,38 +219,38 @@ export const JourneySection: React.FC = () => {
                   04
                 </span>
                 <span className="text-[11px] font-mono font-bold bg-[#FFE600] text-[#121316] px-2 py-0.5 rounded-full">
-                  MYSTERY
+                  NEXT EVENT
                 </span>
               </div>
 
               {/* Mystery Title */}
               <div className="space-y-2 mb-4">
                 <h3 className="text-2xl sm:text-3xl font-black text-[#FFE600] leading-tight font-display tracking-tight flex items-center gap-2">
-                  <span>???</span>
+                  <span>NEXT EVENT</span>
                   {secretRevealed ? <Unlock className="w-5 h-5 text-emerald-400" /> : <Lock className="w-5 h-5 text-purple-300" />}
                 </h3>
                 
                 {secretRevealed ? (
                   <div className="p-3 rounded-xl bg-purple-950/80 border border-purple-500/40 text-xs font-mono text-purple-200 space-y-1 animate-pulse">
-                    <p className="font-bold text-yellow-300">🚀 NATIONAL ROBO-WARS 2026</p>
-                    <p>48-Hour Autonomous Combat Arena & IoT Challenge at NIAT Pune!</p>
+                    <p className="font-bold text-yellow-300">🚀 NEXT FLAGSHIP SPRINT</p>
+                    <p>Hands-on Autonomous Robotics, AI & IoT Challenge at NIAT Pune!</p>
                   </div>
                 ) : (
                   <p className="text-sm font-medium text-gray-300 leading-snug">
-                    Something exciting is coming soon. Click to decipher the encrypted payload.
+                    Something exciting is coming next. Click to preview the upcoming sprint.
                   </p>
                 )}
               </div>
 
               {/* Glitch decoder box */}
               <div className="p-3 bg-white/5 rounded-xl border border-white/15 text-center text-xs font-mono text-purple-300">
-                {secretRevealed ? 'ACCESS GRANTED • NIAT LABS' : 'CLICK TO CRACK CODE ⚡'}
+                {secretRevealed ? 'ACCESS GRANTED • NIAT LAB 5.0' : 'CLICK TO CRACK CODE ⚡'}
               </div>
             </div>
 
             {/* Bottom Meta */}
             <div className="mt-5 pt-3 border-t-2 border-white/15 flex items-center justify-between text-xs font-mono text-yellow-400">
-              <span>📅 Coming May 2026</span>
+              <span>📅 Next Event: Coming Soon</span>
               <span className="underline">Stay Tuned →</span>
             </div>
           </div>

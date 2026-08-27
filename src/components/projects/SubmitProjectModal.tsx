@@ -57,7 +57,7 @@ export const SubmitProjectModal: React.FC<SubmitProjectModalProps> = ({ isOpen, 
             Submit Your Project 💡
           </h2>
           <p className="text-xs sm:text-sm font-bold text-gray-700">
-            Got an autonomous rover, novel AI model, or custom hardware board? Submit your build to get featured and unlock Lab 502 grant support.
+            Got an autonomous rover, novel AI model, or custom hardware board? Submit your build to get featured and unlock Lab 5.0 grant support.
           </p>
         </div>
 
@@ -66,7 +66,7 @@ export const SubmitProjectModal: React.FC<SubmitProjectModalProps> = ({ isOpen, 
             <div className="text-4xl animate-bounce">🎉</div>
             <h3 className="text-2xl font-black text-[#121316]">Submission Received!</h3>
             <p className="text-sm font-bold text-gray-700">
-              The ATC tech leads will review your project and invite you to present at the next Friday Demo session in Lab 502!
+              The ATC tech leads will review your project and invite you to present at the next Friday Demo session in Lab 5.0!
             </p>
           </div>
         ) : (

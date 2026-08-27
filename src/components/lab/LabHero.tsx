@@ -29,7 +29,7 @@ export const LabHero: React.FC<LabHeroProps> = ({ activeDomain, onDomainSelect }
           <div className="space-y-3 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E1DCFF] border-2 border-[#121316] shadow-pop-sm font-mono font-black text-xs uppercase text-[#6C5CE7]">
               <span className="w-2.5 h-2.5 rounded-full bg-[#2ED573] animate-ping" />
-              PHYSICAL INNOVATION HUB • NIAT PUNE LAB 502
+              PHYSICAL INNOVATION HUB • NIAT PUNE LAB 5.0
             </div>
 
             {/* Editorial Title */}

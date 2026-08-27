@@ -45,7 +45,7 @@ export const JoinHero: React.FC = () => {
               <span>⚡</span> Free for all NIAT students
             </span>
             <span className="px-3.5 py-1.5 bg-white rounded-full border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5">
-              <span>🛠️</span> 24/7 Lab 502 Hardware Access
+              <span>🛠️</span> Lab 5.0 Hardware Access
             </span>
             <span className="px-3.5 py-1.5 bg-white rounded-full border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5">
               <span>🍕</span> Community Hackathons & Pizza

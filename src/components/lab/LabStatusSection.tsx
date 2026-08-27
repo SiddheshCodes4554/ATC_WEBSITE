@@ -35,7 +35,7 @@ export const LabStatusSection: React.FC = () => {
                 UNDER DEVELOPMENT
               </span>
               <span className="font-mono text-xs font-black text-[#121316]">
-                NIAT LAB 502 SPRINT
+                NIAT LAB 5.0 SPRINT
               </span>
             </div>
 
@@ -59,7 +59,7 @@ export const LabStatusSection: React.FC = () => {
               </p>
 
               <p className="text-sm sm:text-base font-bold text-gray-700 leading-relaxed max-w-xl">
-                Lab 502 is being assembled piece-by-piece by ATC members. Soldering stations are wired, 3D printers are calibrated, and the ROS 2 autonomous testing track is being marked out.
+                Lab 5.0 is being assembled piece-by-piece by ATC members. Soldering stations are wired, 3D printers are calibrated, and the ROS 2 autonomous testing track is being marked out.
               </p>
             </div>
 
@@ -138,7 +138,7 @@ export const LabStatusSection: React.FC = () => {
           
           {/* Playful Speech Bubble */}
           <div className="mb-4 px-6 py-2.5 bg-white rounded-full border-3 border-[#121316] shadow-pop text-sm font-hand font-bold text-[#121316] animate-bounce pointer-events-auto">
-            "The future is made with solder & code. See you at Lab 502! 🤖⚡"
+            "The future is made with solder & code. See you at Lab 5.0! 🤖⚡"
           </div>
 
           {/* Peeking Robot Mascot Vector */}

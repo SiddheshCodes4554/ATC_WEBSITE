@@ -20,7 +20,7 @@ export const InteractiveLabScene: React.FC<InteractiveLabSceneProps> = ({
         <div className="flex items-center gap-2">
           <span className="px-3.5 py-1 rounded-full bg-[#121316] text-[#FFE600] font-mono font-black text-xs uppercase shadow-pop-sm flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#2ED573] animate-ping" />
-            NIAT LAB 502 • LIVE BENCH SIMULATOR
+            NIAT LAB 5.0 • LIVE BENCH SIMULATOR
           </span>
           <span className="text-xs font-mono font-bold text-gray-600 hidden md:inline">
             Click any station to trigger hardware diagnostics

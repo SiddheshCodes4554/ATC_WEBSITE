@@ -110,7 +110,7 @@ export const WhatWeDoSection: React.FC = () => {
       badge: 'bg-[#FF6B6B] text-white',
       shape: 'rounded-[14px_28px_18px_32px]',
       hiddenDetail: '🤝 Open source & cross-club squads',
-      stat: '400+ Squad',
+      stat: 'Active Community',
       rotation: 'rotate-1',
     },
     {
@@ -120,7 +120,7 @@ export const WhatWeDoSection: React.FC = () => {
       bg: 'bg-[#E1DCFF]',
       badge: 'bg-[#6C5CE7] text-white',
       shape: 'rounded-[30px_14px_26px_20px]',
-      hiddenDetail: '⚡ Hardware hacking in Lab 502',
+      hiddenDetail: '⚡ Hardware hacking in Lab 5.0',
       stat: 'Lab 5.0 R&D',
       rotation: '-rotate-2',
     },

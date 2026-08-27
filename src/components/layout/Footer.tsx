@@ -88,7 +88,7 @@ export const Footer: React.FC = () => {
               <ArrowUpRight className="w-5 h-5 stroke-[3]" />
             </Link>
             <span className="text-xs font-mono text-gray-400">
-              NIAT Campus, Lab 502 • Pune, MH
+              NIAT Campus, Lab 5.0 • Pune, MH
             </span>
           </div>
         </div>
@@ -124,7 +124,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-sm font-bold text-gray-300">
               <li>
                 <Link to="/lab" className="hover:text-[#FFE600] transition-colors flex items-center gap-1.5">
-                  <span>ATC 5.0 Lab</span>
+                  <span>ATC Lab 5.0</span>
                   <span className="px-1.5 py-0.2 bg-[#6C5CE7] text-white text-[9px] font-mono rounded">LIVE</span>
                 </Link>
               </li>
@@ -150,19 +150,21 @@ export const Footer: React.FC = () => {
             </p>
             <div className="pt-1 flex flex-wrap items-center gap-2.5">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-[#FF6B6B] hover:text-white border border-white/20 text-xs font-bold transition-all hover:-translate-y-0.5"
+                title="Follow ATC on Instagram"
               >
                 <InstagramIcon className="w-4 h-4" />
                 <span>Instagram</span>
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-[#2E86DE] hover:text-white border border-white/20 text-xs font-bold transition-all hover:-translate-y-0.5"
+                title="Connect on LinkedIn"
               >
                 <LinkedinIcon className="w-4 h-4" />
                 <span>LinkedIn</span>
@@ -172,15 +174,17 @@ export const Footer: React.FC = () => {
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white hover:text-[#121316] border border-white/20 text-xs font-bold transition-all hover:-translate-y-0.5"
+                title="ATC GitHub Repository"
               >
                 <GithubIcon className="w-4 h-4" />
                 <span>GitHub</span>
               </a>
               <a
-                href="https://youtube.com"
+                href="https://www.youtube.com"
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-[#FF0000] hover:text-white border border-white/20 text-xs font-bold transition-all hover:-translate-y-0.5"
+                title="ATC YouTube Channel"
               >
                 <YoutubeIcon className="w-4 h-4" />
                 <span>YouTube</span>
@@ -216,7 +220,7 @@ export const Footer: React.FC = () => {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-gray-400">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>© Advanced Tech Club, NIAT Pune. All rights reserved.</span>
+            <span>© 2025–2026 Advanced Tech Club (ATC), NIAT Pune. Founded 14 Nov 2025.</span>
           </div>
 
           <div className="font-hand text-base text-gray-300 flex items-center gap-1.5">

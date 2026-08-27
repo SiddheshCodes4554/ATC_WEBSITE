@@ -63,7 +63,7 @@ export const JoinSquadCTA: React.FC = () => {
               <RetroRobotMascot className="w-28 h-auto" />
             </div>
             <p className="mt-3 font-hand text-base text-[#121316] font-bold text-center">
-              "We're saving a seat for you at Lab 502! 🚀"
+              "We're saving a seat for you at Lab 5.0! 🚀"
             </p>
           </div>
 

@@ -71,7 +71,7 @@ export const JoinSection: React.FC = () => {
             <div className="pt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm font-bold text-gray-800">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                <span>24/7 Access to Lab 502</span>
+                <span>Access to ATC Lab 5.0</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />

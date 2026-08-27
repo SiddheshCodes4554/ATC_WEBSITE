@@ -178,7 +178,7 @@ export const EventGalleryScrapbook: React.FC<EventGalleryScrapbookProps> = ({ ga
               {/* Bottom Meta */}
               <div className="mt-4 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-[11px] font-mono font-bold text-gray-500">
                 <span>SNAPSHOT #{index + 1}</span>
-                <span className="text-[#6C5CE7]">NIAT LAB 502</span>
+                <span className="text-[#6C5CE7]">NIAT LAB 5.0</span>
               </div>
             </div>
           ))}

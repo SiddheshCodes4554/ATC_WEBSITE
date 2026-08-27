@@ -61,7 +61,7 @@ export const ProjectsPage: React.FC = () => {
               </h2>
               
               <p className="text-base sm:text-lg font-bold text-gray-700 leading-relaxed">
-                ATC Lab 502 student builders are currently engineering our first batch of autonomous rovers, edge AI vision models, and IoT telemetry stations.
+                ATC Lab 5.0 student builders are currently engineering our first batch of autonomous rovers, edge AI vision models, and IoT telemetry stations.
               </p>
             </div>
 
@@ -80,7 +80,7 @@ export const ProjectsPage: React.FC = () => {
                 <span className="w-7 h-7 rounded-xl bg-[#6C5CE7] text-white border border-[#121316] font-mono text-xs font-black flex items-center justify-center">
                   02
                 </span>
-                <h4 className="font-black text-sm text-[#121316]">Get Lab 502 Grants</h4>
+                <h4 className="font-black text-sm text-[#121316]">Get Lab 5.0 Grants</h4>
                 <p className="text-xs font-bold text-gray-600">Access Jetson compute, 3D printing & component funding.</p>
               </div>
 
