@@ -270,7 +270,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           size="md"
           icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
         >
-          View Details ↗
+          View Details
         </PlayfulButton>
 
         <span className="text-xs font-hand font-bold text-gray-600">

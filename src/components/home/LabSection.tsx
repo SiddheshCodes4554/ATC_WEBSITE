@@ -207,7 +207,7 @@ export const LabSection: React.FC = () => {
                 size="lg"
                 icon={<ArrowUpRight className="w-5 h-5 text-[#121316] stroke-[3]" />}
               >
-                Explore the Lab ↗
+                Explore the Lab
               </PlayfulButton>
 
               <span className="text-xs font-mono text-purple-200">

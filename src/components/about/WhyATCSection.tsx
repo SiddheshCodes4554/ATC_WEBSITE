@@ -138,7 +138,7 @@ export const WhyATCSection: React.FC = () => {
                 withConfetti
                 icon={<ArrowUpRight className="w-5 h-5 text-[#121316] stroke-[3]" />}
               >
-                Join the Community ↗
+                Join the Community
               </PlayfulButton>
             </div>
           </div>

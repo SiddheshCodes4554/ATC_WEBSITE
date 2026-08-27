@@ -43,7 +43,7 @@ export const JoinSquadCTA: React.FC = () => {
                 withConfetti
                 icon={<ArrowUpRight className="w-5 h-5 text-[#121316] stroke-[3]" />}
               >
-                Apply to Join ATC ↗
+                Apply to Join ATC
               </PlayfulButton>
 
               <PlayfulButton
@@ -52,7 +52,7 @@ export const JoinSquadCTA: React.FC = () => {
                 size="lg"
                 icon={<Sparkles className="w-5 h-5 text-[#121316]" />}
               >
-                Attend Next Event ↗
+                Attend Next Event
               </PlayfulButton>
             </div>
           </div>

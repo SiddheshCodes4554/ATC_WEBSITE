@@ -119,7 +119,7 @@ export const InteractiveRobotShowcase: React.FC<InteractiveRobotShowcaseProps> =
                 size="md"
                 icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
               >
-                Explore the Lab ↗
+                Explore the Lab
               </PlayfulButton>
 
               <button

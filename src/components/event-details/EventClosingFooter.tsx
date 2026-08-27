@@ -42,7 +42,7 @@ export const EventClosingFooter: React.FC = () => {
                 size="md"
                 icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
               >
-                Explore More Events ↗
+                Explore More Events
               </PlayfulButton>
 
               <PlayfulButton
@@ -51,7 +51,7 @@ export const EventClosingFooter: React.FC = () => {
                 size="md"
                 icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
               >
-                View Our Projects ↗
+                View Our Projects
               </PlayfulButton>
 
               <PlayfulButton
@@ -61,7 +61,7 @@ export const EventClosingFooter: React.FC = () => {
                 withConfetti
                 icon={<Rocket className="w-4 h-4 text-yellow-300" />}
               >
-                Join ATC ↗
+                Join ATC
               </PlayfulButton>
             </div>
           </div>

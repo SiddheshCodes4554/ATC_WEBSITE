@@ -86,7 +86,7 @@ export const AdminLoginPage: React.FC = () => {
           className="inline-flex items-center gap-2 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>← Back to Public Website</span>
+          <span>Back to Public Website</span>
         </Link>
         <span className="font-mono text-[11px] font-bold text-gray-500">
           NIAT PUNE

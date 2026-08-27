@@ -55,7 +55,7 @@ export const JoinSection: React.FC = () => {
                 withConfetti
                 icon={<ArrowUpRight className="w-5 h-5 text-[#121316] stroke-[3]" />}
               >
-                Join ATC Today ↗
+                Join ATC Today
               </PlayfulButton>
 
               <PlayfulButton

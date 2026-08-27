@@ -124,7 +124,7 @@ export const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, onC
             variant="primary"
             size="md"
           >
-            Close Recap ↗
+            Close Recap
           </PlayfulButton>
         </div>
       </div>

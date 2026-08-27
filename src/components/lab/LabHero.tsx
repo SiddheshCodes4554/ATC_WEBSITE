@@ -59,7 +59,7 @@ export const LabHero: React.FC<LabHeroProps> = ({ activeDomain, onDomainSelect }
               size="md"
               icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
             >
-              Lab Status (72%) ↗
+              Lab Status (72%)
             </PlayfulButton>
 
             <PlayfulButton
@@ -68,7 +68,7 @@ export const LabHero: React.FC<LabHeroProps> = ({ activeDomain, onDomainSelect }
               size="md"
               icon={<Wrench className="w-4 h-4 text-[#121316]" />}
             >
-              View Lab Builds ↗
+              View Lab Builds
             </PlayfulButton>
           </div>
 

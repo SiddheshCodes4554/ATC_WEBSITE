@@ -125,7 +125,7 @@ export const LabStatusSection: React.FC = () => {
               withConfetti
               icon={<ArrowUpRight className="w-5 h-5 text-yellow-300 stroke-[3]" />}
             >
-              Step Inside the Future ↗
+              Step Inside the Future
             </PlayfulButton>
           </div>
 

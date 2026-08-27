@@ -103,7 +103,7 @@ export const ProjectsPage: React.FC = () => {
                 withConfetti
                 icon={<Plus className="w-5 h-5 stroke-[3]" />}
               >
-                Submit Your Project ↗
+                Submit Your Project
               </PlayfulButton>
 
               <PlayfulButton
@@ -112,7 +112,7 @@ export const ProjectsPage: React.FC = () => {
                 size="lg"
                 icon={<ArrowUpRight className="w-5 h-5 stroke-[3]" />}
               >
-                Explore ATC 5.0 Lab ↗
+                Explore ATC Lab 5.0
               </PlayfulButton>
             </div>
 

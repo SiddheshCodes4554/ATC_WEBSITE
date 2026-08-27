@@ -97,7 +97,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, idx }) => {
           size="sm"
           icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
         >
-          View Repo ↗
+          View Repo
         </PlayfulButton>
       </div>
 

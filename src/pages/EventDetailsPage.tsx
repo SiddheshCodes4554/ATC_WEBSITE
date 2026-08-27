@@ -310,7 +310,7 @@ export const EventDetailsPage: React.FC = () => {
             className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>← Back to Events</span>
+            <span>Back to Events</span>
           </Link>
 
           <div className="flex items-center gap-2">

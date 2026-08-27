@@ -74,7 +74,7 @@ export const ThreePathsSection: React.FC<ThreePathsSectionProps> = ({ onSelectPa
       cardColor: 'bg-[#FFF9DB]',
       badgeBg: 'bg-[#FFE600] text-[#121316]',
       buttonVariant: 'primary' as const,
-      buttonText: 'Join as a Member ↗',
+      buttonText: 'Join as a Member',
       desc: 'For students who want to participate in workshops, compete in hackathons, use Lab 5.0 benches, and meet fellow tech enthusiasts.',
       perks: [
         'Free entry to all campus hackathons',
@@ -91,7 +91,7 @@ export const ThreePathsSection: React.FC<ThreePathsSectionProps> = ({ onSelectPa
       cardColor: 'bg-[#F0EBFF]',
       badgeBg: 'bg-[#6C5CE7] text-white',
       buttonVariant: 'secondary' as const,
-      buttonText: 'Apply for Core Team ↗',
+      buttonText: 'Apply for Core Team',
       desc: 'For passionate builders, logistics leaders, video editors, and organizers who want to run events and shape the club culture.',
       perks: [
         'Lead major national tech events',
@@ -108,10 +108,10 @@ export const ThreePathsSection: React.FC<ThreePathsSectionProps> = ({ onSelectPa
       cardColor: 'bg-[#E1F5FE]',
       badgeBg: 'bg-[#2E86DE] text-white',
       buttonVariant: 'dark' as const,
-      buttonText: 'Partner With ATC ↗',
+      buttonText: 'Partner With ATC',
       desc: 'For tech companies, student clubs, hackathon organizers, and guest speakers looking to collaborate with NIAT Pune.',
       perks: [
-        'Direct access to 500+ student engineers',
+        'Direct access to active student engineers',
         'Hackathon sponsorship branding',
         'Keynote speech & workshop hosting',
         'Campus recruitment & project hiring',

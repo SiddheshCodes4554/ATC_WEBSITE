@@ -140,7 +140,7 @@ export const Navbar: React.FC = () => {
               onClick={() => setMobileMenuOpen(false)}
               icon={<ArrowUpRight className="w-5 h-5 text-[#121316] stroke-[3]" />}
             >
-              Let's Build ↗
+              Let's Build
             </PlayfulButton>
           </div>
         </div>

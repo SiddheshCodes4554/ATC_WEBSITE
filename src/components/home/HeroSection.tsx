@@ -248,7 +248,7 @@ export const HeroSection: React.FC = () => {
                 withConfetti
                 icon={<ArrowUpRight className="w-5 h-5 text-[#121316] stroke-[3]" />}
               >
-                Explore ATC ↗
+                Explore ATC
               </PlayfulButton>
 
               <PlayfulButton

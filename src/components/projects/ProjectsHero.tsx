@@ -70,7 +70,7 @@ export const ProjectsHero: React.FC<ProjectsHeroProps> = ({
               withConfetti
               icon={<Plus className="w-5 h-5 stroke-[3]" />}
             >
-              Submit Your Project ↗
+              Submit Your Project
             </PlayfulButton>
           </div>
 
