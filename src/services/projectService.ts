@@ -10,6 +10,8 @@ import {
   ProjectServiceResult,
   serializeTechStack,
   parseTechStack,
+  serializeGalleryImages,
+  parseGalleryImages,
 } from '../types/project.types';
 
 /**
@@ -43,6 +45,10 @@ export class ProjectService {
    * Helper: Transforms raw Appwrite ProjectDocument to typed ATCProject
    */
   private static mapDocumentToProject(doc: ProjectDocument): ATCProject {
+    const rawDescription = doc.description || '';
+    const galleryImageIds = parseGalleryImages(doc.galleryImageIds, rawDescription);
+    const cleanDescription = rawDescription.replace(/<!--\s*ATC_GALLERY:\s*\[.*?\]\s*-->/gs, '').trim();
+
     return {
       $id: doc.$id,
       $createdAt: doc.$createdAt,
@@ -50,8 +56,9 @@ export class ProjectService {
       title: doc.title,
       slug: doc.slug,
       shortDescription: doc.shortDescription || '',
-      description: doc.description || '',
+      description: cleanDescription,
       coverImageId: doc.coverImageId || undefined,
+      galleryImageIds,
       techStack: parseTechStack(doc.techStack),
       githubUrl: doc.githubUrl || undefined,
       liveUrl: doc.liveUrl || undefined,
@@ -332,11 +339,18 @@ export class ProjectService {
           ? input.displayOrder
           : await this.getNextDisplayOrder();
 
-      const documentData = {
+      // Encode gallery images in description comment as safe universal fallback
+      const rawDesc = input.description?.trim() || '';
+      const gallerySerialized = serializeGalleryImages(input.galleryImageIds);
+      const descriptionWithGallery = gallerySerialized !== '[]'
+        ? `${rawDesc}\n\n<!-- ATC_GALLERY: ${gallerySerialized} -->`
+        : rawDesc;
+
+      const documentData: Record<string, any> = {
         title: input.title.trim(),
         slug: generatedSlug,
         shortDescription: input.shortDescription?.trim() || '',
-        description: input.description?.trim() || '',
+        description: descriptionWithGallery,
         coverImageId: input.coverImageId?.trim() || undefined,
         techStack: serializeTechStack(input.techStack),
         githubUrl: input.githubUrl?.trim() || undefined,
@@ -346,13 +360,35 @@ export class ProjectService {
         displayOrder,
       };
 
-      const document = await databases.createDocument<ProjectDocument>(
-        this.databaseId,
-        this.collectionId,
-        ID.unique(),
-        documentData,
-        this.getProjectPermissions()
-      );
+      // Try adding galleryImageIds attribute directly if supported by Appwrite collection
+      if (input.galleryImageIds) {
+        documentData.galleryImageIds = gallerySerialized;
+      }
+
+      let document: ProjectDocument;
+      try {
+        document = await databases.createDocument<ProjectDocument>(
+          this.databaseId,
+          this.collectionId,
+          ID.unique(),
+          documentData as any,
+          this.getProjectPermissions()
+        );
+      } catch (attrError: any) {
+        // If galleryImageIds attribute does not exist in Appwrite schema, remove and retry
+        if (documentData.galleryImageIds && attrError?.message?.includes('galleryImageIds')) {
+          delete documentData.galleryImageIds;
+          document = await databases.createDocument<ProjectDocument>(
+            this.databaseId,
+            this.collectionId,
+            ID.unique(),
+            documentData as any,
+            this.getProjectPermissions()
+          );
+        } else {
+          throw attrError;
+        }
+      }
 
       return {
         success: true,
@@ -401,7 +437,24 @@ export class ProjectService {
       if (input.title !== undefined) updateData.title = input.title.trim();
       if (input.slug !== undefined) updateData.slug = input.slug.trim().toLowerCase();
       if (input.shortDescription !== undefined) updateData.shortDescription = input.shortDescription.trim();
-      if (input.description !== undefined) updateData.description = input.description.trim();
+      
+      // Update description with gallery metadata if provided
+      if (input.description !== undefined || input.galleryImageIds !== undefined) {
+        const baseDesc = input.description !== undefined ? input.description.trim() : '';
+        const cleanBase = baseDesc.replace(/<!--\s*ATC_GALLERY:\s*\[.*?\]\s*-->/gs, '').trim();
+        const gallerySerialized = input.galleryImageIds !== undefined
+          ? serializeGalleryImages(input.galleryImageIds)
+          : '[]';
+
+        updateData.description = gallerySerialized !== '[]'
+          ? `${cleanBase}\n\n<!-- ATC_GALLERY: ${gallerySerialized} -->`
+          : cleanBase;
+
+        if (input.galleryImageIds !== undefined) {
+          updateData.galleryImageIds = gallerySerialized;
+        }
+      }
+
       if (input.coverImageId !== undefined) updateData.coverImageId = input.coverImageId?.trim() || null;
       if (input.techStack !== undefined) updateData.techStack = serializeTechStack(input.techStack);
       if (input.githubUrl !== undefined) updateData.githubUrl = input.githubUrl?.trim() || null;
@@ -410,12 +463,28 @@ export class ProjectService {
       if (input.status !== undefined) updateData.status = input.status;
       if (input.displayOrder !== undefined) updateData.displayOrder = input.displayOrder;
 
-      const document = await databases.updateDocument<ProjectDocument>(
-        this.databaseId,
-        this.collectionId,
-        id.trim(),
-        updateData
-      );
+      let document: ProjectDocument;
+      try {
+        document = await databases.updateDocument<ProjectDocument>(
+          this.databaseId,
+          this.collectionId,
+          id.trim(),
+          updateData
+        );
+      } catch (attrError: any) {
+        // If galleryImageIds attribute does not exist in schema, remove and retry
+        if (updateData.galleryImageIds && attrError?.message?.includes('galleryImageIds')) {
+          delete updateData.galleryImageIds;
+          document = await databases.updateDocument<ProjectDocument>(
+            this.databaseId,
+            this.collectionId,
+            id.trim(),
+            updateData
+          );
+        } else {
+          throw attrError;
+        }
+      }
 
       return {
         success: true,
@@ -432,11 +501,12 @@ export class ProjectService {
   }
 
   /**
-   * Admin: Delete a project document and clean up associated cover image
+   * Admin: Delete a project document and clean up associated cover & gallery images
    */
   static async deleteProject(
     id: string,
-    coverImageId?: string
+    coverImageId?: string,
+    galleryImageIds?: string[]
   ): Promise<ProjectServiceResult<void>> {
     try {
       if (!isAppwriteReady()) {
@@ -460,6 +530,19 @@ export class ProjectService {
           await StorageService.deleteProjectImage(coverImageId.trim());
         } catch (imgErr) {
           console.warn('[ProjectService.deleteProject] Storage cleanup notice:', imgErr);
+        }
+      }
+
+      // 3. Clean up gallery images if present
+      if (galleryImageIds && Array.isArray(galleryImageIds)) {
+        for (const gId of galleryImageIds) {
+          if (gId?.trim()) {
+            try {
+              await StorageService.deleteProjectImage(gId.trim());
+            } catch (gErr) {
+              console.warn('[ProjectService.deleteProject] Gallery storage cleanup notice:', gErr);
+            }
+          }
         }
       }
 

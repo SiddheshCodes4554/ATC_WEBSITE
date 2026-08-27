@@ -1,5 +1,6 @@
 import { ID, Query, Permission, Role } from 'appwrite';
 import { databases, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
+import { StorageService } from './storage.service';
 import {
   ATCEvent,
   EventDocument,
@@ -8,6 +9,7 @@ import {
   EventFilterOptions,
   EventServiceResult,
 } from '../types/event.types';
+import { serializeGalleryImages, parseGalleryImages } from '../types/project.types';
 
 /**
  * ============================================================================
@@ -23,6 +25,21 @@ export class EventService {
 
   private static get collectionId(): string {
     return APPWRITE_CONFIG.COLLECTIONS.EVENTS;
+  }
+
+  /**
+   * Helper: Transforms raw Appwrite EventDocument to typed ATCEvent
+   */
+  static mapDocumentToEvent(doc: EventDocument): ATCEvent {
+    const rawDescription = doc.description || '';
+    const galleryImageIds = parseGalleryImages((doc as any).galleryImageIds, rawDescription);
+    const cleanDescription = rawDescription.replace(/<!--\s*ATC_GALLERY:\s*\[.*?\]\s*-->/gs, '').trim();
+
+    return {
+      ...(doc as any),
+      description: cleanDescription,
+      galleryImageIds,
+    };
   }
 
   /**
@@ -93,7 +110,7 @@ export class EventService {
 
       return {
         success: true,
-        data: response.documents as ATCEvent[],
+        data: response.documents.map((doc) => this.mapDocumentToEvent(doc)),
         total: response.total,
       };
     } catch (error: any) {
@@ -158,7 +175,7 @@ export class EventService {
 
       return {
         success: true,
-        data: response.documents as ATCEvent[],
+        data: response.documents.map((doc) => this.mapDocumentToEvent(doc)),
         total: response.total,
       };
     } catch (error: any) {
@@ -191,7 +208,7 @@ export class EventService {
         eventId.trim()
       );
 
-      return { success: true, data: document as ATCEvent };
+      return { success: true, data: this.mapDocumentToEvent(document) };
     } catch (error: any) {
       return {
         success: false,
@@ -226,7 +243,7 @@ export class EventService {
         return { success: false, error: `Event with slug '${slug}' was not found.` };
       }
 
-      return { success: true, data: response.documents[0] as ATCEvent };
+      return { success: true, data: this.mapDocumentToEvent(response.documents[0]) };
     } catch (error: any) {
       return {
         success: false,
@@ -302,11 +319,17 @@ export class EventService {
         return { success: false, error: `An event with slug '${formattedSlug}' already exists.` };
       }
 
-      const payload = {
+      const rawDesc = input.description?.trim() || '';
+      const gallerySerialized = serializeGalleryImages(input.galleryImageIds);
+      const descriptionWithGallery = gallerySerialized !== '[]'
+        ? `${rawDesc}\n\n<!-- ATC_GALLERY: ${gallerySerialized} -->`
+        : rawDesc;
+
+      const payload: Record<string, any> = {
         title: input.title.trim(),
         slug: formattedSlug,
         shortDescription: input.shortDescription?.trim() || '',
-        description: input.description?.trim() || '',
+        description: descriptionWithGallery,
         eventType: input.eventType || 'workshop',
         startDate: input.startDate,
         endDate: input.endDate || null,
@@ -322,17 +345,37 @@ export class EventService {
         createdBy: input.createdBy || null,
       };
 
+      if (input.galleryImageIds) {
+        payload.galleryImageIds = gallerySerialized;
+      }
+
       const documentId = customDocumentId || ID.unique();
 
-      const document = await databases.createDocument<EventDocument>(
-        this.databaseId,
-        this.collectionId,
-        documentId,
-        payload,
-        this.getEventPermissions()
-      );
+      let document: EventDocument;
+      try {
+        document = await databases.createDocument<EventDocument>(
+          this.databaseId,
+          this.collectionId,
+          documentId,
+          payload as any,
+          this.getEventPermissions()
+        );
+      } catch (attrErr: any) {
+        if (payload.galleryImageIds && attrErr?.message?.includes('galleryImageIds')) {
+          delete payload.galleryImageIds;
+          document = await databases.createDocument<EventDocument>(
+            this.databaseId,
+            this.collectionId,
+            documentId,
+            payload as any,
+            this.getEventPermissions()
+          );
+        } else {
+          throw attrErr;
+        }
+      }
 
-      return { success: true, data: document as ATCEvent };
+      return { success: true, data: this.mapDocumentToEvent(document) };
     } catch (error: any) {
       return {
         success: false,
@@ -368,14 +411,47 @@ export class EventService {
         input.slug = formattedSlug;
       }
 
-      const document = await databases.updateDocument<EventDocument>(
-        this.databaseId,
-        this.collectionId,
-        eventId.trim(),
-        input
-      );
+      const updateData: Record<string, any> = { ...input };
 
-      return { success: true, data: document as ATCEvent };
+      if (input.description !== undefined || input.galleryImageIds !== undefined) {
+        const baseDesc = input.description !== undefined ? input.description.trim() : '';
+        const cleanBase = baseDesc.replace(/<!--\s*ATC_GALLERY:\s*\[.*?\]\s*-->/gs, '').trim();
+        const gallerySerialized = input.galleryImageIds !== undefined
+          ? serializeGalleryImages(input.galleryImageIds)
+          : '[]';
+
+        updateData.description = gallerySerialized !== '[]'
+          ? `${cleanBase}\n\n<!-- ATC_GALLERY: ${gallerySerialized} -->`
+          : cleanBase;
+
+        if (input.galleryImageIds !== undefined) {
+          updateData.galleryImageIds = gallerySerialized;
+        }
+      }
+
+      let document: EventDocument;
+      try {
+        document = await databases.updateDocument<EventDocument>(
+          this.databaseId,
+          this.collectionId,
+          eventId.trim(),
+          updateData
+        );
+      } catch (attrErr: any) {
+        if (updateData.galleryImageIds && attrErr?.message?.includes('galleryImageIds')) {
+          delete updateData.galleryImageIds;
+          document = await databases.updateDocument<EventDocument>(
+            this.databaseId,
+            this.collectionId,
+            eventId.trim(),
+            updateData
+          );
+        } else {
+          throw attrErr;
+        }
+      }
+
+      return { success: true, data: this.mapDocumentToEvent(document) };
     } catch (error: any) {
       return {
         success: false,
@@ -386,10 +462,12 @@ export class EventService {
   }
 
   /**
-   * Admin: Delete an event document from Appwrite
+   * Admin: Delete an event document from Appwrite and clean up storage assets
    */
   static async deleteEvent(
-    eventId: string
+    eventId: string,
+    coverImageId?: string,
+    galleryImageIds?: string[]
   ): Promise<EventServiceResult<void>> {
     try {
       if (!isAppwriteReady()) {
@@ -405,6 +483,28 @@ export class EventService {
         this.collectionId,
         eventId.trim()
       );
+
+      // Clean up cover image
+      if (coverImageId?.trim()) {
+        try {
+          await StorageService.deleteEventImage(coverImageId.trim());
+        } catch (imgErr) {
+          console.warn('[EventService.deleteEvent] Cover image cleanup notice:', imgErr);
+        }
+      }
+
+      // Clean up gallery images
+      if (galleryImageIds && Array.isArray(galleryImageIds)) {
+        for (const gId of galleryImageIds) {
+          if (gId?.trim()) {
+            try {
+              await StorageService.deleteEventImage(gId.trim());
+            } catch (gErr) {
+              console.warn('[EventService.deleteEvent] Gallery image cleanup notice:', gErr);
+            }
+          }
+        }
+      }
 
       return { success: true };
     } catch (error: any) {

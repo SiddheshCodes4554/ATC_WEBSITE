@@ -61,6 +61,9 @@ export const AdminEditEventPage: React.FC = () => {
   const [existingCoverImageId, setExistingCoverImageId] = useState<string | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [existingGalleryImageIds, setExistingGalleryImageIds] = useState<string[]>([]);
+  const [newGalleryImageFiles, setNewGalleryImageFiles] = useState<File[]>([]);
+  const [newGalleryImagePreviews, setNewGalleryImagePreviews] = useState<string[]>([]);
   const [accentColor, setAccentColor] = useState('#FFE600');
   const [visualTheme, setVisualTheme] = useState<EventVisualTheme>('playful');
   const [featured, setFeatured] = useState(false);
@@ -152,6 +155,7 @@ export const AdminEditEventPage: React.FC = () => {
         setRegistrationEnabled(Boolean(evt.registrationEnabled));
         setRegistrationLimit(evt.registrationLimit ? String(evt.registrationLimit) : '');
         setRegistrationDeadline(formatDatetimeForInput(evt.registrationDeadline));
+        setExistingGalleryImageIds(evt.galleryImageIds || []);
 
         if (evt.coverImageId) {
           setExistingCoverImageId(evt.coverImageId);
@@ -234,6 +238,47 @@ export const AdminEditEventPage: React.FC = () => {
     }
   };
 
+  // Gallery Photos Handlers
+  const handleNewGalleryImagesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newFiles: File[] = [];
+    const newPreviews: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const validation = StorageService.validateImageFile(file);
+      if (!validation.valid) {
+        setError(validation.error || 'One or more gallery photos have an invalid format.');
+        return;
+      }
+      newFiles.push(file);
+      newPreviews.push(URL.createObjectURL(file));
+    }
+
+    setError(null);
+    setNewGalleryImageFiles((prev) => [...prev, ...newFiles]);
+    setNewGalleryImagePreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  const handleRemoveNewGalleryImage = (index: number) => {
+    if (newGalleryImagePreviews[index]) {
+      URL.revokeObjectURL(newGalleryImagePreviews[index]);
+    }
+    setNewGalleryImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewGalleryImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingGalleryImage = async (imageId: string) => {
+    setExistingGalleryImageIds((prev) => prev.filter((id) => id !== imageId));
+    try {
+      await StorageService.deleteEventImage(imageId);
+    } catch (delErr) {
+      console.warn('Storage cleanup notice:', delErr);
+    }
+  };
+
   // Form Builder handlers
   const handleAddField = () => {
     if (!newFieldLabel.trim()) return;
@@ -262,14 +307,17 @@ export const AdminEditEventPage: React.FC = () => {
     setFormFields([...formFields, newField]);
     setNewFieldLabel('');
     setNewFieldPlaceholder('');
-    setNewFieldOptionsText('');
     setNewFieldRequired(false);
+    setNewFieldOptionsText('');
     setShowAddFieldModal(false);
   };
 
   const handleDeleteField = (index: number) => {
-    const updated = formFields.filter((_, i) => i !== index).map((f, i) => ({ ...f, position: i }));
-    setFormFields(updated);
+    setFormFields(formFields.filter((_, i) => i !== index).map((f, i) => ({ ...f, position: i })));
+  };
+
+  const handleRemoveField = (id: string) => {
+    setFormFields(formFields.filter((f) => f.id !== id));
   };
 
   const handleMoveField = (index: number, direction: 'up' | 'down') => {
@@ -305,7 +353,7 @@ export const AdminEditEventPage: React.FC = () => {
         return false;
       }
       if (!startDate) {
-        setError('Please select an event start date.');
+        setError('Please select an event start date and time.');
         return false;
       }
       if (!venue.trim()) {
@@ -356,6 +404,21 @@ export const AdminEditEventPage: React.FC = () => {
         }
       }
 
+      // 2. Upload any new gallery photos
+      const uploadedGalleryIds: string[] = [];
+      if (newGalleryImageFiles.length > 0) {
+        for (let i = 0; i < newGalleryImageFiles.length; i++) {
+          const galRes = await StorageService.uploadEventImage(newGalleryImageFiles[i]);
+          if (galRes.success && galRes.data?.file_id) {
+            uploadedGalleryIds.push(galRes.data.file_id);
+          } else {
+            console.warn('Failed to upload event gallery photo:', galRes.error);
+          }
+        }
+      }
+
+      const finalGalleryImageIds = [...existingGalleryImageIds, ...uploadedGalleryIds];
+
       const isoStartDate = new Date(startDate).toISOString();
       const isoEndDate = endDate ? new Date(endDate).toISOString() : null;
       const isoDeadline = registrationDeadline ? new Date(registrationDeadline).toISOString() : null;
@@ -371,6 +434,7 @@ export const AdminEditEventPage: React.FC = () => {
         endDate: isoEndDate,
         venue: venue.trim(),
         coverImageId: finalCoverImageId,
+        galleryImageIds: finalGalleryImageIds,
         accentColor,
         visualTheme: visualTheme || 'playful',
         featured,
@@ -415,7 +479,11 @@ export const AdminEditEventPage: React.FC = () => {
     setError(null);
 
     try {
-      const result = await FormService.deleteCompleteEvent(eventId, existingCoverImageId);
+      const result = await FormService.deleteCompleteEvent(
+        eventId,
+        existingCoverImageId,
+        existingGalleryImageIds
+      );
       if (result.success) {
         navigate('/admin/events');
       } else {
@@ -772,6 +840,87 @@ export const AdminEditEventPage: React.FC = () => {
                       className="hidden"
                     />
                   </label>
+                )}
+              </div>
+
+              {/* Event Photo Memories & Gallery (Multiple Photos) */}
+              <div className="pt-4 border-t-2 border-[#121316]/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block text-xs font-mono font-black uppercase text-[#121316]">
+                      Event Memories & Photo Gallery ({existingGalleryImageIds.length + newGalleryImagePreviews.length})
+                    </label>
+                    <span className="text-[11px] font-mono text-gray-500">
+                      Upload past event photos, stage shots, hackathon photos, or lab captures
+                    </span>
+                  </div>
+
+                  <label className="px-4 py-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5 cursor-pointer transition-colors">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Event Photos</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleNewGalleryImagesSelect}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Grid of Existing & Newly Added Event Photos */}
+                {(existingGalleryImageIds.length > 0 || newGalleryImagePreviews.length > 0) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                    {/* Existing Photos from Storage */}
+                    {existingGalleryImageIds.map((imgId) => (
+                      <div
+                        key={imgId}
+                        className="relative rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm group h-32"
+                      >
+                        <img
+                          src={StorageService.getEventImageUrl(imgId, 400)}
+                          alt="Existing event memory"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExistingGalleryImage(imgId)}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white border border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer"
+                          title="Delete Photo from Event"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-[#121316]/70 text-white font-mono text-[9px] font-bold">
+                          Saved
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Newly Selected Photos */}
+                    {newGalleryImagePreviews.map((previewUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative rounded-2xl border-2 border-[#2ED573] overflow-hidden bg-gray-100 shadow-pop-sm group h-32"
+                      >
+                        <img
+                          src={previewUrl}
+                          alt={`New memory preview ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNewGalleryImage(idx)}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white border border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer"
+                          title="Cancel Upload"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-[#2ED573] text-[#121316] font-mono text-[9px] font-black">
+                          New
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 

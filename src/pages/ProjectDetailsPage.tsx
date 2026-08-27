@@ -17,6 +17,9 @@ import {
   FolderGit2,
   ExternalLink,
   ArrowUpRight,
+  Image as ImageIcon,
+  X,
+  Maximize2,
 } from 'lucide-react';
 import { PlayfulButton } from '../components/ui/PlayfulButton';
 
@@ -35,6 +38,7 @@ export const ProjectDetailsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -302,6 +306,61 @@ export const ProjectDetailsPage: React.FC = () => {
           </div>
         )}
 
+        {/* BUILD PHOTO GALLERY & PROTOTYPE SCRAPBOOK */}
+        {project.galleryImageIds && project.galleryImageIds.length > 0 && (
+          <div className="p-8 sm:p-12 rounded-[44px] bg-white border-4 border-[#121316] shadow-pop-lg space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b-2 border-[#121316]/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#FFE600] text-[#121316] border-2 border-[#121316] flex items-center justify-center font-mono text-xs font-black">
+                  📸
+                </div>
+                <div>
+                  <h3 className="font-black text-xl text-[#121316]">
+                    Prototype Photos & Build Scrapbook ({project.galleryImageIds.length})
+                  </h3>
+                  <p className="font-mono text-xs text-gray-500 font-bold">
+                    Lab snapshots, hardware soldering, telemetry tests and schematics
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+              {project.galleryImageIds.map((imgId, idx) => {
+                const imgUrl = StorageService.getProjectImageUrl(imgId, 800);
+                const rotations = ['rotate-[-1.5deg]', 'rotate-[1.5deg]', 'rotate-[-0.5deg]', 'rotate-[2deg]'];
+                const cardRotate = rotations[idx % rotations.length];
+
+                return (
+                  <div
+                    key={imgId}
+                    onClick={() => setLightboxImg(StorageService.getProjectImageUrl(imgId, 1600))}
+                    className={`p-3.5 rounded-[28px] bg-[#FAF7F0] border-3 border-[#121316] shadow-pop hover:shadow-pop-lg transition-all duration-200 cursor-pointer group hover:scale-[1.02] ${cardRotate}`}
+                  >
+                    <div className="w-full h-52 rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 relative">
+                      <img
+                        src={imgUrl}
+                        alt={`Build snapshot ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="px-3.5 py-1.5 rounded-full bg-white border border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5">
+                          <Maximize2 className="w-3.5 h-3.5" />
+                          <span>View Full Size</span>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="pt-2 px-1 flex items-center justify-between text-[11px] font-mono font-bold text-gray-500">
+                      <span>BUILD SNAPSHOT #{idx + 1}</span>
+                      <span>LAB 5.0</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* MORE STUDENT BUILDS */}
         {otherProjects.length > 0 && (
           <div className="space-y-6 pt-6">
@@ -359,6 +418,32 @@ export const ProjectDetailsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* LIGHTBOX MODAL FOR FULL-SIZE IMAGE PREVIEW */}
+      {lightboxImg && (
+        <div
+          onClick={() => setLightboxImg(null)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8 animate-fadeIn cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-5xl max-h-[90vh] bg-white p-3 rounded-[36px] border-4 border-[#121316] shadow-pop-2xl overflow-hidden cursor-default"
+          >
+            <button
+              onClick={() => setLightboxImg(null)}
+              className="absolute top-5 right-5 p-2 rounded-xl bg-white border-2 border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer z-10"
+              title="Close Preview"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={lightboxImg}
+              alt="Full Preview"
+              className="max-h-[80vh] w-auto object-contain rounded-2xl border-2 border-[#121316]"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

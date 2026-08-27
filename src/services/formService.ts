@@ -369,11 +369,12 @@ export class FormService {
   }
 
   /**
-   * Unified Master Coordinator: Deletes Event + associated cover image + Form + Form Fields
+   * Unified Master Coordinator: Deletes Event + associated cover image + gallery images + Form + Form Fields
    */
   static async deleteCompleteEvent(
     eventId: string,
-    coverImageId?: string | null
+    coverImageId?: string | null,
+    galleryImageIds?: string[] | null
   ): Promise<EventServiceResult<void>> {
     // 1. Delete cover image from storage if present
     if (coverImageId) {
@@ -384,7 +385,20 @@ export class FormService {
       }
     }
 
-    // 2. Delete event_forms & form_fields
+    // 2. Delete gallery images from storage if present
+    if (galleryImageIds && Array.isArray(galleryImageIds)) {
+      for (const gId of galleryImageIds) {
+        if (gId?.trim()) {
+          try {
+            await StorageService.deleteEventImage(gId.trim());
+          } catch (gErr) {
+            console.warn('[FormService] Could not delete event gallery image:', gErr);
+          }
+        }
+      }
+    }
+
+    // 3. Delete event_forms & form_fields
     try {
       const formResponse = await databases.listDocuments<EventFormDocument>(
         this.databaseId,
@@ -413,8 +427,8 @@ export class FormService {
       console.warn('[FormService] Could not delete associated event form:', formErr);
     }
 
-    // 3. Delete event document
-    return EventService.deleteEvent(eventId);
+    // 4. Delete event document
+    return EventService.deleteEvent(eventId, coverImageId || undefined, galleryImageIds || undefined);
   }
 }
 

@@ -66,6 +66,11 @@ export const AdminEditProjectPage: React.FC = () => {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [shouldRemoveExistingImage, setShouldRemoveExistingImage] = useState(false);
 
+  // Additional Photo Gallery Images
+  const [existingGalleryImageIds, setExistingGalleryImageIds] = useState<string[]>([]);
+  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([]);
+  const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([]);
+
   // Publishing
   const [status, setStatus] = useState<ProjectStatus>('draft');
   const [featured, setFeatured] = useState(false);
@@ -96,6 +101,7 @@ export const AdminEditProjectPage: React.FC = () => {
           setFeatured(p.featured);
           setDisplayOrder(p.displayOrder);
           setExistingCoverImageId(p.coverImageId);
+          setExistingGalleryImageIds(p.galleryImageIds || []);
 
           if (p.coverImageId) {
             setCoverPreview(StorageService.getProjectImageUrl(p.coverImageId, 600));
@@ -163,6 +169,48 @@ export const AdminEditProjectPage: React.FC = () => {
     setShouldRemoveExistingImage(true);
   };
 
+  // Gallery Handlers
+  const handleNewGalleryFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const validation = StorageService.validateImageFile(file);
+      if (!validation.valid) {
+        setError(validation.error || 'One or more files have an invalid format.');
+        return;
+      }
+      newFiles.push(file);
+    }
+
+    setError(null);
+    setNewGalleryFiles((prev) => [...prev, ...newFiles]);
+
+    newFiles.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setNewGalleryPreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(f);
+    });
+  };
+
+  const handleRemoveNewGalleryFile = (index: number) => {
+    setNewGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingGalleryImage = async (imageId: string) => {
+    setExistingGalleryImageIds((prev) => prev.filter((id) => id !== imageId));
+    try {
+      await StorageService.deleteProjectImage(imageId);
+    } catch (delErr) {
+      console.warn('Storage cleanup notice:', delErr);
+    }
+  };
+
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,7 +232,7 @@ export const AdminEditProjectPage: React.FC = () => {
 
       let finalCoverImageId = existingCoverImageId;
 
-      // 1. Upload new image if provided
+      // 1. Upload new cover image if provided
       if (coverFile) {
         setUploadProgress('Uploading new cover image...');
         const uploadRes = await StorageService.uploadProjectImage(coverFile);
@@ -217,7 +265,23 @@ export const AdminEditProjectPage: React.FC = () => {
         finalCoverImageId = undefined;
       }
 
-      // 2. Update Project Document in Appwrite
+      // 2. Upload any new gallery photos
+      const uploadedGalleryIds: string[] = [];
+      if (newGalleryFiles.length > 0) {
+        for (let i = 0; i < newGalleryFiles.length; i++) {
+          setUploadProgress(`Uploading gallery photo ${i + 1} of ${newGalleryFiles.length}...`);
+          const galRes = await StorageService.uploadProjectImage(newGalleryFiles[i]);
+          if (galRes.success && galRes.data) {
+            uploadedGalleryIds.push(galRes.data.file_id);
+          } else {
+            console.warn('Failed to upload gallery image:', galRes.error);
+          }
+        }
+      }
+
+      const finalGalleryImageIds = [...existingGalleryImageIds, ...uploadedGalleryIds];
+
+      // 3. Update Project Document in Appwrite
       setUploadProgress('Updating project in Appwrite Database...');
       const updateResult = await ProjectService.updateProject(id, {
         title: title.trim(),
@@ -225,6 +289,7 @@ export const AdminEditProjectPage: React.FC = () => {
         shortDescription: shortDescription.trim(),
         description: description.trim(),
         coverImageId: finalCoverImageId || undefined,
+        galleryImageIds: finalGalleryImageIds,
         techStack,
         githubUrl: githubUrl.trim() || undefined,
         liveUrl: liveUrl.trim() || undefined,
@@ -447,42 +512,129 @@ export const AdminEditProjectPage: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              {coverPreview ? (
-                <div className="relative rounded-3xl border-3 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm max-w-xl">
-                  <img
-                    src={coverPreview}
-                    alt="Cover preview"
-                    className="w-full h-64 object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute top-3 right-3 p-2 rounded-xl bg-white border-2 border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all"
-                    title="Remove Cover Image"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center p-8 rounded-3xl bg-[#FAF7F0] border-3 border-dashed border-[#121316]/40 hover:border-[#121316] transition-all cursor-pointer text-center group">
-                  <div className="w-14 h-14 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm flex items-center justify-center text-[#FF793F] group-hover:scale-110 transition-transform mb-3">
-                    <UploadCloud className="w-7 h-7" />
-                  </div>
-                  <span className="font-mono text-xs font-black uppercase text-[#121316] block">
-                    Upload Replacement Cover Image
-                  </span>
-                  <span className="font-mono text-[11px] text-gray-500 block mt-1">
-                    JPG, PNG, WebP or AVIF up to 10 MB
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="hidden"
-                  />
+            <div className="space-y-6">
+              {/* Main Cover Image */}
+              <div>
+                <label className="block font-mono text-xs font-black uppercase text-[#121316] mb-2">
+                  Main Cover Image (Banner)
                 </label>
-              )}
+                {coverPreview ? (
+                  <div className="relative rounded-3xl border-3 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm max-w-xl">
+                    <img
+                      src={coverPreview}
+                      alt="Cover preview"
+                      className="w-full h-64 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-3 right-3 p-2 rounded-xl bg-white border-2 border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer"
+                      title="Remove Cover Image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center p-8 rounded-3xl bg-[#FAF7F0] border-3 border-dashed border-[#121316]/40 hover:border-[#121316] transition-all cursor-pointer text-center group">
+                    <div className="w-14 h-14 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm flex items-center justify-center text-[#FF793F] group-hover:scale-110 transition-transform mb-3">
+                      <UploadCloud className="w-7 h-7" />
+                    </div>
+                    <span className="font-mono text-xs font-black uppercase text-[#121316] block">
+                      Upload Replacement Cover Image
+                    </span>
+                    <span className="font-mono text-[11px] text-gray-500 block mt-1">
+                      JPG, PNG, WebP or AVIF up to 10 MB
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
+              {/* Additional Photo Gallery */}
+              <div className="pt-4 border-t-2 border-[#121316]/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block font-mono text-xs font-black uppercase text-[#121316]">
+                      Additional Build Photos & Prototypes ({existingGalleryImageIds.length + newGalleryPreviews.length})
+                    </label>
+                    <span className="text-[11px] font-mono text-gray-500">
+                      Upload lab photos, schematics, PCB screenshots, or demo snapshots
+                    </span>
+                  </div>
+
+                  <label className="px-4 py-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5 cursor-pointer transition-colors">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add More Photos</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleNewGalleryFilesSelect}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Grid of Existing & New Photos */}
+                {(existingGalleryImageIds.length > 0 || newGalleryPreviews.length > 0) && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                    {/* Existing Photos from Appwrite Storage */}
+                    {existingGalleryImageIds.map((imgId) => (
+                      <div
+                        key={imgId}
+                        className="relative rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm group h-32"
+                      >
+                        <img
+                          src={StorageService.getProjectImageUrl(imgId, 400)}
+                          alt="Existing Gallery"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExistingGalleryImage(imgId)}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white border border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer"
+                          title="Delete Photo from Project"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-[#121316]/70 text-white font-mono text-[9px] font-bold">
+                          Saved
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Newly Selected Photos */}
+                    {newGalleryPreviews.map((previewUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative rounded-2xl border-2 border-[#2ED573] overflow-hidden bg-gray-100 shadow-pop-sm group h-32"
+                      >
+                        <img
+                          src={previewUrl}
+                          alt={`New preview ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNewGalleryFile(idx)}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white border border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer"
+                          title="Cancel Upload"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-[#2ED573] text-[#121316] font-mono text-[9px] font-black">
+                          New
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

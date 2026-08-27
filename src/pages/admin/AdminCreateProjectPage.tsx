@@ -62,6 +62,10 @@ export const AdminCreateProjectPage: React.FC = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
+  // Additional Photo Gallery Images
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+
   // Publishing
   const [status, setStatus] = useState<ProjectStatus>('draft');
   const [featured, setFeatured] = useState(false);
@@ -141,6 +145,42 @@ export const AdminCreateProjectPage: React.FC = () => {
     setCoverPreview(null);
   };
 
+  // Gallery Files Selection Handlers
+  const handleGalleryFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newFiles: File[] = [];
+    const newPreviews: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const validation = StorageService.validateImageFile(file);
+      if (!validation.valid) {
+        setError(validation.error || 'One or more files have an invalid format.');
+        return;
+      }
+      newFiles.push(file);
+    }
+
+    setError(null);
+    setGalleryFiles((prev) => [...prev, ...newFiles]);
+
+    // Generate previews
+    newFiles.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setGalleryPreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(f);
+    });
+  };
+
+  const handleRemoveGalleryFile = (index: number) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,7 +213,21 @@ export const AdminCreateProjectPage: React.FC = () => {
         uploadedImageId = uploadRes.data.file_id;
       }
 
-      // 2. Create Project in Database
+      // 2. Upload Additional Gallery Photos if selected
+      const uploadedGalleryIds: string[] = [];
+      if (galleryFiles.length > 0) {
+        for (let i = 0; i < galleryFiles.length; i++) {
+          setUploadProgress(`Uploading gallery photo ${i + 1} of ${galleryFiles.length}...`);
+          const galRes = await StorageService.uploadProjectImage(galleryFiles[i]);
+          if (galRes.success && galRes.data) {
+            uploadedGalleryIds.push(galRes.data.file_id);
+          } else {
+            console.warn('Failed to upload gallery image:', galRes.error);
+          }
+        }
+      }
+
+      // 3. Create Project in Database
       setUploadProgress('Saving project to Appwrite Database...');
       const createResult = await ProjectService.createProject({
         title: title.trim(),
@@ -181,6 +235,7 @@ export const AdminCreateProjectPage: React.FC = () => {
         shortDescription: shortDescription.trim(),
         description: description.trim(),
         coverImageId: uploadedImageId,
+        galleryImageIds: uploadedGalleryIds,
         techStack,
         githubUrl: githubUrl.trim() || undefined,
         liveUrl: liveUrl.trim() || undefined,
@@ -190,9 +245,12 @@ export const AdminCreateProjectPage: React.FC = () => {
       });
 
       if (!createResult.success) {
-        // Clean up uploaded image if project creation fails
+        // Clean up uploaded cover image if project creation fails
         if (uploadedImageId) {
           await StorageService.deleteProjectImage(uploadedImageId);
+        }
+        for (const gId of uploadedGalleryIds) {
+          await StorageService.deleteProjectImage(gId);
         }
         setError(createResult.error || 'Failed to save project.');
         setSubmitting(false);
@@ -392,42 +450,99 @@ export const AdminCreateProjectPage: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              {coverPreview ? (
-                <div className="relative rounded-3xl border-3 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm max-w-xl">
-                  <img
-                    src={coverPreview}
-                    alt="Cover preview"
-                    className="w-full h-64 object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute top-3 right-3 p-2 rounded-xl bg-white border-2 border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all"
-                    title="Remove Cover Image"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center p-8 rounded-3xl bg-[#FAF7F0] border-3 border-dashed border-[#121316]/40 hover:border-[#121316] transition-all cursor-pointer text-center group">
-                  <div className="w-14 h-14 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm flex items-center justify-center text-[#FF793F] group-hover:scale-110 transition-transform mb-3">
-                    <UploadCloud className="w-7 h-7" />
-                  </div>
-                  <span className="font-mono text-xs font-black uppercase text-[#121316] block">
-                    Upload Project Cover Image
-                  </span>
-                  <span className="font-mono text-[11px] text-gray-500 block mt-1">
-                    JPG, PNG, WebP or AVIF up to 10 MB
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="hidden"
-                  />
+            <div className="space-y-6">
+              {/* Cover Image */}
+              <div>
+                <label className="block font-mono text-xs font-black uppercase text-[#121316] mb-2">
+                  Main Cover Image (Banner)
                 </label>
-              )}
+                {coverPreview ? (
+                  <div className="relative rounded-3xl border-3 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm max-w-xl">
+                    <img
+                      src={coverPreview}
+                      alt="Cover preview"
+                      className="w-full h-64 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-3 right-3 p-2 rounded-xl bg-white border-2 border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer"
+                      title="Remove Cover Image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center p-8 rounded-3xl bg-[#FAF7F0] border-3 border-dashed border-[#121316]/40 hover:border-[#121316] transition-all cursor-pointer text-center group">
+                    <div className="w-14 h-14 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm flex items-center justify-center text-[#FF793F] group-hover:scale-110 transition-transform mb-3">
+                      <UploadCloud className="w-7 h-7" />
+                    </div>
+                    <span className="font-mono text-xs font-black uppercase text-[#121316] block">
+                      Upload Project Cover Image
+                    </span>
+                    <span className="font-mono text-[11px] text-gray-500 block mt-1">
+                      JPG, PNG, WebP or AVIF up to 10 MB
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
+              {/* Additional Photo Gallery */}
+              <div className="pt-4 border-t-2 border-[#121316]/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block font-mono text-xs font-black uppercase text-[#121316]">
+                      Additional Build Photos & Prototypes ({galleryPreviews.length})
+                    </label>
+                    <span className="text-[11px] font-mono text-gray-500">
+                      Upload lab photos, schematics, PCB screenshots, or demo snapshots
+                    </span>
+                  </div>
+
+                  <label className="px-4 py-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5 cursor-pointer transition-colors">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Photos</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleGalleryFilesSelect}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {galleryPreviews.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                    {galleryPreviews.map((previewUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm group h-32"
+                      >
+                        <img
+                          src={previewUrl}
+                          alt={`Gallery preview ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryFile(idx)}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white border border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer"
+                          title="Remove Photo"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

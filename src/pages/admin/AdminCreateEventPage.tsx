@@ -62,6 +62,8 @@ export const AdminCreateEventPage: React.FC = () => {
   // STEP 2: APPEARANCE
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
+  const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
   const [accentColor, setAccentColor] = useState('#FFE600');
   const [visualTheme, setVisualTheme] = useState<EventVisualTheme>('playful');
   const [featured, setFeatured] = useState(false);
@@ -114,7 +116,7 @@ export const AdminCreateEventPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to slugify title
+  // Auto-generate URL-friendly slug
   const generateSlug = (text: string) => {
     return text
       .toLowerCase()
@@ -158,6 +160,38 @@ export const AdminCreateEventPage: React.FC = () => {
       URL.revokeObjectURL(coverImagePreview);
       setCoverImagePreview(null);
     }
+  };
+
+  // Gallery Photos Handlers
+  const handleGalleryImagesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newFiles: File[] = [];
+    const newPreviews: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const validation = StorageService.validateImageFile(file);
+      if (!validation.valid) {
+        setError(validation.error || 'One or more gallery images have an invalid format.');
+        return;
+      }
+      newFiles.push(file);
+      newPreviews.push(URL.createObjectURL(file));
+    }
+
+    setError(null);
+    setGalleryImageFiles((prev) => [...prev, ...newFiles]);
+    setGalleryImagePreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    if (galleryImagePreviews[index]) {
+      URL.revokeObjectURL(galleryImagePreviews[index]);
+    }
+    setGalleryImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setGalleryImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Form Builder Handlers
@@ -270,6 +304,7 @@ export const AdminCreateEventPage: React.FC = () => {
     setIsSubmitting(true);
 
     let uploadedFileId: string | null = null;
+    const uploadedGalleryIds: string[] = [];
 
     try {
       // 1. Upload Cover Image to Appwrite Storage (atc_event_images) if provided
@@ -281,6 +316,18 @@ export const AdminCreateEventPage: React.FC = () => {
           return;
         }
         uploadedFileId = uploadRes.data.file_id;
+      }
+
+      // 2. Upload Additional Gallery Images if provided
+      if (galleryImageFiles.length > 0) {
+        for (let i = 0; i < galleryImageFiles.length; i++) {
+          const galRes = await StorageService.uploadEventImage(galleryImageFiles[i]);
+          if (galRes.success && galRes.data?.file_id) {
+            uploadedGalleryIds.push(galRes.data.file_id);
+          } else {
+            console.warn('Failed to upload event gallery image:', galRes.error);
+          }
+        }
       }
 
       const isoStartDate = new Date(startDate).toISOString();
@@ -298,6 +345,7 @@ export const AdminCreateEventPage: React.FC = () => {
         endDate: isoEndDate,
         venue: venue.trim(),
         coverImageId: uploadedFileId,
+        galleryImageIds: uploadedGalleryIds,
         accentColor,
         visualTheme: visualTheme || 'playful',
         featured,
@@ -325,7 +373,7 @@ export const AdminCreateEventPage: React.FC = () => {
 
         navigate('/admin/events');
       } else {
-        // Rollback: delete uploaded file if event creation failed
+        // Rollback: delete uploaded files if event creation failed
         if (uploadedFileId) {
           try {
             await StorageService.deleteEventImage(uploadedFileId);
@@ -333,11 +381,18 @@ export const AdminCreateEventPage: React.FC = () => {
             console.warn('[AdminCreateEventPage] Could not delete orphaned image during rollback:', delErr);
           }
         }
+        for (const gId of uploadedGalleryIds) {
+          try {
+            await StorageService.deleteEventImage(gId);
+          } catch (delErr) {
+            console.warn('[AdminCreateEventPage] Could not delete orphaned gallery image during rollback:', delErr);
+          }
+        }
         setError(result.error || 'Failed to save event to Appwrite.');
       }
     } catch (err: any) {
       console.error('Error saving event with form:', err);
-      // Rollback uploaded file
+      // Rollback uploaded files
       if (uploadedFileId) {
         try {
           await StorageService.deleteEventImage(uploadedFileId);
@@ -345,7 +400,14 @@ export const AdminCreateEventPage: React.FC = () => {
           console.warn('[AdminCreateEventPage] Could not delete orphaned image during rollback:', delErr);
         }
       }
-      setError(err?.message || 'An unexpected error occurred while saving the event.');
+      for (const gId of uploadedGalleryIds) {
+        try {
+          await StorageService.deleteEventImage(gId);
+        } catch (delErr) {
+          console.warn('[AdminCreateEventPage] Could not delete orphaned gallery image during rollback:', delErr);
+        }
+      }
+      setError(err?.message || 'An unexpected error occurred while creating the event.');
     } finally {
       setIsSubmitting(false);
     }
@@ -679,6 +741,57 @@ export const AdminCreateEventPage: React.FC = () => {
                       className="hidden"
                     />
                   </label>
+                )}
+              </div>
+
+              {/* Event Photo Memories & Gallery (Multiple Photos) */}
+              <div className="pt-4 border-t-2 border-[#121316]/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block text-xs font-mono font-black uppercase text-[#121316]">
+                      Event Memories & Photo Gallery ({galleryImagePreviews.length})
+                    </label>
+                    <span className="text-[11px] font-mono text-gray-500">
+                      Upload past event photos, stage shots, hackathon photos, or lab captures
+                    </span>
+                  </div>
+
+                  <label className="px-4 py-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex items-center gap-1.5 cursor-pointer transition-colors">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Event Photos</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleGalleryImagesSelect}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {galleryImagePreviews.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                    {galleryImagePreviews.map((previewUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative rounded-2xl border-2 border-[#121316] overflow-hidden bg-gray-100 shadow-pop-sm group h-32"
+                      >
+                        <img
+                          src={previewUrl}
+                          alt={`Event memory ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryImage(idx)}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white border border-[#121316] shadow-pop-sm text-[#FF4757] hover:bg-[#FFE5E5] transition-all cursor-pointer"
+                          title="Remove Photo"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 

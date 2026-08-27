@@ -19,6 +19,7 @@ export interface ProjectDocument extends Models.Document {
   shortDescription: string;
   description: string;
   coverImageId?: string;
+  galleryImageIds?: string | string[]; // JSON-serialized string of string[] or string[]
   techStack: string; // JSON-serialized string of string[]
   githubUrl?: string;
   liveUrl?: string;
@@ -39,6 +40,7 @@ export interface ATCProject {
   shortDescription: string;
   description: string;
   coverImageId?: string;
+  galleryImageIds?: string[];
   techStack: string[];
   githubUrl?: string;
   liveUrl?: string;
@@ -56,6 +58,7 @@ export interface CreateProjectInput {
   shortDescription: string;
   description: string;
   coverImageId?: string;
+  galleryImageIds?: string[] | string;
   techStack: string[] | string;
   githubUrl?: string;
   liveUrl?: string;
@@ -73,6 +76,7 @@ export interface UpdateProjectInput {
   shortDescription?: string;
   description?: string;
   coverImageId?: string;
+  galleryImageIds?: string[] | string;
   techStack?: string[] | string;
   githubUrl?: string;
   liveUrl?: string;
@@ -166,4 +170,66 @@ export function parseTechStack(raw: string | string[] | undefined | null): strin
     }
   }
   return [];
+}
+
+/**
+ * Serializes gallery image IDs array into JSON string
+ */
+export function serializeGalleryImages(galleryImages?: string[] | string | null): string {
+  if (!galleryImages) return '[]';
+  if (typeof galleryImages === 'string') {
+    const trimmed = galleryImages.trim();
+    if (!trimmed) return '[]';
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return JSON.stringify(parsed);
+    } catch {
+      const items = trimmed
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      return JSON.stringify(items);
+    }
+  }
+  if (Array.isArray(galleryImages)) {
+    const cleaned = galleryImages
+      .map((item) => (typeof item === 'string' ? item.trim() : String(item).trim()))
+      .filter(Boolean);
+    return JSON.stringify(cleaned);
+  }
+  return '[]';
+}
+
+/**
+ * Parses raw gallery image string into string array
+ */
+export function parseGalleryImages(raw: string | string[] | undefined | null, description?: string): string[] {
+  let images: string[] = [];
+  if (Array.isArray(raw)) {
+    images = raw.map((item) => String(item).trim()).filter(Boolean);
+  } else if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw.trim());
+      if (Array.isArray(parsed)) {
+        images = parsed.map((item) => String(item).trim()).filter(Boolean);
+      }
+    } catch {
+      images = raw.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+  }
+
+  // Fallback: check embedded comments in description
+  if (images.length === 0 && description) {
+    const match = description.match(/<!--\s*ATC_GALLERY:\s*(\[.*?\])\s*-->/s);
+    if (match && match[1]) {
+      try {
+        const parsed = JSON.parse(match[1]);
+        if (Array.isArray(parsed)) {
+          images = parsed.map((item) => String(item).trim()).filter(Boolean);
+        }
+      } catch {}
+    }
+  }
+
+  return images;
 }

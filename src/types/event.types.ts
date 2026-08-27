@@ -53,6 +53,7 @@ export interface ATCEvent {
 
   // Display & Visuals
   coverImageId?: string | null;
+  galleryImageIds?: string[] | null;
   accentColor?: string | null;
   visualTheme?: EventVisualTheme | null;
   featured: boolean;
@@ -87,6 +88,7 @@ export interface CreateEventInput {
   endDate?: string | null;
   venue: string;
   coverImageId?: string | null;
+  galleryImageIds?: string[] | string | null;
   accentColor?: string | null;
   visualTheme?: EventVisualTheme | null;
   featured?: boolean;
