@@ -6,8 +6,10 @@ import {
   FormField,
   EventRegistration,
   EventRegistrationDocument,
+  RegistrationAnswer,
   RegistrationAnswerDocument,
   RegistrationSubmissionResult,
+  RegistrationStats,
 } from '../types/form.types';
 
 /**
@@ -423,6 +425,289 @@ export class RegistrationService {
       return {
         success: false,
         error: 'An unexpected error occurred while saving your responses. Please try again.',
+      };
+    }
+  }
+
+  /* ======================================================================== */
+  /* ADMIN-ONLY REGISTRATION MANAGEMENT METHODS                               */
+  /* ======================================================================== */
+
+  /**
+   * Admin: Fetches all registrations for a specific event
+   */
+  static async getRegistrationsByEvent(
+    eventId: string,
+    options?: { limit?: number; offset?: number; status?: string }
+  ): Promise<{ success: boolean; data?: EventRegistration[]; total?: number; error?: string }> {
+    try {
+      if (!isAppwriteReady() || !eventId?.trim()) {
+        return { success: false, error: 'Appwrite not configured or event ID is missing.' };
+      }
+
+      const queries = [
+        Query.equal('eventId', eventId.trim()),
+        Query.orderDesc('registeredAt'),
+        Query.limit(options?.limit || 200),
+      ];
+
+      if (options?.offset) {
+        queries.push(Query.offset(options.offset));
+      }
+
+      if (options?.status && options.status !== 'all') {
+        queries.push(Query.equal('status', options.status));
+      }
+
+      const response = await databases.listDocuments<EventRegistrationDocument>(
+        this.databaseId,
+        this.registrationsCollection,
+        queries
+      );
+
+      const registrations: EventRegistration[] = response.documents.map((doc) => ({
+        $id: doc.$id,
+        eventId: doc.eventId,
+        formId: doc.formId,
+        name: doc.name,
+        email: doc.email,
+        phone: doc.phone,
+        status: doc.status,
+        registeredAt: doc.registeredAt,
+      }));
+
+      return {
+        success: true,
+        data: registrations,
+        total: response.total,
+      };
+    } catch (error: any) {
+      console.error('[RegistrationService] Error fetching event registrations:', error);
+      return {
+        success: false,
+        error: error?.message || 'Failed to fetch event registrations.',
+      };
+    }
+  }
+
+  /**
+   * Admin: Fetches single registration document by ID
+   */
+  static async getRegistrationById(
+    registrationId: string
+  ): Promise<{ success: boolean; data?: EventRegistration; error?: string }> {
+    try {
+      if (!isAppwriteReady() || !registrationId?.trim()) {
+        return { success: false, error: 'Appwrite not configured or registration ID missing.' };
+      }
+
+      const doc = await databases.getDocument<EventRegistrationDocument>(
+        this.databaseId,
+        this.registrationsCollection,
+        registrationId.trim()
+      );
+
+      return {
+        success: true,
+        data: {
+          $id: doc.$id,
+          eventId: doc.eventId,
+          formId: doc.formId,
+          name: doc.name,
+          email: doc.email,
+          phone: doc.phone,
+          status: doc.status,
+          registeredAt: doc.registeredAt,
+        },
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error?.message || 'Registration not found.',
+      };
+    }
+  }
+
+  /**
+   * Admin: Retrieves all answers recorded for a given registration ID
+   */
+  static async getRegistrationAnswers(
+    registrationId: string
+  ): Promise<{ success: boolean; data?: RegistrationAnswer[]; error?: string }> {
+    try {
+      if (!isAppwriteReady() || !registrationId?.trim()) {
+        return { success: false, error: 'Appwrite not configured or registration ID missing.' };
+      }
+
+      const response = await databases.listDocuments<RegistrationAnswerDocument>(
+        this.databaseId,
+        this.answersCollection,
+        [Query.equal('registrationId', registrationId.trim()), Query.limit(100)]
+      );
+
+      const answers: RegistrationAnswer[] = response.documents.map((doc) => ({
+        $id: doc.$id,
+        registrationId: doc.registrationId,
+        fieldId: doc.fieldId,
+        value: doc.value,
+      }));
+
+      return { success: true, data: answers };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error?.message || 'Failed to fetch registration answers.',
+      };
+    }
+  }
+
+  /**
+   * Admin: Batch retrieval of answers for a list of registration IDs (e.g. for CSV export)
+   */
+  static async getBatchAnswersForRegistrations(
+    registrationIds: string[]
+  ): Promise<{ success: boolean; data?: Record<string, Record<string, string>>; error?: string }> {
+    try {
+      if (!isAppwriteReady() || registrationIds.length === 0) {
+        return { success: true, data: {} };
+      }
+
+      // Query answers in chunks if needed
+      const answerMap: Record<string, Record<string, string>> = {};
+
+      const response = await databases.listDocuments<RegistrationAnswerDocument>(
+        this.databaseId,
+        this.answersCollection,
+        [Query.equal('registrationId', registrationIds), Query.limit(500)]
+      );
+
+      for (const doc of response.documents) {
+        if (!answerMap[doc.registrationId]) {
+          answerMap[doc.registrationId] = {};
+        }
+        answerMap[doc.registrationId][doc.fieldId] = doc.value;
+      }
+
+      return { success: true, data: answerMap };
+    } catch (error: any) {
+      console.warn('[RegistrationService] Batch answer retrieval notice:', error);
+      return { success: false, data: {}, error: error?.message };
+    }
+  }
+
+  /**
+   * Admin: Computes live aggregated statistics for an event
+   */
+  static async getRegistrationStats(
+    eventId: string,
+    registrationLimit?: number | null
+  ): Promise<RegistrationStats> {
+    const defaultStats: RegistrationStats = {
+      total: 0,
+      registered: 0,
+      cancelled: 0,
+      checkedIn: 0,
+      activeCount: 0,
+      capacityLimit: registrationLimit || null,
+      remainingSeats: registrationLimit ? registrationLimit : null,
+      isCapacityReached: false,
+    };
+
+    try {
+      if (!isAppwriteReady() || !eventId?.trim()) {
+        return defaultStats;
+      }
+
+      const res = await databases.listDocuments<EventRegistrationDocument>(
+        this.databaseId,
+        this.registrationsCollection,
+        [Query.equal('eventId', eventId.trim()), Query.limit(500)]
+      );
+
+      let registered = 0;
+      let cancelled = 0;
+      let checkedIn = 0;
+
+      for (const doc of res.documents) {
+        if (doc.status === 'registered') registered++;
+        else if (doc.status === 'cancelled') cancelled++;
+        else if (doc.status === 'checked_in') checkedIn++;
+      }
+
+      const total = res.documents.length;
+      const activeCount = registered + checkedIn;
+      const limit = registrationLimit && registrationLimit > 0 ? registrationLimit : null;
+      const remainingSeats = limit ? Math.max(0, limit - activeCount) : null;
+      const isCapacityReached = limit ? activeCount >= limit : false;
+
+      return {
+        total,
+        registered,
+        cancelled,
+        checkedIn,
+        activeCount,
+        capacityLimit: limit,
+        remainingSeats,
+        isCapacityReached,
+      };
+    } catch (error) {
+      console.warn('[RegistrationService] Error computing registration stats:', error);
+      return defaultStats;
+    }
+  }
+
+  /**
+   * Admin: Updates registration status (registered, cancelled, checked_in) with capacity check
+   */
+  static async updateRegistrationStatus(
+    registrationId: string,
+    eventId: string,
+    newStatus: 'registered' | 'cancelled' | 'checked_in',
+    currentEventLimit?: number | null
+  ): Promise<{ success: boolean; data?: EventRegistration; error?: string }> {
+    try {
+      if (!isAppwriteReady() || !registrationId?.trim() || !eventId?.trim()) {
+        return { success: false, error: 'Appwrite not configured or missing parameters.' };
+      }
+
+      // If reactivating from cancelled to registered/checked_in, check capacity
+      if (newStatus === 'registered' || newStatus === 'checked_in') {
+        if (currentEventLimit && currentEventLimit > 0) {
+          const stats = await this.getRegistrationStats(eventId, currentEventLimit);
+          if (stats.isCapacityReached) {
+            return {
+              success: false,
+              error: `Cannot reactivate registration: the event capacity (${currentEventLimit} attendees) is already full.`,
+            };
+          }
+        }
+      }
+
+      const updated = await databases.updateDocument<EventRegistrationDocument>(
+        this.databaseId,
+        this.registrationsCollection,
+        registrationId.trim(),
+        { status: newStatus }
+      );
+
+      return {
+        success: true,
+        data: {
+          $id: updated.$id,
+          eventId: updated.eventId,
+          formId: updated.formId,
+          name: updated.name,
+          email: updated.email,
+          phone: updated.phone,
+          status: updated.status,
+          registeredAt: updated.registeredAt,
+        },
+      };
+    } catch (error: any) {
+      console.error('[RegistrationService] Error updating registration status:', error);
+      return {
+        success: false,
+        error: error?.message || 'Failed to update registration status.',
       };
     }
   }

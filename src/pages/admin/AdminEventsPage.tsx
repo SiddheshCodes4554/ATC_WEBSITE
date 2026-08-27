@@ -24,7 +24,8 @@ import {
   AlertTriangle,
   Send,
   Archive,
-  Ban
+  Ban,
+  Users
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -378,39 +379,49 @@ export const AdminEventsPage: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Actions: Edit, Public View, Delete */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-mono text-[11px] text-gray-500 font-bold truncate max-w-[120px]">
-                      /{evt.slug}
-                    </div>
+                  {/* Actions: Registrations, Edit, Public View, Delete */}
+                  <div className="flex flex-col gap-2 pt-1">
+                    <Link
+                      to={`/admin/events/${evt.$id}/registrations`}
+                      className="w-full py-2 px-3 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm font-mono text-xs font-black text-[#121316] flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Users className="w-3.5 h-3.5 text-[#6C5CE7]" />
+                      <span>Manage Registrations</span>
+                    </Link>
 
-                    <div className="flex items-center gap-1.5">
-                      <Link
-                        to={`/events/${evt.slug}`}
-                        target="_blank"
-                        className="p-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm text-[#121316] transition-colors"
-                        title="View public landing page"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Link>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="font-mono text-[11px] text-gray-500 font-bold truncate max-w-[100px]">
+                        /{evt.slug}
+                      </div>
 
-                      <Link
-                        to={`/admin/events/edit/${evt.$id}`}
-                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#E1DCFF] border-2 border-[#121316] shadow-pop-sm font-mono text-xs font-black text-[#121316] flex items-center gap-1 transition-colors"
-                        title="Edit event"
-                      >
-                        <Edit className="w-3.5 h-3.5 text-[#6C5CE7]" />
-                        <span>Edit</span>
-                      </Link>
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          to={`/events/${evt.slug}`}
+                          target="_blank"
+                          className="p-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm text-[#121316] transition-colors"
+                          title="View public landing page"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
 
-                      <button
-                        type="button"
-                        onClick={() => setEventToDelete(evt)}
-                        className="p-2 rounded-xl bg-[#FFE5E5] hover:bg-[#FF4757] hover:text-white border-2 border-[#FF4757] text-[#FF4757] shadow-pop-sm transition-colors cursor-pointer"
-                        title="Delete event"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                        <Link
+                          to={`/admin/events/edit/${evt.$id}`}
+                          className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#E1DCFF] border-2 border-[#121316] shadow-pop-sm font-mono text-xs font-black text-[#121316] flex items-center gap-1 transition-colors"
+                          title="Edit event"
+                        >
+                          <Edit className="w-3.5 h-3.5 text-[#6C5CE7]" />
+                          <span>Edit</span>
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => setEventToDelete(evt)}
+                          className="p-2 rounded-xl bg-[#FFE5E5] hover:bg-[#FF4757] hover:text-white border-2 border-[#FF4757] text-[#FF4757] shadow-pop-sm transition-colors cursor-pointer"
+                          title="Delete event"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 

@@ -154,3 +154,33 @@ export interface RegistrationSubmissionResult {
   isCapacityReached?: boolean;
   isDeadlinePassed?: boolean;
 }
+
+/**
+ * Aggregated Registration Statistics for Admin Dashboard
+ */
+export interface RegistrationStats {
+  total: number;
+  registered: number;
+  cancelled: number;
+  checkedIn: number;
+  activeCount: number;
+  capacityLimit: number | null;
+  remainingSeats: number | null;
+  isCapacityReached: boolean;
+}
+
+/**
+ * Enriched Participant Data for Detail Drawer
+ */
+export interface ParticipantDetailData {
+  registration: EventRegistration;
+  answers: RegistrationAnswer[];
+  formattedAnswers: {
+    fieldId: string;
+    label: string;
+    fieldType: FormFieldType;
+    value: string;
+    displayValue: any;
+    isSystemKey?: boolean;
+  }[];
+}
