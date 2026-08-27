@@ -465,6 +465,8 @@ export const EventDetailsPage: React.FC = () => {
         : StorageService.getEventImageUrl(event.coverImageId, 1200))
     : (event.slug?.includes('worst-ui') || event.$id?.includes('worst-ui'))
     ? '/events/worst-ui-ux-poster.png'
+    : (event.slug?.includes('git') || event.$id?.includes('git'))
+    ? '/events/git-workshop-poster.jpg'
     : '';
   const accentColor = event.accentColor || '#FFE600';
   const isRegistrationActive = event.registrationEnabled && (event.status === 'upcoming' || event.status === 'ongoing');

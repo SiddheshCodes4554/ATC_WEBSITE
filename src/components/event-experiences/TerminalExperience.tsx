@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EventGalleryRenderer } from '../event-gallery/EventGalleryRenderer';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 export const TerminalExperience: React.FC<EventExperienceProps> = (props) => {
   const {
@@ -172,10 +173,15 @@ export const TerminalExperience: React.FC<EventExperienceProps> = (props) => {
       {/* ========================================================================= */}
       {coverUrl && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-12">
-          <div className="rounded-3xl overflow-hidden border-2 border-emerald-500/40 max-h-[420px] relative">
-            <img src={coverUrl} alt={event.title} className="w-full h-full object-cover" />
-            <div className="absolute bottom-4 left-4 px-3.5 py-1 rounded bg-black/80 backdrop-blur-md border border-emerald-500/40 text-xs text-emerald-400">
-              <span>cover_asset.png • 1080p</span>
+          <div className="rounded-3xl overflow-hidden border-2 border-emerald-500/40 max-h-[500px] bg-[#050811] flex items-center justify-center relative shadow-2xl">
+            <OptimizedImage
+              src={coverUrl}
+              alt={event.title}
+              className="w-full max-h-[500px] object-contain mx-auto"
+            />
+            <div className="absolute bottom-4 left-4 px-3.5 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-emerald-500/40 text-xs text-emerald-400 font-mono flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>OFFICIAL_EVENT_POSTER.RAW • 1080p</span>
             </div>
           </div>
         </section>

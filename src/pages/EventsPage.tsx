@@ -66,6 +66,7 @@ export const EventsPage: React.FC = () => {
       ],
       color: 'bg-[#E1F5FE]',
       badgeBg: 'bg-[#2E86DE]',
+      coverImageUrl: '/events/git-workshop-poster.jpg',
       illustration: <GitHubGSoCIllustration />,
     },
     {
