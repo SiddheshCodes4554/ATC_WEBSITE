@@ -3,9 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { EventService } from '../services/eventService';
 import { FormService } from '../services/formService';
 import { StorageService } from '../services/storage.service';
+import { EventGalleryService } from '../services/eventGalleryService';
 import { RegistrationService } from '../services/registrationService';
 import { ATCEvent } from '../types/event.types';
 import { EventForm, FormField, EventRegistration } from '../types/form.types';
+import { EventGalleryImage } from '../types/eventGallery.types';
 import { eventsArchive } from '../data/eventsData';
 
 // Creative Experience System Renderer
@@ -38,6 +40,7 @@ export const EventDetailsPage: React.FC = () => {
 
   const [event, setEvent] = useState<ATCEvent | null>(null);
   const [eventForm, setEventForm] = useState<EventForm | null>(null);
+  const [galleryImages, setGalleryImages] = useState<EventGalleryImage[]>([]);
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [formLoading, setFormLoading] = useState<boolean>(false);
@@ -64,6 +67,7 @@ export const EventDetailsPage: React.FC = () => {
       setLoading(true);
       setEvent(null);
       setEventForm(null);
+      setGalleryImages([]);
       setSubmissionResult(null);
       setFormErrorMessage(null);
       setFieldErrors({});
@@ -81,7 +85,32 @@ export const EventDetailsPage: React.FC = () => {
           setEvent(loadedEvent);
           setIsLegacyArchive(false);
 
-          // 2. If registration is enabled, fetch registration form from Appwrite
+          // 2. Fetch event gallery from Appwrite event_gallery collection
+          try {
+            const galleryRes = await EventGalleryService.getEventGallery(loadedEvent.$id);
+            if (isMounted && galleryRes.success && galleryRes.data && galleryRes.data.length > 0) {
+              setGalleryImages(galleryRes.data);
+            } else if (loadedEvent.galleryImageIds && loadedEvent.galleryImageIds.length > 0) {
+              // Fallback to existing galleryImageIds mapped to EventGalleryImage items
+              const fallbackItems: EventGalleryImage[] = loadedEvent.galleryImageIds.map((fileId, idx) => ({
+                $id: `fallback-${fileId}`,
+                eventId: loadedEvent.$id,
+                fileId,
+                caption: `Moment #${idx + 1}`,
+                displayOrder: idx,
+                isFeatured: idx === 0,
+                $createdAt: loadedEvent.$createdAt,
+                $updatedAt: loadedEvent.$updatedAt,
+                imageUrl: StorageService.getEventImageUrl(fileId, 1600),
+                previewUrl: StorageService.getEventImageUrl(fileId, 800),
+              }));
+              if (isMounted) setGalleryImages(fallbackItems);
+            }
+          } catch (galleryErr) {
+            console.warn('Notice: Gallery fetch error:', galleryErr);
+          }
+
+          // 3. If registration is enabled, fetch registration form from Appwrite
           if (loadedEvent.registrationEnabled) {
             setFormLoading(true);
             try {
@@ -402,6 +431,7 @@ export const EventDetailsPage: React.FC = () => {
       formatDate={formatDate}
       handleShare={handleShare}
       copied={copied}
+      galleryImages={galleryImages}
     />
   );
 };

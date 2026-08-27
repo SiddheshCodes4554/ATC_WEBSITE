@@ -1,6 +1,7 @@
 import { ID, Query, Permission, Role } from 'appwrite';
 import { databases, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 import { StorageService } from './storage.service';
+import { EventGalleryService } from './eventGalleryService';
 import {
   ATCEvent,
   EventDocument,
@@ -523,17 +524,11 @@ export class EventService {
         }
       }
 
-      // Clean up gallery images
-      if (galleryImageIds && Array.isArray(galleryImageIds)) {
-        for (const gId of galleryImageIds) {
-          if (gId?.trim()) {
-            try {
-              await StorageService.deleteEventImage(gId.trim());
-            } catch (gErr) {
-              console.warn('[EventService.deleteEvent] Gallery image cleanup notice:', gErr);
-            }
-          }
-        }
+      // Clean up dedicated event_gallery records & storage files
+      try {
+        await EventGalleryService.deleteEventGallery(eventId.trim());
+      } catch (gErr) {
+        console.warn('[EventService.deleteEvent] Gallery cleanup notice:', gErr);
       }
 
       return { success: true };

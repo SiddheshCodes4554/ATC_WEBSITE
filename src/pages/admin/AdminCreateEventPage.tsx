@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FormService } from '../../services/formService';
 import { StorageService } from '../../services/storage.service';
+import { EventGalleryService } from '../../services/eventGalleryService';
 import { APPWRITE_CONFIG } from '../../services/appwrite';
 import { EventStatus, EventType, EventVisualTheme } from '../../types/event.types';
 import { FormFieldInput, FormFieldType } from '../../types/form.types';
@@ -364,6 +365,18 @@ export const AdminCreateEventPage: React.FC = () => {
       );
 
       if (result.success) {
+        // Upload any selected gallery photos to the dedicated event_gallery collection & bucket
+        if (result.data?.$id && galleryImageFiles.length > 0) {
+          try {
+            await EventGalleryService.uploadGalleryImages(
+              result.data.$id,
+              galleryImageFiles
+            );
+          } catch (galleryUploadErr) {
+            console.warn('[AdminCreateEventPage] Notice: Could not upload gallery images:', galleryUploadErr);
+          }
+        }
+
         confetti({
           particleCount: 90,
           spread: 90,

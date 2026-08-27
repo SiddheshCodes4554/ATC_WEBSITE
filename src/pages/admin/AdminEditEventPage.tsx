@@ -36,6 +36,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { AdminEventGalleryManager } from '../../components/admin/AdminEventGalleryManager';
 
 export const AdminEditEventPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -44,6 +45,15 @@ export const AdminEditEventPage: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [currentStep, setCurrentStep] = useState<number>(1);
+
+  const stepsList = [
+    { num: 1, label: 'Details' },
+    { num: 2, label: 'Appearance' },
+    { num: 3, label: 'Gallery' },
+    { num: 4, label: 'Registration' },
+    { num: 5, label: 'Form Builder' },
+    { num: 6, label: 'Review & Save' },
+  ];
 
   // STEP 1: EVENT DETAILS
   const [title, setTitle] = useState('');
@@ -497,14 +507,6 @@ export const AdminEditEventPage: React.FC = () => {
       setIsDeleting(false);
     }
   };
-
-  const stepsList = [
-    { num: 1, label: 'Details' },
-    { num: 2, label: 'Appearance' },
-    { num: 3, label: 'Registration' },
-    { num: 4, label: 'Form Builder' },
-    { num: 5, label: 'Review & Save' },
-  ];
 
   const colorPalette = [
     { label: 'Yellow', color: '#FFE600' },
@@ -986,9 +988,18 @@ export const AdminEditEventPage: React.FC = () => {
         )}
 
         {/* ================================================================= */}
-        {/* STEP 3: REGISTRATION SETTINGS                                     */}
+        {/* STEP 3: EVENT GALLERY MANAGER                                     */}
         {/* ================================================================= */}
         {currentStep === 3 && (
+          <div className="p-6 sm:p-8 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-lg space-y-6 animate-fadeIn">
+            <AdminEventGalleryManager eventId={eventId || ''} />
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* STEP 4: REGISTRATION SETTINGS                                     */}
+        {/* ================================================================= */}
+        {currentStep === 4 && (
           <div className="p-6 sm:p-8 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-lg space-y-6 animate-fadeIn">
             <div className="flex items-center gap-2.5 pb-4 border-b-2 border-[#121316]/10">
               <div className="w-8 h-8 rounded-xl bg-[#FFF9DB] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center">
@@ -996,7 +1007,7 @@ export const AdminEditEventPage: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-lg font-black text-[#121316] tracking-tight">
-                  Step 3: Registration Settings
+                  Step 4: Registration Settings
                 </h2>
                 <p className="text-xs font-bold text-gray-500">
                   Manage registration availability, capacity limits, and deadlines.
@@ -1067,9 +1078,9 @@ export const AdminEditEventPage: React.FC = () => {
         )}
 
         {/* ================================================================= */}
-        {/* STEP 4: FORM BUILDER                                              */}
+        {/* STEP 5: FORM BUILDER                                              */}
         {/* ================================================================= */}
-        {currentStep === 4 && (
+        {currentStep === 5 && (
           <div className="p-6 sm:p-8 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-lg space-y-6 animate-fadeIn">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-2 border-[#121316]/10">
               <div className="flex items-center gap-2.5">
@@ -1078,7 +1089,7 @@ export const AdminEditEventPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-[#121316] tracking-tight">
-                    Step 4: Registration Form Questions
+                    Step 5: Registration Form Questions
                   </h2>
                   <p className="text-xs font-bold text-gray-500">
                     Add, modify, reorder, or delete custom registration questions.
@@ -1291,9 +1302,9 @@ export const AdminEditEventPage: React.FC = () => {
         )}
 
         {/* ================================================================= */}
-        {/* STEP 5: REVIEW & SAVE                                             */}
+        {/* STEP 6: REVIEW & SAVE                                             */}
         {/* ================================================================= */}
-        {currentStep === 5 && (
+        {currentStep === 6 && (
           <div className="space-y-6 animate-fadeIn">
             <div className="p-6 sm:p-8 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-lg space-y-6">
               <div className="flex items-center gap-2.5 pb-4 border-b-2 border-[#121316]/10">
@@ -1302,7 +1313,7 @@ export const AdminEditEventPage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-[#121316] tracking-tight">
-                    Step 5: Review & Save Changes
+                    Step 6: Review & Save Changes
                   </h2>
                   <p className="text-xs font-bold text-gray-500">
                     Confirm your updates before applying changes to Appwrite database.
@@ -1433,7 +1444,7 @@ export const AdminEditEventPage: React.FC = () => {
             </Link>
           )}
 
-          {currentStep < 5 && (
+          {currentStep < 6 && (
             <button
               type="button"
               onClick={goToNextStep}

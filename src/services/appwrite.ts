@@ -32,6 +32,7 @@ export const APPWRITE_CONFIG = {
     REGISTRATION_ANSWERS: import.meta.env.VITE_APPWRITE_COLLECTION_REGISTRATION_ANSWERS || import.meta.env.VITE_APPWRITE_TABLE_REGISTRATION_ANSWERS || 'registration_answers',
     TEAM_MEMBERS: import.meta.env.VITE_APPWRITE_COLLECTION_TEAM_MEMBERS || 'team_members',
     PROJECTS: import.meta.env.VITE_APPWRITE_COLLECTION_PROJECTS || 'projects',
+    EVENT_GALLERY: import.meta.env.VITE_APPWRITE_COLLECTION_EVENT_GALLERY || 'event_gallery',
     GALLERY: import.meta.env.VITE_APPWRITE_COLLECTION_GALLERY || 'gallery',
     WEBSITE_CONTENT: import.meta.env.VITE_APPWRITE_COLLECTION_WEBSITE_CONTENT || 'website_content',
   },
@@ -39,7 +40,7 @@ export const APPWRITE_CONFIG = {
   BUCKETS: {
     EVENT_IMAGES: import.meta.env.VITE_APPWRITE_BUCKET_EVENT_IMAGES || import.meta.env.VITE_APPWRITE_BUCKET_EVENT_COVERS || 'atc_event_images',
     EVENT_COVERS: import.meta.env.VITE_APPWRITE_BUCKET_EVENT_IMAGES || import.meta.env.VITE_APPWRITE_BUCKET_EVENT_COVERS || 'atc_event_images',
-    EVENT_GALLERY: import.meta.env.VITE_APPWRITE_BUCKET_EVENT_GALLERY || 'event-gallery',
+    EVENT_GALLERY: import.meta.env.VITE_APPWRITE_BUCKET_EVENT_GALLERY || 'event_gallery_images',
     TEAM_IMAGES: import.meta.env.VITE_APPWRITE_BUCKET_TEAM_IMAGES || 'team-images',
     PROJECT_IMAGES: import.meta.env.VITE_APPWRITE_BUCKET_PROJECT_IMAGES || 'project-images',
     WEBSITE_ASSETS: import.meta.env.VITE_APPWRITE_BUCKET_WEBSITE_ASSETS || 'website-assets',

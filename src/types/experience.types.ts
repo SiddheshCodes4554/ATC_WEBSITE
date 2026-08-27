@@ -132,4 +132,5 @@ export interface EventExperienceProps {
   handleShare: () => void;
   copied: boolean;
   legacyData?: any;
+  galleryImages?: import('./eventGallery.types').EventGalleryImage[];
 }
