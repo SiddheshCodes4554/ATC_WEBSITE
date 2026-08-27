@@ -4,8 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { FormService } from '../../services/formService';
 import { StorageService } from '../../services/storage.service';
 import { APPWRITE_CONFIG } from '../../services/appwrite';
-import { EventStatus, EventType } from '../../types/event.types';
+import { EventStatus, EventType, EventVisualTheme } from '../../types/event.types';
 import { FormFieldInput, FormFieldType } from '../../types/form.types';
+import { EventExperienceSelector } from '../../components/admin/EventExperienceSelector';
 import { 
   Calendar, 
   ArrowLeft, 
@@ -62,6 +63,7 @@ export const AdminCreateEventPage: React.FC = () => {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [accentColor, setAccentColor] = useState('#FFE600');
+  const [visualTheme, setVisualTheme] = useState<EventVisualTheme>('playful');
   const [featured, setFeatured] = useState(false);
 
   // STEP 3: REGISTRATION SETTINGS
@@ -297,6 +299,7 @@ export const AdminCreateEventPage: React.FC = () => {
         venue: venue.trim(),
         coverImageId: uploadedFileId,
         accentColor,
+        visualTheme: visualTheme || 'playful',
         featured,
         status: targetStatus,
         registrationEnabled,
@@ -710,6 +713,14 @@ export const AdminCreateEventPage: React.FC = () => {
                     <span className="font-mono text-xs font-bold text-gray-600 uppercase">{accentColor}</span>
                   </div>
                 </div>
+              </div>
+
+              {/* EVENT EXPERIENCE CREATIVE STYLE SELECTOR */}
+              <div className="pt-4 border-t border-[#121316]/10">
+                <EventExperienceSelector
+                  selectedTheme={visualTheme}
+                  onThemeSelect={setVisualTheme}
+                />
               </div>
 
               {/* Featured Event Checkbox */}

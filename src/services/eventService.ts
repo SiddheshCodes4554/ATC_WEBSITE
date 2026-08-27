@@ -313,6 +313,7 @@ export class EventService {
         venue: input.venue.trim(),
         coverImageId: input.coverImageId || null,
         accentColor: input.accentColor || '#FFE600',
+        visualTheme: input.visualTheme || 'playful',
         featured: Boolean(input.featured),
         status: input.status || 'draft',
         registrationEnabled: input.registrationEnabled !== false,

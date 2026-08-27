@@ -17,6 +17,19 @@ export type EventType =
   | string;
 
 /**
+ * Creative Experience Themes for Event Detail Pages
+ */
+export type EventVisualTheme =
+  | 'playful'
+  | 'terminal'
+  | 'futuristic'
+  | 'energetic'
+  | 'editorial'
+  | 'experimental'
+  | 'digital'
+  | string;
+
+/**
  * ============================================================================
  * Application-level ATC Event Model
  * ============================================================================
@@ -41,6 +54,7 @@ export interface ATCEvent {
   // Display & Visuals
   coverImageId?: string | null;
   accentColor?: string | null;
+  visualTheme?: EventVisualTheme | null;
   featured: boolean;
 
   // Publication State
@@ -74,6 +88,7 @@ export interface CreateEventInput {
   venue: string;
   coverImageId?: string | null;
   accentColor?: string | null;
+  visualTheme?: EventVisualTheme | null;
   featured?: boolean;
   status?: EventStatus;
   registrationEnabled?: boolean;

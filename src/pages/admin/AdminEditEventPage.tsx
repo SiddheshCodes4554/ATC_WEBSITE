@@ -4,8 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { EventService } from '../../services/eventService';
 import { FormService } from '../../services/formService';
 import { StorageService } from '../../services/storage.service';
-import { ATCEvent, EventStatus, EventType } from '../../types/event.types';
+import { ATCEvent, EventStatus, EventType, EventVisualTheme } from '../../types/event.types';
 import { FormFieldInput, FormFieldType } from '../../types/form.types';
+import { EventExperienceSelector } from '../../components/admin/EventExperienceSelector';
 import { 
   Calendar, 
   ArrowLeft, 
@@ -61,6 +62,7 @@ export const AdminEditEventPage: React.FC = () => {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [accentColor, setAccentColor] = useState('#FFE600');
+  const [visualTheme, setVisualTheme] = useState<EventVisualTheme>('playful');
   const [featured, setFeatured] = useState(false);
 
   // STEP 3: REGISTRATION SETTINGS
@@ -145,6 +147,7 @@ export const AdminEditEventPage: React.FC = () => {
         setVenue(evt.venue || '');
         setStatus(evt.status || 'upcoming');
         setAccentColor(evt.accentColor || '#FFE600');
+        setVisualTheme(evt.visualTheme || 'playful');
         setFeatured(Boolean(evt.featured));
         setRegistrationEnabled(Boolean(evt.registrationEnabled));
         setRegistrationLimit(evt.registrationLimit ? String(evt.registrationLimit) : '');
@@ -369,6 +372,7 @@ export const AdminEditEventPage: React.FC = () => {
         venue: venue.trim(),
         coverImageId: finalCoverImageId,
         accentColor,
+        visualTheme: visualTheme || 'playful',
         featured,
         status: targetStatus || status,
         registrationEnabled,
@@ -800,6 +804,14 @@ export const AdminEditEventPage: React.FC = () => {
                     <span className="font-mono text-xs font-bold text-gray-600 uppercase">{accentColor}</span>
                   </div>
                 </div>
+              </div>
+
+              {/* EVENT EXPERIENCE CREATIVE STYLE SELECTOR */}
+              <div className="pt-4 border-t border-[#121316]/10">
+                <EventExperienceSelector
+                  selectedTheme={visualTheme}
+                  onThemeSelect={setVisualTheme}
+                />
               </div>
 
               <div className="pt-4 border-t border-[#121316]/10">
