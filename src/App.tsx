@@ -24,6 +24,7 @@ import { AdminTeamPage } from './pages/admin/AdminTeamPage';
 import { AdminProjectsPage } from './pages/admin/AdminProjectsPage';
 import { AdminCreateProjectPage } from './pages/admin/AdminCreateProjectPage';
 import { AdminEditProjectPage } from './pages/admin/AdminEditProjectPage';
+import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { PartyModeEasterEgg } from './components/common/PartyModeEasterEgg';
@@ -95,6 +96,7 @@ export const App: React.FC = () => {
             <Route path="projects/create" element={<AdminCreateProjectPage />} />
             <Route path="projects/:id/edit" element={<AdminEditProjectPage />} />
             <Route path="projects/edit/:id" element={<AdminEditProjectPage />} />
+            <Route path="gallery" element={<AdminGalleryPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
 

@@ -95,6 +95,36 @@ export class EventGalleryService {
   }
 
   /**
+   * Fetches all gallery images across all events
+   */
+  static async getAllGalleryImages(limit = 100): Promise<GalleryServiceResult<EventGalleryImage[]>> {
+    try {
+      if (!isAppwriteReady()) {
+        return { success: false, error: 'Appwrite is not configured.' };
+      }
+
+      const response = await databases.listDocuments<EventGalleryImageDocument>(
+        this.databaseId,
+        this.collectionId,
+        [
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit),
+        ]
+      );
+
+      const items = response.documents.map((doc) => this.mapDocumentToGalleryImage(doc));
+      return { success: true, data: items };
+    } catch (error: any) {
+      console.warn('[EventGalleryService.getAllGalleryImages] Warning:', error?.message);
+      return {
+        success: false,
+        error: error?.message || 'Failed to fetch gallery images.',
+        code: error?.code,
+      };
+    }
+  }
+
+  /**
    * Fetches all gallery images for an event ordered by `displayOrder` ascending
    */
   static async getEventGallery(eventId: string): Promise<GalleryServiceResult<EventGalleryImage[]>> {

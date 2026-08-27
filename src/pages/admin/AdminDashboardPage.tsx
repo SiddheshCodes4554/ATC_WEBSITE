@@ -70,12 +70,12 @@ export const AdminDashboardPage: React.FC = () => {
     },
     {
       title: 'Memory Wall & Gallery',
-      desc: 'Browse polaroids, hackathon moments, conference tickets and community photo archives.',
+      desc: 'Manage photo memories, upload event pictures, set featured highlights, and update captions.',
       icon: <Image className="w-6 h-6 text-[#121316]" />,
       badge: 'GALLERY',
       color: 'bg-[#E8F5E9]',
-      linkText: 'View Gallery',
-      path: '/gallery',
+      linkText: 'Manage Gallery',
+      path: '/admin/gallery',
       isInternal: true,
     },
     {
@@ -191,6 +191,14 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <FolderGit2 className="w-3.5 h-3.5" />
               <span>Manage Projects</span>
+            </Link>
+
+            <Link
+              to="/admin/gallery"
+              className="px-5 py-2.5 rounded-full bg-[#E8F5E9] hover:bg-[#C8E6C9] text-[#2E7D32] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <Image className="w-3.5 h-3.5" />
+              <span>Manage Gallery</span>
             </Link>
           </div>
 
