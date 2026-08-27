@@ -6,7 +6,7 @@ import { SparkleDoodle, LoopyArrow, SpiralScribble } from '../doodles/DoodleSvgs
 const EventIllustrationScene: React.FC = () => {
   return (
     <div className="relative w-full max-w-[500px] aspect-[4/3] flex items-center justify-center select-none">
-      
+
       {/* Background Soft Blobs */}
       <svg className="absolute inset-0 w-full h-full -z-0 overflow-visible" viewBox="0 0 460 340" fill="none">
         <path
@@ -30,16 +30,16 @@ const EventIllustrationScene: React.FC = () => {
       {/* Main Illustrated Composition (Calendar + Ticket + Mic + Laptop) */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">
         <svg viewBox="0 0 460 340" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto drop-shadow-xl">
-          
+
           {/* ========================================================= */}
           {/* 1. Large Illustrated Event Calendar (Center Back) */}
           {/* ========================================================= */}
           {/* Calendar Shadow & Base */}
           <rect x="70" y="45" width="220" height="210" rx="24" fill="#FFFFFF" stroke="#121316" strokeWidth="4" />
-          
+
           {/* Calendar Red Header Strip */}
           <path d="M 70 69 C 70 55.7 80.7 45 94 45 L 266 45 C 279.3 45 290 55.7 290 69 L 290 95 L 70 95 Z" fill="#FF6B6B" stroke="#121316" strokeWidth="4" />
-          
+
           {/* Spiral Bindings on Top */}
           <rect x="100" y="32" width="10" height="24" rx="4" fill="#121316" />
           <rect x="135" y="32" width="10" height="24" rx="4" fill="#121316" />
@@ -56,16 +56,16 @@ const EventIllustrationScene: React.FC = () => {
           {/* Row 1 */}
           <circle cx="105" cy="125" r="12" fill="#E1DCFF" stroke="#121316" strokeWidth="2" />
           <text x="105" y="130" fontFamily="sans-serif" fontWeight="800" fontSize="11" textAnchor="middle" fill="#121316">05</text>
-          
+
           <circle cx="145" cy="125" r="12" fill="#FAF7F0" stroke="#121316" strokeWidth="2" />
           <text x="145" y="130" fontFamily="sans-serif" fontWeight="800" fontSize="11" textAnchor="middle" fill="#121316">12</text>
-          
+
           <circle cx="185" cy="125" r="12" fill="#FFE600" stroke="#121316" strokeWidth="2.5" />
           <text x="185" y="130" fontFamily="sans-serif" fontWeight="900" fontSize="11" textAnchor="middle" fill="#121316">18</text>
-          
+
           <circle cx="225" cy="125" r="12" fill="#D4F8E8" stroke="#121316" strokeWidth="2" />
           <text x="225" y="130" fontFamily="sans-serif" fontWeight="800" fontSize="11" textAnchor="middle" fill="#121316">24</text>
-          
+
           <circle cx="265" cy="125" r="12" fill="#FAF7F0" stroke="#121316" strokeWidth="2" />
           <text x="265" y="130" fontFamily="sans-serif" fontWeight="800" fontSize="11" textAnchor="middle" fill="#121316">30</text>
 
@@ -118,13 +118,13 @@ const EventIllustrationScene: React.FC = () => {
             <line x1="25" y1="28" x2="53" y2="28" stroke="#121316" strokeWidth="2" />
             <line x1="25" y1="42" x2="53" y2="42" stroke="#121316" strokeWidth="2" />
             <line x1="39" y1="15" x2="39" y2="55" stroke="#121316" strokeWidth="2" />
-            
+
             {/* Mic Body / Handle */}
             <path d="M 32 55 L 46 55 L 44 95 L 34 95 Z" fill="#121316" stroke="#121316" strokeWidth="2" />
             {/* Mic Stand Cradle */}
             <path d="M 18 35 C 18 55 60 55 60 35" stroke="#121316" strokeWidth="3.5" fill="none" strokeLinecap="round" />
             <line x1="39" y1="55" x2="39" y2="75" stroke="#121316" strokeWidth="3.5" />
-            
+
             {/* Sound Waves */}
             <path d="M 68 20 Q 76 35 68 50" stroke="#FF6B6B" strokeWidth="3" strokeLinecap="round" fill="none" />
             <path d="M 76 12 Q 88 35 76 58" stroke="#FFE600" strokeWidth="3" strokeLinecap="round" fill="none" />
@@ -140,7 +140,7 @@ const EventIllustrationScene: React.FC = () => {
 export const EventsHero: React.FC = () => {
   return (
     <section className="relative bg-[#FAF7F0] pt-12 sm:pt-16 pb-14 paper-pattern border-b-4 border-[#121316] overflow-hidden">
-      
+
       {/* Decorative Twinkling Sparkles */}
       <div className="absolute top-10 left-10 opacity-50 pointer-events-none hidden md:block animate-pulse">
         <SparkleDoodle className="w-10 h-10" color="#FF793F" />
@@ -151,10 +151,10 @@ export const EventsHero: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          
+
           {/* Left Column: Big Editorial Heading & Tagline */}
           <div className="lg:col-span-6 space-y-6">
-            
+
             {/* Club Pill Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFE8D6] border-3 border-[#121316] shadow-pop-sm">
               <span className="w-2.5 h-2.5 rounded-full bg-[#FF793F] animate-ping" />
@@ -191,10 +191,7 @@ export const EventsHero: React.FC = () => {
             <div className="pt-2 flex flex-wrap items-center gap-4 text-xs sm:text-sm font-mono font-bold text-gray-700">
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white rounded-xl border-2 border-[#121316] shadow-pop-sm">
                 <Calendar className="w-4 h-4 text-[#FF793F]" />
-                12+ Events Hosted
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white rounded-xl border-2 border-[#121316] shadow-pop-sm">
-                🏆 ₹5,00,000+ Prize Pool
+                4+ Events Hosted
               </span>
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white rounded-xl border-2 border-[#121316] shadow-pop-sm">
                 ⚡ 100% Free for Students
