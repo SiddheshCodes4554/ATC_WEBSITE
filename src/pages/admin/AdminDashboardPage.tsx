@@ -10,7 +10,6 @@ import {
   ShieldCheck, 
   ExternalLink, 
   Sparkles, 
-  Layers, 
   ArrowUpRight,
   Plus,
   Ticket,
@@ -88,16 +87,6 @@ export const AdminDashboardPage: React.FC = () => {
       linkText: 'Manage Lab Slots',
       path: '/admin/lab',
       isInternal: true,
-    },
-    {
-      title: 'Appwrite Cloud Console',
-      desc: 'Inspect backend database collections, storage buckets, API keys & serverless functions.',
-      icon: <Layers className="w-6 h-6 text-[#121316]" />,
-      badge: 'BACKEND',
-      color: 'bg-[#FFF3E0]',
-      linkText: 'Open Console',
-      href: 'https://cloud.appwrite.io',
-      isInternal: false,
     },
   ];
 
@@ -271,20 +260,10 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
               );
 
-              return mod.isInternal && mod.path ? (
+              return (
                 <Link key={mod.title} to={mod.path} className="block h-full">
                   {CardContent}
                 </Link>
-              ) : (
-                <a
-                  key={mod.title}
-                  href={mod.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block h-full"
-                >
-                  {CardContent}
-                </a>
               );
             })}
           </div>
