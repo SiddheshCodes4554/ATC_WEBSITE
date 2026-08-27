@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { EventService } from '../services/eventService';
+import { FormService } from '../services/formService';
 import { StorageService } from '../services/storage.service';
 import { ATCEvent } from '../types/event.types';
+import { EventForm, FormField } from '../types/form.types';
 import { eventsArchive } from '../data/eventsData';
 
 // Legacy Archive Sub-components (for rich retrospective showcase chapters)
@@ -31,7 +33,9 @@ import {
   CalendarCheck, 
   ShieldCheck,
   Zap,
-  ArrowUpRight
+  ArrowUpRight,
+  FileText,
+  Lock
 } from 'lucide-react';
 import { PlayfulButton } from '../components/ui/PlayfulButton';
 import confetti from 'canvas-confetti';
@@ -41,7 +45,10 @@ export const EventDetailsPage: React.FC = () => {
   const slug = params.slug || params.eventId || '';
 
   const [event, setEvent] = useState<ATCEvent | null>(null);
+  const [eventForm, setEventForm] = useState<EventForm | null>(null);
+  const [formValues, setFormValues] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [formLoading, setFormLoading] = useState<boolean>(false);
   const [isLegacyArchive, setIsLegacyArchive] = useState<boolean>(false);
   const [legacyEventData, setLegacyEventData] = useState<any>(null);
   const [copied, setCopied] = useState<boolean>(false);
@@ -58,6 +65,7 @@ export const EventDetailsPage: React.FC = () => {
 
       setLoading(true);
       setEvent(null);
+      setEventForm(null);
       setIsLegacyArchive(false);
       setLegacyEventData(null);
 
@@ -68,10 +76,26 @@ export const EventDetailsPage: React.FC = () => {
         if (!isMounted) return;
 
         if (result.success && result.data) {
-          setEvent(result.data);
+          const loadedEvent = result.data;
+          setEvent(loadedEvent);
           setIsLegacyArchive(false);
+
+          // 2. If registration is enabled, fetch registration form from Appwrite
+          if (loadedEvent.registrationEnabled) {
+            setFormLoading(true);
+            try {
+              const formResult = await FormService.getFormByEventId(loadedEvent.$id);
+              if (isMounted && formResult.success && formResult.data) {
+                setEventForm(formResult.data);
+              }
+            } catch (formErr) {
+              console.warn('Notice: Registration form not found in Appwrite:', formErr);
+            } finally {
+              if (isMounted) setFormLoading(false);
+            }
+          }
         } else {
-          // 2. Check if this slug exists as a legacy retrospective archive
+          // 3. Check if this slug exists as a legacy retrospective archive
           if (eventsArchive[slug.trim()]) {
             setIsLegacyArchive(true);
             setLegacyEventData(eventsArchive[slug.trim()]);
@@ -110,13 +134,19 @@ export const EventDetailsPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleRegisterClick = () => {
+  const handleFormFieldChange = (fieldId: string, value: any) => {
+    setFormValues((prev) => ({ ...prev, [fieldId]: value }));
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     confetti({
-      particleCount: 50,
-      spread: 70,
+      particleCount: 70,
+      spread: 80,
       origin: { y: 0.6 },
+      colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#2ED573'],
     });
-    alert('Student registration for this event will be connected in the upcoming registration module!');
+    alert('Student registration submission pipeline will be connected in the upcoming registration submissions step!');
   };
 
   const formatDate = (isoString?: string | null) => {
@@ -145,8 +175,8 @@ export const EventDetailsPage: React.FC = () => {
             <Calendar className="w-8 h-8 text-[#121316]" />
           </div>
           <div>
-            <h3 className="font-black text-xl text-[#121316] tracking-tight">Loading Event Details</h3>
-            <p className="font-mono text-xs font-bold text-gray-600 mt-1">Retrieving event from Appwrite...</p>
+            <h3 className="font-black text-xl text-[#121316] tracking-tight">Loading Event</h3>
+            <p className="font-mono text-xs font-bold text-gray-600 mt-1">Retrieving details from Appwrite...</p>
           </div>
           <Loader2 className="w-6 h-6 text-[#6C5CE7] animate-spin mt-2" />
         </div>
@@ -207,7 +237,16 @@ export const EventDetailsPage: React.FC = () => {
   // Dynamic Public Appwrite Event Landing Page
   const coverUrl = event.coverImageId ? StorageService.getEventCoverUrl(event.coverImageId, 1200) : '';
   const accentColor = event.accentColor || '#FFE600';
-  const isUpcoming = event.status === 'upcoming' || event.status === 'ongoing';
+  const isRegistrationActive = event.registrationEnabled && (event.status === 'upcoming' || event.status === 'ongoing');
+
+  // Fallback default fields if no custom form_fields exist in Appwrite yet
+  const displayedFields: FormField[] = eventForm?.fields && eventForm.fields.length > 0
+    ? eventForm.fields
+    : [
+        { label: 'Full Name', fieldType: 'short_text', placeholder: 'Enter your full name', required: true, position: 0 },
+        { label: 'Email Address', fieldType: 'email', placeholder: 'your.email@example.com', required: true, position: 1 },
+        { label: 'Phone Number', fieldType: 'phone', placeholder: '+91 98765 43210', required: false, position: 2 },
+      ];
 
   return (
     <div className="min-h-screen bg-[#FAF7F0] paper-pattern pb-20 select-none">
@@ -330,7 +369,7 @@ export const EventDetailsPage: React.FC = () => {
                   <span>REGISTRATION</span>
                 </div>
                 <div className="font-bold text-sm text-[#121316]">
-                  {event.registrationEnabled ? (
+                  {isRegistrationActive ? (
                     <span className="text-emerald-700 font-black">● Open for Students</span>
                   ) : (
                     <span className="text-gray-500 font-bold">○ Closed</span>
@@ -362,49 +401,141 @@ export const EventDetailsPage: React.FC = () => {
         </div>
 
         {/* ================================================================= */}
-        {/* REGISTRATION CTA CARD                                             */}
+        {/* DYNAMIC REGISTRATION SECTION                                      */}
         {/* ================================================================= */}
-        <div className="p-8 sm:p-10 rounded-[36px] bg-[#121316] text-white border-4 border-[#121316] shadow-pop-xl space-y-6 relative overflow-hidden">
-          
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFE600] text-[#121316] font-mono font-black text-xs uppercase shadow-pop-sm">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                OFFICIAL ATC REGISTRATION
+        <div className="p-6 sm:p-10 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-xl space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b-2 border-[#121316]/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#2ED573] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[#121316]" />
               </div>
-              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                {event.registrationEnabled
-                  ? 'Reserve Your Seat for this Event'
-                  : 'Registration for this Event is Closed'}
-              </h3>
-              <p className="text-xs sm:text-sm font-bold text-gray-300">
-                {event.registrationEnabled
-                  ? 'Join fellow student builders, expand your skills, and build real-world hardware & software projects.'
-                  : 'This event has reached full capacity or concluded.'}
-              </p>
+              <div>
+                <h3 className="text-2xl font-black text-[#121316] tracking-tight">
+                  {eventForm?.title || 'Event Registration Form'}
+                </h3>
+                <p className="text-xs font-bold text-gray-500">
+                  {eventForm?.description || 'Fill out the form below to register your participation.'}
+                </p>
+              </div>
             </div>
 
-            <div className="flex-shrink-0">
-              {event.registrationEnabled ? (
-                <button
-                  onClick={handleRegisterClick}
-                  className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-sm font-black border-3 border-white shadow-pop hover:shadow-pop-lg active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all duration-150"
-                >
-                  <span>Register for Event</span>
-                  <ArrowUpRight className="w-5 h-5 stroke-[3]" />
-                </button>
-              ) : (
-                <button
-                  disabled
-                  className="w-full sm:w-auto px-8 py-4 rounded-full bg-gray-700 text-gray-400 font-mono text-sm font-black border-2 border-gray-600 cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  <span>Registration Closed</span>
-                </button>
-              )}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF7F0] border border-[#121316] font-mono text-xs font-black text-gray-700">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#6C5CE7]" />
+              <span>ATC VERIFIED</span>
             </div>
           </div>
 
-          <Sparkles className="w-32 h-32 text-white/5 absolute -right-6 -bottom-6 pointer-events-none" />
+          {isRegistrationActive ? (
+            <form onSubmit={handleRegisterSubmit} className="space-y-5">
+              {displayedFields.map((field, idx) => (
+                <div key={idx} className="space-y-1.5">
+                  <label className="block text-xs font-mono font-black uppercase text-[#121316]">
+                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                  </label>
+
+                  {/* Input Rendering based on fieldType */}
+                  {field.fieldType === 'long_text' ? (
+                    <textarea
+                      rows={3}
+                      required={field.required}
+                      placeholder={field.placeholder || ''}
+                      value={formValues[field.label] || ''}
+                      onChange={(e) => handleFormFieldChange(field.label, e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] font-medium text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] transition-all"
+                    />
+                  ) : field.fieldType === 'dropdown' ? (
+                    <select
+                      required={field.required}
+                      value={formValues[field.label] || ''}
+                      onChange={(e) => handleFormFieldChange(field.label, e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] font-bold text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] transition-all"
+                    >
+                      <option value="">{field.placeholder || 'Select an option...'}</option>
+                      {field.options?.map((opt, oIdx) => (
+                        <option key={oIdx} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  ) : field.fieldType === 'multiple_choice' ? (
+                    <div className="space-y-2 p-3 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316]">
+                      {field.options?.map((opt, oIdx) => (
+                        <label key={oIdx} className="flex items-center gap-2.5 cursor-pointer text-sm font-bold text-[#121316]">
+                          <input
+                            type="radio"
+                            name={`field-${idx}`}
+                            value={opt}
+                            required={field.required}
+                            checked={formValues[field.label] === opt}
+                            onChange={(e) => handleFormFieldChange(field.label, e.target.value)}
+                            className="w-4 h-4 accent-[#6C5CE7]"
+                          />
+                          <span>{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : field.fieldType === 'checkbox' ? (
+                    <div className="space-y-2 p-3 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316]">
+                      {field.options?.map((opt, oIdx) => (
+                        <label key={oIdx} className="flex items-center gap-2.5 cursor-pointer text-sm font-bold text-[#121316]">
+                          <input
+                            type="checkbox"
+                            value={opt}
+                            onChange={(e) => {
+                              const currentVals: string[] = formValues[field.label] || [];
+                              const newVals = e.target.checked
+                                ? [...currentVals, opt]
+                                : currentVals.filter((v) => v !== opt);
+                              handleFormFieldChange(field.label, newVals);
+                            }}
+                            className="w-4 h-4 rounded accent-[#2ED573]"
+                          />
+                          <span>{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <input
+                      type={
+                        field.fieldType === 'email' ? 'email' :
+                        field.fieldType === 'phone' ? 'tel' :
+                        field.fieldType === 'number' ? 'number' :
+                        field.fieldType === 'date' ? 'date' :
+                        field.fieldType === 'url' ? 'url' : 'text'
+                      }
+                      required={field.required}
+                      placeholder={field.placeholder || ''}
+                      value={formValues[field.label] || ''}
+                      onChange={(e) => handleFormFieldChange(field.label, e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] font-bold text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] transition-all"
+                    />
+                  )}
+                </div>
+              ))}
+
+              <div className="pt-4 border-t-2 border-[#121316]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p className="font-mono text-xs text-gray-500 font-bold">
+                  ⚡ Registration responses will be confirmed via student email.
+                </p>
+
+                <button
+                  type="submit"
+                  className="px-8 py-4 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-sm font-black border-3 border-[#121316] shadow-pop hover:shadow-pop-lg active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all duration-150"
+                >
+                  <span>Submit Registration</span>
+                  <ArrowUpRight className="w-5 h-5 stroke-[3]" />
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="p-8 rounded-3xl bg-[#FAF7F0] border-3 border-[#121316] text-center space-y-2">
+              <Lock className="w-8 h-8 text-gray-400 mx-auto" />
+              <h4 className="font-black text-lg text-[#121316]">
+                Registration is currently closed
+              </h4>
+              <p className="text-xs font-bold text-gray-600 max-w-md mx-auto">
+                This event is not currently accepting new registrations. Check out other upcoming events or join the ATC community.
+              </p>
+            </div>
+          )}
         </div>
 
       </div>

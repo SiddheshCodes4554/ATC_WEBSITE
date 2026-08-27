@@ -26,7 +26,10 @@ export const APPWRITE_CONFIG = {
   COLLECTIONS: {
     ADMIN_PROFILES: import.meta.env.VITE_APPWRITE_COLLECTION_ADMIN_PROFILES || 'admin_profiles',
     EVENTS: import.meta.env.VITE_APPWRITE_TABLE_EVENTS || import.meta.env.VITE_APPWRITE_COLLECTION_EVENTS || 'events',
-    REGISTRATIONS: import.meta.env.VITE_APPWRITE_COLLECTION_REGISTRATIONS || 'registrations',
+    EVENT_FORMS: import.meta.env.VITE_APPWRITE_COLLECTION_EVENT_FORMS || import.meta.env.VITE_APPWRITE_TABLE_EVENT_FORMS || 'event_forms',
+    FORM_FIELDS: import.meta.env.VITE_APPWRITE_COLLECTION_FORM_FIELDS || import.meta.env.VITE_APPWRITE_TABLE_FORM_FIELDS || 'form_fields',
+    REGISTRATIONS: import.meta.env.VITE_APPWRITE_COLLECTION_REGISTRATIONS || import.meta.env.VITE_APPWRITE_TABLE_REGISTRATIONS || 'registrations',
+    REGISTRATION_ANSWERS: import.meta.env.VITE_APPWRITE_COLLECTION_REGISTRATION_ANSWERS || import.meta.env.VITE_APPWRITE_TABLE_REGISTRATION_ANSWERS || 'registration_answers',
     TEAM_MEMBERS: import.meta.env.VITE_APPWRITE_COLLECTION_TEAM_MEMBERS || 'team_members',
     PROJECTS: import.meta.env.VITE_APPWRITE_COLLECTION_PROJECTS || 'projects',
     GALLERY: import.meta.env.VITE_APPWRITE_COLLECTION_GALLERY || 'gallery',
