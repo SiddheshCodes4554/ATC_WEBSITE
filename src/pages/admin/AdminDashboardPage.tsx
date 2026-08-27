@@ -44,11 +44,12 @@ export const AdminDashboardPage: React.FC = () => {
     },
     {
       title: 'Team & Leadership',
-      desc: 'Update executive leads, specialist wings & member profiles.',
+      desc: 'Update executive leads, core department heads & member profiles.',
       icon: <Users className="w-6 h-6 text-[#121316]" />,
       badge: 'TEAM',
       color: 'bg-[#F0EBFF]',
-      linkText: 'Team Module ↗',
+      linkText: 'Manage Team ↗',
+      path: '/admin/team',
     },
     {
       title: 'Student Projects',

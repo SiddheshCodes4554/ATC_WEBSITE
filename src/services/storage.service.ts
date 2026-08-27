@@ -216,6 +216,30 @@ export class StorageService {
   }
 
   /**
+   * Admin: Uploads a team member avatar to Appwrite Storage (team_images bucket)
+   */
+  static async uploadTeamImage(
+    file: File,
+    customFileId?: string
+  ): Promise<ServiceResponse<AppwriteFileMetadata>> {
+    const validation = this.validateImageFile(file);
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
+
+    const bucketId = APPWRITE_CONFIG.BUCKETS.TEAM_IMAGES || 'team_images';
+    return this.uploadFile(bucketId, file, customFileId);
+  }
+
+  /**
+   * Admin: Deletes a team member avatar from Appwrite Storage
+   */
+  static async deleteTeamImage(fileId: string): Promise<ServiceResponse<void>> {
+    const bucketId = APPWRITE_CONFIG.BUCKETS.TEAM_IMAGES || 'team_images';
+    return this.deleteFile(bucketId, fileId);
+  }
+
+  /**
    * Admin: General file upload method into any configured bucket
    */
   static async uploadFile(
