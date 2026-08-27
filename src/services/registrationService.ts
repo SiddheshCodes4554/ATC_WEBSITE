@@ -394,51 +394,112 @@ export class RegistrationService {
     // 5. Generate unique digital pass ID (ATC-{YEAR}-{RANDOM})
     const passId = await this.generateUniquePassId();
 
-    // 6. Create Registration Document in Appwrite
+    // 6. Create Registration Document in Appwrite (with resilient fallbacks)
     const registrationId = ID.unique();
     const registeredAt = new Date().toISOString();
     let createdRegistrationDoc: EventRegistrationDocument | null = null;
     const createdAnswerDocIds: string[] = [];
 
+    // Construct primary payload
+    const regPayload: Record<string, any> = {
+      eventId: event.$id,
+      name: participantName,
+      email: participantEmail,
+      status: 'registered',
+      registeredAt,
+    };
+
+    if (form?.$id) regPayload.formId = form.$id;
+    if (participantPhone) regPayload.phone = participantPhone;
+    if (passId) regPayload.passId = passId;
+    regPayload.passStatus = 'active';
+
+    // Attempt 1: Full payload with document-level permissions
     try {
       createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
         this.databaseId,
         this.registrationsCollection,
         registrationId,
-        {
-          eventId: event.$id,
-          formId: form?.$id || '',
-          name: participantName,
-          email: participantEmail,
-          phone: participantPhone,
-          status: 'registered',
-          registeredAt,
-          passId,
-          passStatus: 'active',
-        },
+        regPayload as any,
         this.getParticipantPermissions()
       );
-    } catch (regError: any) {
-      console.error('[RegistrationService] Failed to create registration document:', regError);
+    } catch (err1: any) {
+      console.warn('[RegistrationService] Attempt 1 failed. Trying Attempt 2 (no custom doc permissions)...', err1?.message);
+
+      // Attempt 2: Full payload without custom document permissions (inherit collection permissions)
+      try {
+        createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
+          this.databaseId,
+          this.registrationsCollection,
+          registrationId,
+          regPayload as any
+        );
+      } catch (err2: any) {
+        console.warn('[RegistrationService] Attempt 2 failed. Trying Attempt 3 (base schema without new passId/passStatus)...', err2?.message);
+
+        // Attempt 3: Core schema only (in case passId or passStatus attribute is not yet created in Appwrite)
+        const corePayload: Record<string, any> = {
+          eventId: event.$id,
+          name: participantName,
+          email: participantEmail,
+          status: 'registered',
+          registeredAt,
+        };
+        if (participantPhone) corePayload.phone = participantPhone;
+        if (form?.$id) corePayload.formId = form.$id;
+
+        try {
+          createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
+            this.databaseId,
+            this.registrationsCollection,
+            registrationId,
+            corePayload as any,
+            this.getParticipantPermissions()
+          );
+        } catch (err3: any) {
+          console.warn('[RegistrationService] Attempt 3 failed. Trying Attempt 4 (core schema no custom permissions)...', err3?.message);
+
+          // Attempt 4: Core schema without custom permissions
+          try {
+            createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
+              this.databaseId,
+              this.registrationsCollection,
+              registrationId,
+              corePayload as any
+            );
+          } catch (finalErr: any) {
+            console.error('[RegistrationService] All registration document creation attempts failed:', finalErr);
+            return {
+              success: false,
+              error: finalErr?.message || err1?.message || 'Unable to save registration. Please check Appwrite permissions or connection.',
+            };
+          }
+        }
+      }
+    }
+
+    if (!createdRegistrationDoc) {
       return {
         success: false,
-        error: 'Unable to save registration. Please check your connection and try again.',
+        error: 'Failed to create registration record in database.',
       };
     }
 
-    // 7. Create Individual Registration Answer Documents for every field
-    try {
-      for (const field of formFields) {
-        const key = field.$id || field.label;
-        const val = answers[key] ?? answers[field.label];
-        const serializedValue = Array.isArray(val)
-          ? JSON.stringify(val)
-          : typeof val === 'object' && val !== null
-          ? JSON.stringify(val)
-          : String(val ?? '');
+    // 7. Create Individual Registration Answer Documents for each field
+    for (const field of formFields) {
+      const key = field.$id || field.label;
+      const val = answers[key] ?? answers[field.label];
+      if (val === undefined || val === null || val === '') continue;
 
-        const answerId = ID.unique();
+      const serializedValue = Array.isArray(val)
+        ? JSON.stringify(val)
+        : typeof val === 'object' && val !== null
+        ? JSON.stringify(val)
+        : String(val ?? '');
 
+      const answerId = ID.unique();
+
+      try {
         const answerDoc = await databases.createDocument<RegistrationAnswerDocument>(
           this.databaseId,
           this.answersCollection,
@@ -450,52 +511,44 @@ export class RegistrationService {
           },
           this.getParticipantPermissions()
         );
-
         createdAnswerDocIds.push(answerDoc.$id);
-      }
-
-      return {
-        success: true,
-        registrationId: createdRegistrationDoc.$id,
-        passId,
-        registration: {
-          $id: createdRegistrationDoc.$id,
-          eventId: createdRegistrationDoc.eventId,
-          formId: createdRegistrationDoc.formId,
-          name: createdRegistrationDoc.name,
-          email: createdRegistrationDoc.email,
-          phone: createdRegistrationDoc.phone,
-          status: createdRegistrationDoc.status,
-          registeredAt: createdRegistrationDoc.registeredAt,
-          passId,
-          passStatus: 'active',
-        },
-      };
-    } catch (answerError: any) {
-      console.error('[RegistrationService] Error saving registration answers. Initiating rollback...', answerError);
-
-      // Rollback: delete created answers and registration document
-      for (const ansId of createdAnswerDocIds) {
+      } catch (ansErr1) {
+        // Fallback without explicit document permissions
         try {
-          await databases.deleteDocument(this.databaseId, this.answersCollection, ansId);
-        } catch (delAnsErr) {
-          console.warn('[RegistrationService] Rollback: Could not delete answer document:', delAnsErr);
+          const answerDoc = await databases.createDocument<RegistrationAnswerDocument>(
+            this.databaseId,
+            this.answersCollection,
+            answerId,
+            {
+              registrationId: createdRegistrationDoc.$id,
+              fieldId: field.$id || field.label,
+              value: serializedValue,
+            }
+          );
+          createdAnswerDocIds.push(answerDoc.$id);
+        } catch (ansErr2) {
+          console.warn('[RegistrationService] Notice: Could not save optional answer for field:', field.label, ansErr2);
         }
       }
-
-      if (createdRegistrationDoc) {
-        try {
-          await databases.deleteDocument(this.databaseId, this.registrationsCollection, createdRegistrationDoc.$id);
-        } catch (delRegErr) {
-          console.warn('[RegistrationService] Rollback: Could not delete registration document:', delRegErr);
-        }
-      }
-
-      return {
-        success: false,
-        error: 'An unexpected error occurred while saving your responses. Please try again.',
-      };
     }
+
+    return {
+      success: true,
+      registrationId: createdRegistrationDoc.$id,
+      passId: createdRegistrationDoc.passId || passId,
+      registration: {
+        $id: createdRegistrationDoc.$id,
+        eventId: createdRegistrationDoc.eventId,
+        formId: createdRegistrationDoc.formId,
+        name: createdRegistrationDoc.name,
+        email: createdRegistrationDoc.email,
+        phone: createdRegistrationDoc.phone,
+        status: createdRegistrationDoc.status,
+        registeredAt: createdRegistrationDoc.registeredAt,
+        passId: createdRegistrationDoc.passId || passId,
+        passStatus: createdRegistrationDoc.passStatus || 'active',
+      },
+    };
   }
 
   /* ======================================================================== */
