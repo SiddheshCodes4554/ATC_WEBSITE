@@ -133,6 +133,20 @@ export const EventDetailsPage: React.FC = () => {
                 previewUrl: g.imgUrl || '',
               }));
               if (isMounted) setGalleryImages(defaultGitGallery);
+            } else if (loadedEvent.slug?.includes('blockchain') || loadedEvent.$id?.includes('blockchain')) {
+              const defaultBlockchainGallery: EventGalleryImage[] = (eventsArchive['mst-blockchain']?.gallery || []).map((g, idx) => ({
+                $id: `blockchain-${idx}`,
+                eventId: loadedEvent.$id,
+                fileId: `blockchain-${idx}`,
+                caption: g.caption,
+                displayOrder: idx,
+                isFeatured: idx === 0,
+                $createdAt: loadedEvent.$createdAt || new Date().toISOString(),
+                $updatedAt: loadedEvent.$updatedAt || new Date().toISOString(),
+                imageUrl: g.imgUrl || '',
+                previewUrl: g.imgUrl || '',
+              }));
+              if (isMounted) setGalleryImages(defaultBlockchainGallery);
             }
           } catch (galleryErr) {
             console.warn('Notice: Gallery fetch error:', galleryErr);
@@ -467,6 +481,8 @@ export const EventDetailsPage: React.FC = () => {
     ? '/events/worst-ui-ux-poster.png'
     : (event.slug?.includes('git') || event.$id?.includes('git'))
     ? '/events/git-workshop-poster.jpg'
+    : (event.slug?.includes('blockchain') || event.$id?.includes('blockchain'))
+    ? '/events/blockchain-workshop-group.jpg'
     : '';
   const accentColor = event.accentColor || '#FFE600';
   const isRegistrationActive = event.registrationEnabled && (event.status === 'upcoming' || event.status === 'ongoing');

@@ -41,6 +41,7 @@ export const EventsPage: React.FC = () => {
       ],
       color: 'bg-[#E8F5E9]',
       badgeBg: 'bg-[#10AC84]',
+      coverImageUrl: '/events/blockchain-workshop-group.jpg',
       illustration: <BlockchainIllustration />,
     },
     {

@@ -59,14 +59,15 @@ export const galleryMemories: GalleryItem[] = [
   {
     id: 'mem-3',
     title: 'MST Blockchain Sprint',
-    caption: 'Blockchain, but make it understandable.',
+    caption: '100+ builders, smart contract deployment, and Campus Verse merch.',
     category: 'Workshops',
     format: 'pinned',
     date: 'Feb 27, 2026',
-    location: 'Computer Wing',
+    location: 'Computer Wing & Lab 5.0',
     pinColor: '#FF4757',
     rotation: '-rotate-1',
     svgSceneType: 'blockchain-blocks',
+    imgUrl: '/events/blockchain-workshop-group.jpg',
   },
   {
     id: 'mem-4',
