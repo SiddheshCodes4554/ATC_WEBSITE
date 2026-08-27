@@ -110,6 +110,7 @@ export interface EventRegistration {
   registeredAt: string;
   passId?: string;
   passStatus?: PassStatus;
+  checkedInAt?: string | null;
 }
 
 export interface EventRegistrationDocument extends Models.Document {
@@ -122,6 +123,32 @@ export interface EventRegistrationDocument extends Models.Document {
   registeredAt: string;
   passId?: string;
   passStatus?: PassStatus;
+  checkedInAt?: string | null;
+}
+
+export type CheckInValidationCode =
+  | 'VALID'
+  | 'ALREADY_CHECKED_IN'
+  | 'WRONG_EVENT'
+  | 'CANCELLED'
+  | 'INVALID_PASS';
+
+export interface PassCheckInValidationResult {
+  code: CheckInValidationCode;
+  isValid: boolean;
+  message: string;
+  registration?: EventRegistration;
+  eventTitle?: string;
+  checkedInAt?: string | null;
+}
+
+export interface CheckInExecutionResult {
+  success: boolean;
+  message: string;
+  registration?: EventRegistration;
+  checkedInAt?: string;
+  error?: string;
+  isDuplicateCheckIn?: boolean;
 }
 
 /**

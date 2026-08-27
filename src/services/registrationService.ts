@@ -14,6 +14,8 @@ import {
   PublicEventPass,
   PassStatus,
   RegistrationStatus,
+  PassCheckInValidationResult,
+  CheckInExecutionResult,
 } from '../types/form.types';
 
 /**
@@ -910,6 +912,275 @@ export class RegistrationService {
       return {
         success: false,
         error: error?.message || 'Failed to update registration status.',
+      };
+    }
+  }
+  /**
+   * Safely extracts pass ID from QR code string or manual input
+   * Handles:
+   * 1. Full URL: https://domain.com/pass/ATC-2026-A7X9K2
+   * 2. Relative URL: /pass/ATC-2026-A7X9K2
+   * 3. Raw pass ID: ATC-2026-A7X9K2 or atc-2026-a7x9k2
+   */
+  static extractPassIdFromPayload(raw: string): string | null {
+    if (!raw || typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+
+    // Match URL pattern: .../pass/ATC-XXXX-XXXXXX or .../pass/{ID}
+    const urlMatch = trimmed.match(/\/pass\/([A-Za-z0-9\-_]+)/i);
+    if (urlMatch && urlMatch[1]) {
+      return urlMatch[1].toUpperCase();
+    }
+
+    // Match standard ATC Pass ID format: ATC-YEAR-CODE
+    const atcMatch = trimmed.match(/(ATC-\d{4}-[A-Za-z0-9]+)/i);
+    if (atcMatch && atcMatch[1]) {
+      return atcMatch[1].toUpperCase();
+    }
+
+    // Direct alphanumeric string without special chars
+    if (/^[A-Za-z0-9\-_]{5,36}$/.test(trimmed)) {
+      return trimmed.toUpperCase();
+    }
+
+    return null;
+  }
+
+  /**
+   * Admin: Verifies a scanned or entered pass against the current event
+   */
+  static async validatePassForCheckIn(
+    rawPassIdOrUrl: string,
+    currentEventId: string
+  ): Promise<PassCheckInValidationResult> {
+    try {
+      if (!isAppwriteReady()) {
+        return {
+          code: 'INVALID_PASS',
+          isValid: false,
+          message: 'Appwrite database client is not configured.',
+        };
+      }
+
+      const passId = this.extractPassIdFromPayload(rawPassIdOrUrl);
+      if (!passId) {
+        return {
+          code: 'INVALID_PASS',
+          isValid: false,
+          message: 'Invalid pass format. Expected format: ATC-YYYY-XXXXXX',
+        };
+      }
+
+      // Query registration by passId
+      let regDoc: EventRegistrationDocument | null = null;
+      try {
+        const response = await databases.listDocuments<EventRegistrationDocument>(
+          this.databaseId,
+          this.registrationsCollection,
+          [Query.equal('passId', passId), Query.limit(1)]
+        );
+        if (response.documents.length > 0) {
+          regDoc = response.documents[0];
+        }
+      } catch (queryErr) {
+        console.warn('[RegistrationService] Query by passId notice:', queryErr);
+      }
+
+      // Fallback: If not found by passId, check by registration document ID
+      if (!regDoc) {
+        try {
+          regDoc = await databases.getDocument<EventRegistrationDocument>(
+            this.databaseId,
+            this.registrationsCollection,
+            passId
+          );
+        } catch {
+          // Document not found
+        }
+      }
+
+      if (!regDoc) {
+        return {
+          code: 'INVALID_PASS',
+          isValid: false,
+          message: `No registration found matching pass ID "${passId}".`,
+        };
+      }
+
+      const registration: EventRegistration = {
+        $id: regDoc.$id,
+        eventId: regDoc.eventId,
+        formId: regDoc.formId,
+        name: regDoc.name,
+        email: regDoc.email,
+        phone: regDoc.phone,
+        status: regDoc.status,
+        registeredAt: regDoc.registeredAt,
+        passId: regDoc.passId || passId,
+        passStatus: regDoc.passStatus || (regDoc.status === 'cancelled' ? 'cancelled' : 'active'),
+        checkedInAt: (regDoc as any).checkedInAt || null,
+      };
+
+      // 1. Verify Event Match
+      if (regDoc.eventId !== currentEventId) {
+        let otherEventTitle = 'Another Event';
+        try {
+          const otherEvt = await EventService.getEventById(regDoc.eventId);
+          if (otherEvt.success && otherEvt.data) {
+            otherEventTitle = otherEvt.data.title;
+          }
+        } catch {}
+
+        return {
+          code: 'WRONG_EVENT',
+          isValid: false,
+          message: `This pass is registered for "${otherEventTitle}", not this event.`,
+          registration,
+          eventTitle: otherEventTitle,
+        };
+      }
+
+      // 2. Check if Cancelled
+      if (regDoc.status === 'cancelled' || regDoc.passStatus === 'cancelled') {
+        return {
+          code: 'CANCELLED',
+          isValid: false,
+          message: 'This registration has been cancelled. Entry is not permitted.',
+          registration,
+        };
+      }
+
+      // 3. Check if Already Checked In
+      if (regDoc.status === 'checked_in' || regDoc.passStatus === 'used') {
+        return {
+          code: 'ALREADY_CHECKED_IN',
+          isValid: false,
+          message: 'Participant has already checked in.',
+          registration,
+          checkedInAt: (regDoc as any).checkedInAt || null,
+        };
+      }
+
+      // 4. Valid Pass Ready for Check-in
+      return {
+        code: 'VALID',
+        isValid: true,
+        message: 'Pass is valid and verified for check-in.',
+        registration,
+      };
+    } catch (error: any) {
+      console.error('[RegistrationService] Error validating pass:', error);
+      return {
+        code: 'INVALID_PASS',
+        isValid: false,
+        message: error?.message || 'Error occurred during pass verification.',
+      };
+    }
+  }
+
+  /**
+   * Admin: Executes participant check-in atomically with race-condition re-verification
+   */
+  static async performCheckIn(
+    registrationId: string,
+    eventId: string
+  ): Promise<CheckInExecutionResult> {
+    try {
+      if (!isAppwriteReady() || !registrationId?.trim()) {
+        return {
+          success: false,
+          message: 'Appwrite not configured or missing registration ID.',
+        };
+      }
+
+      // Guard against race conditions: Re-fetch latest registration state
+      const latestDoc = await databases.getDocument<EventRegistrationDocument>(
+        this.databaseId,
+        this.registrationsCollection,
+        registrationId.trim()
+      );
+
+      if (!latestDoc) {
+        return {
+          success: false,
+          message: 'Registration record could not be found.',
+        };
+      }
+
+      if (latestDoc.eventId !== eventId) {
+        return {
+          success: false,
+          message: 'Registration does not match the active event.',
+        };
+      }
+
+      if (latestDoc.status === 'cancelled') {
+        return {
+          success: false,
+          message: 'Cannot check in a cancelled registration.',
+        };
+      }
+
+      if (latestDoc.status === 'checked_in' || latestDoc.passStatus === 'used') {
+        return {
+          success: false,
+          isDuplicateCheckIn: true,
+          message: 'Participant was already checked in moments ago.',
+          checkedInAt: (latestDoc as any).checkedInAt,
+        };
+      }
+
+      const checkedInAt = new Date().toISOString();
+
+      // Update document: try with checkedInAt attribute first, fallback without it if not in schema
+      let updatedDoc: EventRegistrationDocument;
+      try {
+        updatedDoc = await databases.updateDocument<EventRegistrationDocument>(
+          this.databaseId,
+          this.registrationsCollection,
+          registrationId.trim(),
+          {
+            status: 'checked_in',
+            passStatus: 'used',
+            checkedInAt,
+          } as any
+        );
+      } catch (attrErr) {
+        // Fallback without checkedInAt if attribute is not created yet
+        updatedDoc = await databases.updateDocument<EventRegistrationDocument>(
+          this.databaseId,
+          this.registrationsCollection,
+          registrationId.trim(),
+          {
+            status: 'checked_in',
+            passStatus: 'used',
+          }
+        );
+      }
+
+      return {
+        success: true,
+        message: `${updatedDoc.name} successfully checked in! 🎉`,
+        checkedInAt,
+        registration: {
+          $id: updatedDoc.$id,
+          eventId: updatedDoc.eventId,
+          formId: updatedDoc.formId,
+          name: updatedDoc.name,
+          email: updatedDoc.email,
+          phone: updatedDoc.phone,
+          status: updatedDoc.status,
+          registeredAt: updatedDoc.registeredAt,
+          passId: updatedDoc.passId,
+          passStatus: updatedDoc.passStatus || 'used',
+          checkedInAt,
+        },
+      };
+    } catch (error: any) {
+      console.error('[RegistrationService] Error performing check-in:', error);
+      return {
+        success: false,
+        message: error?.message || 'Failed to complete check-in.',
       };
     }
   }

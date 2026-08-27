@@ -25,7 +25,8 @@ import {
   Send,
   Archive,
   Ban,
-  Users
+  Users,
+  QrCode
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -379,15 +380,25 @@ export const AdminEventsPage: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Actions: Registrations, Edit, Public View, Delete */}
+                  {/* Actions: Registrations, Check-In, Edit, Public View, Delete */}
                   <div className="flex flex-col gap-2 pt-1">
-                    <Link
-                      to={`/admin/events/${evt.$id}/registrations`}
-                      className="w-full py-2 px-3 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm font-mono text-xs font-black text-[#121316] flex items-center justify-center gap-2 transition-all"
-                    >
-                      <Users className="w-3.5 h-3.5 text-[#6C5CE7]" />
-                      <span>Manage Registrations</span>
-                    </Link>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        to={`/admin/events/${evt.$id}/registrations`}
+                        className="py-2 px-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm font-mono text-[11px] font-black text-[#121316] flex items-center justify-center gap-1.5 transition-all text-center"
+                      >
+                        <Users className="w-3.5 h-3.5 text-[#6C5CE7]" />
+                        <span>Registrations</span>
+                      </Link>
+
+                      <Link
+                        to={`/admin/events/${evt.$id}/check-in`}
+                        className="py-2 px-2.5 rounded-xl bg-[#E8F8F0] hover:bg-[#2ED573] border-2 border-[#121316] shadow-pop-sm font-mono text-[11px] font-black text-[#121316] flex items-center justify-center gap-1.5 transition-all text-center"
+                      >
+                        <QrCode className="w-3.5 h-3.5 text-[#2ED573]" />
+                        <span>Check-In</span>
+                      </Link>
+                    </div>
 
                     <div className="flex items-center justify-between gap-2">
                       <div className="font-mono text-[11px] text-gray-500 font-bold truncate max-w-[100px]">

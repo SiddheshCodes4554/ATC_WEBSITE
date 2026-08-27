@@ -36,6 +36,7 @@ import {
   Phone,
   Link as LinkIcon,
   Filter,
+  QrCode,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -410,6 +411,14 @@ export const AdminEventRegistrationsPage: React.FC = () => {
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span>Public Page</span>
+            </Link>
+
+            <Link
+              to={`/admin/events/${event.$id}/check-in`}
+              className="px-5 py-2.5 rounded-full bg-[#2ED573] hover:bg-[#26af5f] font-mono text-xs font-black border-2 border-[#121316] shadow-pop hover:shadow-pop-lg active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5 text-[#121316] transition-all"
+            >
+              <QrCode className="w-4 h-4 stroke-[2.5]" />
+              <span>Start Check-In</span>
             </Link>
 
             <button
