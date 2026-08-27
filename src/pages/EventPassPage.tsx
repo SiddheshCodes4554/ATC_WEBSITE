@@ -225,8 +225,12 @@ export const EventPassPage: React.FC = () => {
           {/* TICKET TOP HEADER */}
           <div className="p-6 sm:p-8 bg-[#FAF7F0] border-b-4 border-[#121316] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#FFE600] border-3 border-[#121316] shadow-pop-sm flex items-center justify-center font-mono font-black text-[#121316]">
-                <Ticket className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-[#FFE600] border-3 border-[#121316] shadow-pop-sm flex items-center justify-center p-1.5 flex-shrink-0">
+                <img
+                  src="/atc-shield-logo.png"
+                  alt="ATC NIAT Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <span className="font-mono text-[10px] font-black uppercase text-[#6C5CE7]">
