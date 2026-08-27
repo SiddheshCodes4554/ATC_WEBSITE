@@ -42,6 +42,67 @@ export class ProjectService {
   }
 
   /**
+   * Helper: Resilient document creation that gracefully prunes attributes not present in Appwrite schema
+   */
+  private static async createDocumentResilient<T extends ProjectDocument>(
+    databaseId: string,
+    collectionId: string,
+    documentId: string,
+    data: Record<string, any>,
+    permissions?: string[]
+  ): Promise<T> {
+    const payload = { ...data };
+    const maxRetries = 10;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any, permissions);
+      } catch (err: any) {
+        const match =
+          err?.message?.match(/Unknown attribute:\s*"([^"]+)"/i) ||
+          err?.message?.match(/Attribute not found.*?:\s*"([^"]+)"/i) ||
+          err?.message?.match(/attribute\s+"([^"]+)"\s+is unknown/i);
+        if (match && match[1] && payload[match[1]] !== undefined) {
+          console.warn(`[ProjectService] Stripping unknown attribute "${match[1]}" from payload and retrying...`);
+          delete payload[match[1]];
+          continue;
+        }
+        throw err;
+      }
+    }
+    return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any, permissions);
+  }
+
+  /**
+   * Helper: Resilient document update that gracefully prunes attributes not present in Appwrite schema
+   */
+  private static async updateDocumentResilient<T extends ProjectDocument>(
+    databaseId: string,
+    collectionId: string,
+    documentId: string,
+    data: Record<string, any>
+  ): Promise<T> {
+    const payload = { ...data };
+    const maxRetries = 10;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await databases.updateDocument<T>(databaseId, collectionId, documentId, payload as any);
+      } catch (err: any) {
+        const match =
+          err?.message?.match(/Unknown attribute:\s*"([^"]+)"/i) ||
+          err?.message?.match(/Attribute not found.*?:\s*"([^"]+)"/i) ||
+          err?.message?.match(/attribute\s+"([^"]+)"\s+is unknown/i);
+        if (match && match[1] && payload[match[1]] !== undefined) {
+          console.warn(`[ProjectService] Stripping unknown attribute "${match[1]}" from payload and retrying...`);
+          delete payload[match[1]];
+          continue;
+        }
+        throw err;
+      }
+    }
+    return await databases.updateDocument<T>(databaseId, collectionId, documentId, payload as any);
+  }
+
+  /**
    * Helper: Transforms raw Appwrite ProjectDocument to typed ATCProject
    */
   private static mapDocumentToProject(doc: ProjectDocument): ATCProject {
@@ -365,30 +426,13 @@ export class ProjectService {
         documentData.galleryImageIds = gallerySerialized;
       }
 
-      let document: ProjectDocument;
-      try {
-        document = await databases.createDocument<ProjectDocument>(
-          this.databaseId,
-          this.collectionId,
-          ID.unique(),
-          documentData as any,
-          this.getProjectPermissions()
-        );
-      } catch (attrError: any) {
-        // If galleryImageIds attribute does not exist in Appwrite schema, remove and retry
-        if (documentData.galleryImageIds && attrError?.message?.includes('galleryImageIds')) {
-          delete documentData.galleryImageIds;
-          document = await databases.createDocument<ProjectDocument>(
-            this.databaseId,
-            this.collectionId,
-            ID.unique(),
-            documentData as any,
-            this.getProjectPermissions()
-          );
-        } else {
-          throw attrError;
-        }
-      }
+      const document = await this.createDocumentResilient<ProjectDocument>(
+        this.databaseId,
+        this.collectionId,
+        ID.unique(),
+        documentData,
+        this.getProjectPermissions()
+      );
 
       return {
         success: true,
@@ -463,28 +507,12 @@ export class ProjectService {
       if (input.status !== undefined) updateData.status = input.status;
       if (input.displayOrder !== undefined) updateData.displayOrder = input.displayOrder;
 
-      let document: ProjectDocument;
-      try {
-        document = await databases.updateDocument<ProjectDocument>(
-          this.databaseId,
-          this.collectionId,
-          id.trim(),
-          updateData
-        );
-      } catch (attrError: any) {
-        // If galleryImageIds attribute does not exist in schema, remove and retry
-        if (updateData.galleryImageIds && attrError?.message?.includes('galleryImageIds')) {
-          delete updateData.galleryImageIds;
-          document = await databases.updateDocument<ProjectDocument>(
-            this.databaseId,
-            this.collectionId,
-            id.trim(),
-            updateData
-          );
-        } else {
-          throw attrError;
-        }
-      }
+      const document = await this.updateDocumentResilient<ProjectDocument>(
+        this.databaseId,
+        this.collectionId,
+        id.trim(),
+        updateData
+      );
 
       return {
         success: true,

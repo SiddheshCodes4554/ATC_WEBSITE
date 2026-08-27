@@ -55,6 +55,67 @@ export class EventService {
   }
 
   /**
+   * Helper: Resilient document creation that gracefully prunes attributes not present in Appwrite schema
+   */
+  private static async createDocumentResilient<T extends EventDocument>(
+    databaseId: string,
+    collectionId: string,
+    documentId: string,
+    data: Record<string, any>,
+    permissions?: string[]
+  ): Promise<T> {
+    const payload = { ...data };
+    const maxRetries = 10;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any, permissions);
+      } catch (err: any) {
+        const match =
+          err?.message?.match(/Unknown attribute:\s*"([^"]+)"/i) ||
+          err?.message?.match(/Attribute not found.*?:\s*"([^"]+)"/i) ||
+          err?.message?.match(/attribute\s+"([^"]+)"\s+is unknown/i);
+        if (match && match[1] && payload[match[1]] !== undefined) {
+          console.warn(`[EventService] Stripping unknown attribute "${match[1]}" from payload and retrying...`);
+          delete payload[match[1]];
+          continue;
+        }
+        throw err;
+      }
+    }
+    return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any, permissions);
+  }
+
+  /**
+   * Helper: Resilient document update that gracefully prunes attributes not present in Appwrite schema
+   */
+  private static async updateDocumentResilient<T extends EventDocument>(
+    databaseId: string,
+    collectionId: string,
+    documentId: string,
+    data: Record<string, any>
+  ): Promise<T> {
+    const payload = { ...data };
+    const maxRetries = 10;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await databases.updateDocument<T>(databaseId, collectionId, documentId, payload as any);
+      } catch (err: any) {
+        const match =
+          err?.message?.match(/Unknown attribute:\s*"([^"]+)"/i) ||
+          err?.message?.match(/Attribute not found.*?:\s*"([^"]+)"/i) ||
+          err?.message?.match(/attribute\s+"([^"]+)"\s+is unknown/i);
+        if (match && match[1] && payload[match[1]] !== undefined) {
+          console.warn(`[EventService] Stripping unknown attribute "${match[1]}" from payload and retrying...`);
+          delete payload[match[1]];
+          continue;
+        }
+        throw err;
+      }
+    }
+    return await databases.updateDocument<T>(databaseId, collectionId, documentId, payload as any);
+  }
+
+  /**
    * Admin: Fetch all events with optional filters, pagination and sorting
    */
   static async getAllEvents(
@@ -351,29 +412,13 @@ export class EventService {
 
       const documentId = customDocumentId || ID.unique();
 
-      let document: EventDocument;
-      try {
-        document = await databases.createDocument<EventDocument>(
-          this.databaseId,
-          this.collectionId,
-          documentId,
-          payload as any,
-          this.getEventPermissions()
-        );
-      } catch (attrErr: any) {
-        if (payload.galleryImageIds && attrErr?.message?.includes('galleryImageIds')) {
-          delete payload.galleryImageIds;
-          document = await databases.createDocument<EventDocument>(
-            this.databaseId,
-            this.collectionId,
-            documentId,
-            payload as any,
-            this.getEventPermissions()
-          );
-        } else {
-          throw attrErr;
-        }
-      }
+      const document = await this.createDocumentResilient<EventDocument>(
+        this.databaseId,
+        this.collectionId,
+        documentId,
+        payload,
+        this.getEventPermissions()
+      );
 
       return { success: true, data: this.mapDocumentToEvent(document) };
     } catch (error: any) {
@@ -429,27 +474,12 @@ export class EventService {
         }
       }
 
-      let document: EventDocument;
-      try {
-        document = await databases.updateDocument<EventDocument>(
-          this.databaseId,
-          this.collectionId,
-          eventId.trim(),
-          updateData
-        );
-      } catch (attrErr: any) {
-        if (updateData.galleryImageIds && attrErr?.message?.includes('galleryImageIds')) {
-          delete updateData.galleryImageIds;
-          document = await databases.updateDocument<EventDocument>(
-            this.databaseId,
-            this.collectionId,
-            eventId.trim(),
-            updateData
-          );
-        } else {
-          throw attrErr;
-        }
-      }
+      const document = await this.updateDocumentResilient<EventDocument>(
+        this.databaseId,
+        this.collectionId,
+        eventId.trim(),
+        updateData
+      );
 
       return { success: true, data: this.mapDocumentToEvent(document) };
     } catch (error: any) {
