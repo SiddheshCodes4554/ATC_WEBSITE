@@ -8,10 +8,13 @@ import {
   Image, 
   QrCode, 
   ShieldCheck, 
-  ExternalLink,
-  Sparkles,
-  Layers,
-  ArrowUpRight
+  ExternalLink, 
+  Sparkles, 
+  Layers, 
+  ArrowUpRight,
+  Plus,
+  Ticket,
+  ChevronRight
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -27,55 +30,63 @@ export const AdminDashboardPage: React.FC = () => {
   const adminModules = [
     {
       title: 'Events Management',
-      desc: 'Create hackathons, workshops, update schedules & manage venues.',
+      desc: 'Create hackathons, workshops, dynamic forms, update schedules & cover images.',
       icon: <Calendar className="w-6 h-6 text-[#121316]" />,
       badge: 'EVENTS',
       color: 'bg-[#FFF9DB]',
-      linkText: 'Open Events ↗',
+      linkText: 'Manage Events ↗',
       path: '/admin/events',
+      isInternal: true,
     },
     {
-      title: 'Participant Registrations',
-      desc: 'Live registrations, ticket generation, attendance lists & export.',
+      title: 'Participant Registrations & Passes',
+      desc: 'Live registrations, dynamic form responses, CSV export, digital passes & QR check-in station.',
       icon: <QrCode className="w-6 h-6 text-[#121316]" />,
       badge: 'REGISTRATIONS',
       color: 'bg-[#FFEBF2]',
-      linkText: 'Registrations Module ↗',
+      linkText: 'Open Registrations ↗',
+      path: '/admin/events',
+      isInternal: true,
     },
     {
       title: 'Team & Leadership',
-      desc: 'Update executive leads, core department heads & member profiles.',
+      desc: 'Manage President, Vice President & Core Department Heads with image upload & reordering.',
       icon: <Users className="w-6 h-6 text-[#121316]" />,
       badge: 'TEAM',
       color: 'bg-[#F0EBFF]',
       linkText: 'Manage Team ↗',
       path: '/admin/team',
+      isInternal: true,
     },
     {
-      title: 'Student Projects',
-      desc: 'Showcase student hardware, software builds & lab incubations.',
+      title: 'Student Projects Showcase',
+      desc: 'Showcase student hardware builds, software apps, AI experiments & lab incubations.',
       icon: <FolderGit2 className="w-6 h-6 text-[#121316]" />,
       badge: 'PROJECTS',
       color: 'bg-[#E1F5FE]',
-      linkText: 'Projects Module ↗',
+      linkText: 'Explore Projects ↗',
+      path: '/projects',
+      isInternal: true,
     },
     {
       title: 'Memory Wall & Gallery',
-      desc: 'Upload polaroids, hackathon moments, tickets and clippings.',
+      desc: 'Browse polaroids, hackathon moments, conference tickets and community photo archives.',
       icon: <Image className="w-6 h-6 text-[#121316]" />,
       badge: 'GALLERY',
       color: 'bg-[#E8F5E9]',
-      linkText: 'Gallery Module ↗',
+      linkText: 'View Gallery ↗',
+      path: '/gallery',
+      isInternal: true,
     },
     {
-      title: 'Appwrite Server Overview',
-      desc: 'Database collections, storage buckets & serverless functions.',
+      title: 'Appwrite Cloud Console',
+      desc: 'Inspect backend database collections, storage buckets, API keys & serverless functions.',
       icon: <Layers className="w-6 h-6 text-[#121316]" />,
       badge: 'BACKEND',
       color: 'bg-[#FFF3E0]',
-      linkText: 'Appwrite Console ↗',
-      external: true,
+      linkText: 'Open Console ↗',
       href: 'https://cloud.appwrite.io',
+      isInternal: false,
     },
   ];
 
@@ -116,7 +127,7 @@ export const AdminDashboardPage: React.FC = () => {
               to="/"
               className="px-5 py-2.5 rounded-full bg-white hover:bg-gray-100 text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all"
             >
-              <span>View Public Website</span>
+              <span>View Website</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
 
@@ -131,8 +142,8 @@ export const AdminDashboardPage: React.FC = () => {
 
         </div>
 
-        {/* Welcome Callout Banner */}
-        <div className="p-8 sm:p-10 rounded-[36px] bg-[#121316] text-white shadow-pop-xl border-4 border-[#121316] relative overflow-hidden">
+        {/* Welcome Callout Banner & Quick Shortcuts */}
+        <div className="p-8 sm:p-10 rounded-[36px] bg-[#121316] text-white shadow-pop-xl border-4 border-[#121316] relative overflow-hidden space-y-6">
           <div className="relative z-10 space-y-3 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FFE600] text-[#121316] font-mono font-black text-xs uppercase shadow-pop-sm">
               <ShieldCheck className="w-4 h-4" />
@@ -144,8 +155,35 @@ export const AdminDashboardPage: React.FC = () => {
             </h2>
 
             <p className="text-sm sm:text-base font-bold text-gray-300 leading-relaxed">
-              You are authenticated to the official ATC NIAT Pune administrative control panel. Future database and registration services will connect directly through your active Appwrite session.
+              Manage live club operations, dynamic event builder, student registrations, check-in stations, and team directory directly synced with Appwrite Cloud.
             </p>
+          </div>
+
+          {/* Quick Action Shortcuts */}
+          <div className="relative z-10 flex flex-wrap items-center gap-3 pt-2">
+            <Link
+              to="/admin/events/create"
+              className="px-5 py-2.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-2 transition-all hover:scale-105"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Create New Event</span>
+            </Link>
+
+            <Link
+              to="/admin/events"
+              className="px-5 py-2.5 rounded-full bg-white hover:bg-gray-100 text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <Calendar className="w-3.5 h-3.5 text-[#6C5CE7]" />
+              <span>Manage Events</span>
+            </Link>
+
+            <Link
+              to="/admin/team"
+              className="px-5 py-2.5 rounded-full bg-[#F0EBFF] hover:bg-[#E1DCFF] text-[#6C5CE7] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Manage Team</span>
+            </Link>
           </div>
 
           {/* Decorative Sparkle */}
@@ -153,71 +191,67 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         {/* Management Modules Grid */}
-        <div>
-          <div className="flex items-center justify-between mb-6">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xl sm:text-2xl font-black text-[#121316] tracking-tight">
                 Admin Control Modules
               </h3>
               <p className="text-xs sm:text-sm font-bold text-gray-600">
-                Connected to Appwrite Database collections and Storage buckets:
+                Click any module card to navigate directly to its management interface:
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-            {adminModules.map((mod) => (
-              <div
-                key={mod.title}
-                className={`p-6 rounded-[32px] border-4 border-[#121316] shadow-pop hover:shadow-pop-lg transition-all duration-200 flex flex-col justify-between ${mod.color}`}
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm flex items-center justify-center">
-                      {mod.icon}
+            {adminModules.map((mod) => {
+              const CardContent = (
+                <div
+                  className={`p-6 sm:p-7 rounded-[32px] border-4 border-[#121316] shadow-pop hover:shadow-pop-lg transition-all duration-200 flex flex-col justify-between h-full ${mod.color} hover:-translate-y-1 select-none cursor-pointer group`}
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                        {mod.icon}
+                      </div>
+                      <span className="px-3 py-0.5 rounded-full bg-white border border-[#121316] font-mono text-[10px] font-black text-[#121316]">
+                        {mod.badge}
+                      </span>
                     </div>
-                    <span className="px-3 py-0.5 rounded-full bg-white border border-[#121316] font-mono text-[10px] font-black text-[#121316]">
-                      {mod.badge}
-                    </span>
+
+                    <div>
+                      <h4 className="font-black text-xl text-[#121316] tracking-tight group-hover:text-[#6C5CE7] transition-colors">
+                        {mod.title}
+                      </h4>
+                      <p className="text-xs sm:text-sm font-bold text-gray-700 mt-1.5 leading-snug">
+                        {mod.desc}
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h4 className="font-black text-xl text-[#121316] tracking-tight">
-                      {mod.title}
-                    </h4>
-                    <p className="text-xs sm:text-sm font-bold text-gray-700 mt-1 leading-snug">
-                      {mod.desc}
-                    </p>
+                  <div className="pt-6 mt-4 border-t-2 border-[#121316]/10 flex items-center justify-between font-mono text-xs font-black text-[#121316] group-hover:text-[#6C5CE7]">
+                    <span>{mod.linkText}</span>
+                    <ArrowUpRight className="w-4 h-4 stroke-[3] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </div>
                 </div>
+              );
 
-                <div className="pt-6 mt-4 border-t-2 border-[#121316]/10 flex items-center justify-between">
-                  {mod.external ? (
-                    <a
-                      href={mod.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7]"
-                    >
-                      <span>{mod.linkText}</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 stroke-[3]" />
-                    </a>
-                  ) : mod.path ? (
-                    <Link
-                      to={mod.path}
-                      className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7]"
-                    >
-                      <span>{mod.linkText}</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 stroke-[3]" />
-                    </Link>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-gray-500">
-                      <span>Ready for Backend Sync</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+              return mod.isInternal && mod.path ? (
+                <Link key={mod.title} to={mod.path} className="block h-full">
+                  {CardContent}
+                </Link>
+              ) : (
+                <a
+                  key={mod.title}
+                  href={mod.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block h-full"
+                >
+                  {CardContent}
+                </a>
+              );
+            })}
           </div>
         </div>
 
