@@ -1,137 +1,169 @@
 import React from 'react';
-import { ArrowUpRight, Cpu, Eye, Wifi, Wrench, Sparkles, MapPin, Maximize2 } from 'lucide-react';
+import { ArrowUpRight, Cpu, Eye, Wifi, Wrench, Sparkles, MapPin, CheckCircle2, Zap } from 'lucide-react';
 import { PlayfulButton } from '../ui/PlayfulButton';
-import { Link } from 'react-router-dom';
 
 export const LabSection: React.FC = () => {
   return (
-    <section className="relative bg-[#4834D4] py-20 text-white border-b-4 border-[#121316] overflow-hidden">
-      {/* Background Texture & Glows */}
-      <div className="absolute inset-0 bg-[radial-gradient(#ffffff1a_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-[#686de0]/30 rounded-full blur-3xl pointer-events-none" />
+    <section className="relative min-h-[640px] lg:min-h-[720px] text-white border-b-4 border-[#121316] overflow-hidden flex items-center">
+      {/* Full-bleed Background Image with Premium Multi-layer Overlays */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/atc-lab-5.0.jpg"
+          alt="ATC Lab 5.0 Workspace Background"
+          className="w-full h-full object-cover object-center scale-105"
+        />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Left Column: Heading, Status, Description & CTA */}
-          <div className="lg:col-span-5 space-y-6">
-            {/* Status Pill Badge */}
+        {/* Cinematic Gradient Overlays for High Legibility & Vibrant Theme Alignment */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#121316]/95 via-[#121316]/80 to-[#121316]/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121316] via-transparent to-[#121316]/60" />
+        <div className="absolute inset-0 bg-[#301c80]/30 mix-blend-multiply" />
+        
+        {/* Playful Dot Grid Texture */}
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff18_1.5px,transparent_1.5px)] [background-size:24px_24px] pointer-events-none" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 relative z-10 w-full">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          
+          {/* Left Column: Heading, Focus Statement & Actions */}
+          <div className="lg:col-span-6 space-y-6">
+            
+            {/* Top Pill Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFE600] text-[#121316] border-3 border-[#121316] shadow-pop-sm font-mono font-black text-xs uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-[#2ED573] animate-ping" />
-              PHYSICAL INNOVATION SPACE
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2ED573] animate-ping" />
+              <span>ATC LAB 5.0 • NIAT PUNE</span>
             </div>
 
-            {/* Large Heading */}
+            {/* Bold Headline */}
             <div className="space-y-2">
-              <h2 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
-                ATC 5.0 LAB
+              <h2 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.05]">
+                OUR BUILD
+                <br />
+                <span className="relative inline-block px-5 py-1 bg-[#FFE600] text-[#121316] rounded-3xl border-4 border-[#121316] shadow-pop rotate-[-1.5deg] mt-1">
+                  SPACE.
+                  <Sparkles className="w-7 h-7 text-[#FF4757] absolute -top-4 -right-4 animate-bounce" />
+                </span>
               </h2>
-              <p className="text-base sm:text-lg text-purple-100 font-medium leading-relaxed">
-                Our dedicated physical lab space at NIAT Pune — where student ideas take shape through Robotics, AI, Computer Vision, IoT, and rapid hardware prototyping.
+              
+              <p className="text-lg sm:text-2xl font-black text-[#FFE600] font-display pt-1">
+                Where ideas take shape and innovation begins.
+              </p>
+
+              <p className="text-sm sm:text-base text-gray-300 font-bold leading-relaxed max-w-xl">
+                An active, physical hardware sandbox at NIAT Pune designed for makers, coders, and engineers. From autonomous robotics and AI vision to custom PCB design and high-speed prototypes.
               </p>
             </div>
 
-            {/* Domain Badges */}
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <div className="p-3.5 rounded-2xl bg-white/10 border-2 border-white/20 backdrop-blur-sm space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-yellow-300">
-                  <Cpu className="w-4 h-4" /> Robotics & ROS
-                </div>
-                <p className="text-[11px] text-purple-200">Autonomous rovers & quadrupeds</p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white/10 border-2 border-white/20 backdrop-blur-sm space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-sky-300">
-                  <Eye className="w-4 h-4" /> AI & Computer Vision
-                </div>
-                <p className="text-[11px] text-purple-200">Edge ML & Coral TPUs</p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white/10 border-2 border-white/20 backdrop-blur-sm space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                  <Wifi className="w-4 h-4" /> IoT & Embedded
-                </div>
-                <p className="text-[11px] text-purple-200">Custom PCB & Sensor telemetry</p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white/10 border-2 border-white/20 backdrop-blur-sm space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-pink-300">
-                  <Wrench className="w-4 h-4" /> Rapid Prototyping
-                </div>
-                <p className="text-[11px] text-purple-200">3D printing & SMD soldering</p>
-              </div>
+            {/* Focus & Value Badges */}
+            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+              <span className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 font-mono text-xs font-black text-yellow-300 flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5 fill-yellow-300" />
+                FOCUS: BUILD • TEST • ITERATE
+              </span>
+              <span className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 font-mono text-xs font-bold text-white flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#2ED573]" />
+                EQUIPPED & ORGANISED
+              </span>
             </div>
 
-            {/* CTA Button: Explore the Lab ↗ */}
-            <div className="pt-2 flex flex-wrap items-center gap-4">
+            {/* CTA Buttons */}
+            <div className="pt-3 flex flex-wrap items-center gap-4">
               <PlayfulButton
                 to="/lab"
                 variant="primary"
                 size="lg"
                 icon={<ArrowUpRight className="w-5 h-5 text-[#121316] stroke-[3]" />}
               >
-                Explore the Lab
+                Explore Lab 5.0
               </PlayfulButton>
 
-              <span className="text-xs font-mono text-purple-200 flex items-center gap-1.5 font-bold">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-black/40 backdrop-blur-sm border-2 border-white/15 text-xs font-mono font-bold text-purple-200">
                 <MapPin className="w-4 h-4 text-[#FFE600]" />
-                NIAT Campus, Lab 5.0
-              </span>
+                <span>NIAT Campus, Lab 5.0</span>
+              </div>
             </div>
+
           </div>
 
-          {/* Right Column: Real ATC 5.0 Lab Build Space Showcase */}
-          <div className="lg:col-span-7">
-            <Link
-              to="/lab"
-              className="block group relative rounded-[32px] sm:rounded-[36px] bg-[#121316] border-4 border-[#121316] shadow-pop-2xl overflow-hidden hover:scale-[1.01] transition-all duration-300 cursor-pointer"
-            >
-              {/* Top Status Bar */}
-              <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 bg-[#1C1635] border-b-2 border-white/10 text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#2ED573] animate-ping" />
-                  <span className="font-bold text-[#FFE600] uppercase tracking-wider">
-                    OUR BUILD SPACE • NIAT PUNE
-                  </span>
+          {/* Right Column: Lab Capabilities Grid */}
+          <div className="lg:col-span-6 space-y-4">
+            
+            {/* 4-Bento Domain Matrix */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              
+              {/* Robotics */}
+              <div className="p-5 rounded-3xl bg-[#121316]/80 backdrop-blur-md border-3 border-[#121316] hover:border-[#FFE600] shadow-pop transition-all hover:scale-[1.02] space-y-2 group">
+                <div className="w-10 h-10 rounded-2xl bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center text-[#121316]">
+                  <Cpu className="w-5 h-5" />
                 </div>
-                <span className="text-purple-200 bg-white/10 px-3 py-1 rounded-full border border-white/10 font-bold text-[11px]">
-                  ATC LAB 5.0
+                <h3 className="text-base font-black text-white group-hover:text-[#FFE600] transition-colors">
+                  Robotics & ROS 2
+                </h3>
+                <p className="text-xs font-bold text-gray-300">
+                  Autonomous rovers, quadruped kinematics, robotic arms & sensor fusion.
+                </p>
+              </div>
+
+              {/* AI & Computer Vision */}
+              <div className="p-5 rounded-3xl bg-[#121316]/80 backdrop-blur-md border-3 border-[#121316] hover:border-[#00D2D3] shadow-pop transition-all hover:scale-[1.02] space-y-2 group">
+                <div className="w-10 h-10 rounded-2xl bg-[#00D2D3] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center text-[#121316]">
+                  <Eye className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-black text-white group-hover:text-[#00D2D3] transition-colors">
+                  AI & Computer Vision
+                </h3>
+                <p className="text-xs font-bold text-gray-300">
+                  Edge ML on Coral TPUs, NVIDIA Jetson pipelines & real-time visual tracking.
+                </p>
+              </div>
+
+              {/* IoT & Embedded */}
+              <div className="p-5 rounded-3xl bg-[#121316]/80 backdrop-blur-md border-3 border-[#121316] hover:border-[#2ED573] shadow-pop transition-all hover:scale-[1.02] space-y-2 group">
+                <div className="w-10 h-10 rounded-2xl bg-[#2ED573] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center text-[#121316]">
+                  <Wifi className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-black text-white group-hover:text-[#2ED573] transition-colors">
+                  IoT & Embedded
+                </h3>
+                <p className="text-xs font-bold text-gray-300">
+                  ESP32 firmware, custom PCB milling & wireless MQTT telemetry clusters.
+                </p>
+              </div>
+
+              {/* Rapid Prototyping */}
+              <div className="p-5 rounded-3xl bg-[#121316]/80 backdrop-blur-md border-3 border-[#121316] hover:border-[#FF6B6B] shadow-pop transition-all hover:scale-[1.02] space-y-2 group">
+                <div className="w-10 h-10 rounded-2xl bg-[#FF6B6B] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center text-white">
+                  <Wrench className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-black text-white group-hover:text-[#FF6B6B] transition-colors">
+                  Rapid Prototyping
+                </h3>
+                <p className="text-xs font-bold text-gray-300">
+                  Precision 3D printing, SMD rework station, power benches & laser cutting.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Bottom Builder Philosophy Banner */}
+            <div className="p-4 sm:p-5 rounded-3xl bg-[#121316]/90 backdrop-blur-md border-3 border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+              <div className="space-y-0.5">
+                <span className="text-yellow-300 font-black tracking-wider uppercase block">
+                  CLEAN SPACE. CLEAR MIND. BETTER BUILDS.
+                </span>
+                <span className="text-gray-400 font-bold">
+                  Every tool has a purpose in ATC Lab 5.0.
                 </span>
               </div>
 
-              {/* Real Lab Photo Container */}
-              <div className="relative overflow-hidden bg-black/40 aspect-[16/10] sm:aspect-[16/10.5]">
-                <img
-                  src="/atc-lab-5.0.jpg"
-                  alt="ATC Lab 5.0 Physical Build Space - NIAT Pune"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+              <span className="px-3 py-1 rounded-xl bg-white/10 text-emerald-400 border border-emerald-400/40 font-bold self-start sm:self-auto flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>BUILDING 24/7</span>
+              </span>
+            </div>
 
-                {/* Subtle Hover Action Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-6">
-                  <span className="px-4 py-2 rounded-full bg-[#FFE600] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop flex items-center gap-2">
-                    <Maximize2 className="w-4 h-4 stroke-[2.5]" />
-                    <span>View Lab Details ↗</span>
-                  </span>
-                  <span className="text-xs font-mono text-white/90 font-bold hidden sm:inline-block">
-                    Built for Builders • Equipped & Organised
-                  </span>
-                </div>
-              </div>
-
-              {/* Bottom Metadata & Specs Bar */}
-              <div className="px-5 sm:px-6 py-3 bg-[#1C1635] border-t-2 border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <span className="text-purple-300 font-bold">FOCUS:</span>
-                  <span className="text-white font-bold">BUILD • TEST • ITERATE</span>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-purple-200">
-                  <span className="px-2 py-0.5 rounded bg-white/10 border border-white/10 font-bold text-[#2ED573]">
-                    ● ACTIVE & EQUIPPED
-                  </span>
-                </div>
-              </div>
-            </Link>
           </div>
+
         </div>
       </div>
     </section>
