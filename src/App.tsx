@@ -16,6 +16,7 @@ import { GalleryPage } from './pages/GalleryPage';
 import { JoinPage } from './pages/JoinPage';
 import { SignupPage } from './pages/SignupPage';
 import { LoginPage } from './pages/LoginPage';
+import { StudentDashboardPage } from './pages/student/StudentDashboardPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminEventsPage } from './pages/admin/AdminEventsPage';
@@ -31,6 +32,7 @@ import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
 import { AdminLabPage } from './pages/admin/AdminLabPage';
 import { LabAccessPage } from './pages/LabAccessPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { StudentProtectedRoute } from './components/auth/StudentProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { PartyModeEasterEgg } from './components/common/PartyModeEasterEgg';
 
@@ -81,6 +83,15 @@ export const App: React.FC = () => {
           <Route path="/join" element={<PublicLayout><JoinPage /></PublicLayout>} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />
+
+          {/* ============================================================= */}
+          {/* PROTECTED STUDENT ROUTES (Authenticated Students Only)         */}
+          {/* ============================================================= */}
+          <Route path="/student" element={<StudentProtectedRoute />}>
+            <Route index element={<Navigate to="/student/dashboard" replace />} />
+            <Route path="dashboard" element={<PublicLayout><StudentDashboardPage /></PublicLayout>} />
+            <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
+          </Route>
 
           {/* ============================================================= */}
           {/* ADMIN AUTHENTICATION ROUTES                                    */}

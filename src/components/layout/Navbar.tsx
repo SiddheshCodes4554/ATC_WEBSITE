@@ -261,19 +261,33 @@ export const Navbar: React.FC = () => {
                           <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                         </Link>
                       ) : (
-                        /* Student: My Account (Coming Soon) */
-                        <div
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-50/80 border border-dashed border-gray-300 cursor-not-allowed select-none"
-                          title="Student account management coming soon"
-                        >
-                          <div className="flex items-center gap-2">
-                            <UserIcon className="w-4 h-4 text-gray-400" />
-                            <span>My Account</span>
+                        /* Student: Dashboard & My Account */
+                        <>
+                          <Link
+                            to="/student/dashboard"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black text-[#121316] hover:bg-[#FFE600]/40 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <LayoutDashboard className="w-4 h-4 text-[#6C5CE7]" />
+                              <span>My Dashboard</span>
+                            </div>
+                            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                          </Link>
+
+                          <div
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-50/80 border border-dashed border-gray-300 cursor-not-allowed select-none"
+                            title="Student account management coming soon"
+                          >
+                            <div className="flex items-center gap-2">
+                              <UserIcon className="w-4 h-4 text-gray-400" />
+                              <span>My Account</span>
+                            </div>
+                            <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
+                              Coming Soon
+                            </span>
                           </div>
-                          <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
-                            Coming Soon
-                          </span>
-                        </div>
+                        </>
                       )}
 
                       {/* Divider */}
@@ -408,7 +422,7 @@ export const Navbar: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Contextual Action: Admin Dashboard or Disabled My Account */}
+                {/* Contextual Action: Admin Dashboard or Student Dashboard */}
                 {isAdmin ? (
                   <Link
                     to="/admin/dashboard"
@@ -422,14 +436,28 @@ export const Navbar: React.FC = () => {
                     <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                   </Link>
                 ) : (
-                  <div className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-50 border border-dashed border-gray-300 select-none">
-                    <div className="flex items-center gap-2">
-                      <UserIcon className="w-3.5 h-3.5" />
-                      <span>My Account</span>
+                  <div className="space-y-1.5">
+                    <Link
+                      to="/student/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border-2 border-[#121316] text-xs font-black text-[#121316] transition-colors shadow-pop-sm"
+                    >
+                      <div className="flex items-center gap-2">
+                        <LayoutDashboard className="w-4 h-4 text-[#6C5CE7]" />
+                        <span>My Dashboard</span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                    </Link>
+
+                    <div className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-50 border border-dashed border-gray-300 select-none">
+                      <div className="flex items-center gap-2">
+                        <UserIcon className="w-3.5 h-3.5" />
+                        <span>My Account</span>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
+                        Coming Soon
+                      </span>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
-                      Coming Soon
-                    </span>
                   </div>
                 )}
 
