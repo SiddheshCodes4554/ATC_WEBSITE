@@ -18,6 +18,7 @@ import { SignupPage } from './pages/SignupPage';
 import { LoginPage } from './pages/LoginPage';
 import { StudentDashboardPage } from './pages/student/StudentDashboardPage';
 import { StudentEventsPage } from './pages/student/StudentEventsPage';
+import { StudentLabBookingsPage } from './pages/student/StudentLabBookingsPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminEventsPage } from './pages/admin/AdminEventsPage';
@@ -92,6 +93,7 @@ export const App: React.FC = () => {
             <Route index element={<Navigate to="/student/dashboard" replace />} />
             <Route path="dashboard" element={<PublicLayout><StudentDashboardPage /></PublicLayout>} />
             <Route path="events" element={<PublicLayout><StudentEventsPage /></PublicLayout>} />
+            <Route path="lab-bookings" element={<PublicLayout><StudentLabBookingsPage /></PublicLayout>} />
             <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
           </Route>
 

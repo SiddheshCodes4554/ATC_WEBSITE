@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Clock,
@@ -11,8 +11,10 @@ import {
   Sparkles,
   ShieldCheck,
   Zap,
+  UserCheck,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useAuth } from '../../context/AuthContext';
 import { PublicLabSlotWithDetails, LabBookingResult, LabRequest } from '../../types/labBooking.types';
 import { LabRequestService } from '../../services/labRequestService';
 
@@ -29,12 +31,20 @@ export const LabRequestDrawer: React.FC<LabRequestDrawerProps> = ({
   onClose,
   onRequestSubmitted,
 }) => {
+  const { user, isAuthenticated } = useAuth();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [purpose, setPurpose] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<LabBookingResult<LabRequest> | null>(null);
+
+  // Auto-fill student name once when drawer opens if authenticated
+  useEffect(() => {
+    if (isOpen && user?.name && !name) {
+      setName(user.name);
+    }
+  }, [isOpen, user?.name]);
 
   if (!isOpen || !slotDetails) return null;
 
@@ -68,6 +78,7 @@ export const LabRequestDrawer: React.FC<LabRequestDrawerProps> = ({
         requesterName: name.trim(),
         requesterPhone: phone.trim(),
         purpose: purpose.trim(),
+        userId: user?.$id || null,
       });
 
       if (result.success && result.data) {
@@ -223,6 +234,15 @@ export const LabRequestDrawer: React.FC<LabRequestDrawerProps> = ({
                 <div className="p-3 rounded-2xl bg-[#E8F5E9] border-2 border-[#2ED573] text-xs font-bold text-[#2E7D32] flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                   <span>Spot available! Admins review and approve requests quickly.</span>
+                </div>
+              )}
+
+              {isAuthenticated && user && (
+                <div className="p-2.5 rounded-xl bg-[#E1DCFF] border border-[#121316] text-[11px] font-mono font-bold text-[#6C5CE7] flex items-center gap-2">
+                  <UserCheck className="w-3.5 h-3.5 text-[#6C5CE7] flex-shrink-0" />
+                  <span>
+                    Signed in as <strong className="text-[#121316] font-black">{user.name}</strong> • Linked to your Student Dashboard
+                  </span>
                 </div>
               )}
 

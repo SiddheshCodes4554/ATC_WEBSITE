@@ -58,6 +58,7 @@ export interface LabRequestDocument extends Models.Document {
   queuePosition?: number | null;
   requestedAt: string;
   adminNotes?: string;
+  userId?: string | null;
 }
 
 /**
@@ -73,6 +74,7 @@ export interface LabRequest {
   queuePosition: number | null;
   requestedAt: string;
   adminNotes?: string;
+  userId?: string | null;
   $createdAt: string;
   $updatedAt: string;
   // Enriched slot info for admin views
@@ -95,6 +97,15 @@ export interface PublicLabRequest {
   status: LabRequestStatus;
   queuePosition: number | null;
   requestedAt: string;
+  userId?: string | null;
+}
+
+/**
+ * Student Request with Resolved Slot Details
+ */
+export interface StudentLabRequestWithSlot {
+  request: LabRequest;
+  slot: LabSlot | null;
 }
 
 /**
@@ -139,12 +150,14 @@ export interface CreateLabRequestInput {
   requesterName: string;
   requesterPhone: string;
   purpose: string;
+  userId?: string | null;
 }
 
 export interface AdminUpdateLabRequestInput {
   status?: LabRequestStatus;
   queuePosition?: number | null;
   adminNotes?: string;
+  userId?: string | null;
 }
 
 export interface LabBookingResult<T = any> {
@@ -163,3 +176,4 @@ export interface AdminLabOverviewStats {
   activeWaitlists: number;
   approvedBookings: number;
 }
+

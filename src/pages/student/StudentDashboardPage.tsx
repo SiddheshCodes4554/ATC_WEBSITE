@@ -3,8 +3,13 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { RegistrationService } from '../../services/registrationService';
 import { StorageService } from '../../services/storage.service';
+import { LabRequestService } from '../../services/labRequestService';
 import { EventRegistration, RegistrationStatus } from '../../types/form.types';
 import { ATCEvent } from '../../types/event.types';
+import {
+  StudentLabRequestWithSlot,
+  LabRequestStatus,
+} from '../../types/labBooking.types';
 import {
   Sparkles,
   Calendar,
@@ -22,7 +27,9 @@ import {
   RotateCw,
   XCircle,
   ExternalLink,
-  MapPin
+  MapPin,
+  ListOrdered,
+  Hourglass,
 } from 'lucide-react';
 
 interface StudentRegistrationItem {
@@ -32,9 +39,16 @@ interface StudentRegistrationItem {
 
 export const StudentDashboardPage: React.FC = () => {
   const { user } = useAuth();
+  
+  // Event Registrations State
   const [registrations, setRegistrations] = useState<StudentRegistrationItem[]>([]);
   const [eventsLoading, setEventsLoading] = useState<boolean>(true);
   const [eventsError, setEventsError] = useState<string | null>(null);
+
+  // Lab Bookings State
+  const [labRequests, setLabRequests] = useState<StudentLabRequestWithSlot[]>([]);
+  const [labLoading, setLabLoading] = useState<boolean>(true);
+  const [labError, setLabError] = useState<string | null>(null);
 
   // Derive first name safely from user.name
   const firstName =
@@ -68,11 +82,35 @@ export const StudentDashboardPage: React.FC = () => {
     }
   };
 
+  const fetchLabRequests = async () => {
+    if (!user?.$id) {
+      setLabLoading(false);
+      return;
+    }
+
+    setLabLoading(true);
+    setLabError(null);
+
+    try {
+      const result = await LabRequestService.getUserRequestsWithSlots(user.$id);
+      if (result.success && result.data) {
+        setLabRequests(result.data);
+      } else {
+        setLabError(result.error || 'Unable to fetch your lab bookings.');
+      }
+    } catch (err: any) {
+      setLabError(err?.message || 'Could not load your lab bookings.');
+    } finally {
+      setLabLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchRegistrations();
+    fetchLabRequests();
   }, [user?.$id]);
 
-  const renderStatusBadge = (status: RegistrationStatus) => {
+  const renderEventStatusBadge = (status: RegistrationStatus) => {
     switch (status) {
       case 'checked_in':
         return (
@@ -99,6 +137,47 @@ export const StudentDashboardPage: React.FC = () => {
     }
   };
 
+  const renderLabStatusBadge = (status: LabRequestStatus, queuePosition?: number | null) => {
+    switch (status) {
+      case 'approved':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#2ED573] text-[#121316] border border-[#121316] font-mono text-[9px] font-black uppercase shadow-pop-xs">
+            <CheckCircle2 className="w-2.5 h-2.5" />
+            ✓ APPROVED
+          </span>
+        );
+      case 'waitlisted':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFF3E0] text-[#E65100] border border-[#121316] font-mono text-[9px] font-black uppercase">
+            <ListOrdered className="w-2.5 h-2.5" />
+            WAITLISTED {queuePosition ? `(#${queuePosition})` : ''}
+          </span>
+        );
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFE5E5] text-[#D63031] border border-[#121316] font-mono text-[9px] font-black uppercase">
+            <XCircle className="w-2.5 h-2.5" />
+            REJECTED
+          </span>
+        );
+      case 'cancelled':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-200 text-gray-700 border border-[#121316] font-mono text-[9px] font-black uppercase">
+            <XCircle className="w-2.5 h-2.5" />
+            CANCELLED
+          </span>
+        );
+      case 'pending':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F0EBFF] text-[#6C5CE7] border border-[#121316] font-mono text-[9px] font-black uppercase">
+            <Hourglass className="w-2.5 h-2.5" />
+            PENDING
+          </span>
+        );
+    }
+  };
+
   const formatEventDate = (isoString?: string | null) => {
     if (!isoString) return 'Date TBA';
     try {
@@ -110,6 +189,21 @@ export const StudentDashboardPage: React.FC = () => {
       });
     } catch {
       return isoString;
+    }
+  };
+
+  const formatLabDate = (dateStr?: string | null) => {
+    if (!dateStr) return 'Date TBA';
+    try {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return dateStr;
     }
   };
 
@@ -458,7 +552,7 @@ export const StudentDashboardPage: React.FC = () => {
                           {/* Event Details */}
                           <div className="space-y-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              {renderStatusBadge(registration.status)}
+                              {renderEventStatusBadge(registration.status)}
                             </div>
                             <h4 className="font-black text-sm text-[#121316] truncate group-hover:text-[#6C5CE7] transition-colors">
                               {eventTitle}
@@ -530,47 +624,157 @@ export const StudentDashboardPage: React.FC = () => {
             )}
           </div>
 
-          {/* Section B: Lab Activity */}
-          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop flex flex-col justify-between space-y-5">
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-[#121316] flex items-center gap-2">
-                  <FlaskConical className="w-5 h-5 text-[#2ED573]" />
-                  <span>Lab Activity</span>
-                </h3>
-                <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-[10px] font-bold">
-                  PREVIEW
-                </span>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center">
-                  <FlaskConical className="w-6 h-6 text-[#2ED573]" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-black text-sm text-[#121316]">
-                    Lab Bookings Coming Soon
-                  </h4>
-                  <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
-                    Your workstation reservations, component issue requests, and access logs will synchronize here.
+          {/* Section B: Lab Activity (Dynamic) */}
+          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h3 className="text-xl font-black text-[#121316] flex items-center gap-2">
+                    <FlaskConical className="w-5 h-5 text-[#2ED573]" />
+                    <span>MY LAB ACTIVITY 🧪</span>
+                  </h3>
+                  <p className="text-xs font-bold text-gray-600 mt-0.5">
+                    Your lab access requests and upcoming sessions.
                   </p>
                 </div>
-
-                <div className="pt-2">
+                {labRequests.length > 0 && (
                   <Link
-                    to="/lab-access"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2ED573] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all cursor-pointer"
+                    to="/student/lab-bookings"
+                    className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#2ED573] hover:text-[#26af5f] hover:underline flex-shrink-0"
                   >
-                    <span>Book a Lab Slot</span>
-                    <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                    <span>VIEW ALL →</span>
                   </Link>
-                </div>
+                )}
               </div>
+
+              {labLoading ? (
+                /* Skeleton Loader */
+                <div className="space-y-3 animate-pulse">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-gray-200 flex gap-4">
+                      <div className="w-16 h-16 rounded-xl bg-gray-200 flex-shrink-0" />
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="w-2/3 h-4 bg-gray-200 rounded" />
+                        <div className="w-1/2 h-3 bg-gray-200 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : labError ? (
+                /* Error State */
+                <div className="p-6 rounded-2xl bg-[#FFE5E5] border-2 border-[#FF4757] text-center space-y-3">
+                  <AlertTriangle className="w-8 h-8 text-[#FF4757] mx-auto" />
+                  <div className="space-y-1">
+                    <h4 className="font-black text-sm text-[#121316]">
+                      WE COULDN'T LOAD YOUR LAB ACTIVITY
+                    </h4>
+                    <p className="text-xs font-bold text-gray-600">{labError}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchLabRequests}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>TRY AGAIN</span>
+                  </button>
+                </div>
+              ) : labRequests.length > 0 ? (
+                /* Top Lab Requests List (Max 3) */
+                <div className="space-y-3">
+                  {labRequests.slice(0, 3).map(({ request, slot }) => {
+                    const labDate = formatLabDate(slot?.date || request.requestedAt);
+                    const timeBlock = slot ? `${slot.startTime} — ${slot.endTime}` : 'Scheduled Time';
+                    const isApproved = request.status === 'approved';
+
+                    return (
+                      <div
+                        key={request.$id}
+                        className={`p-3.5 sm:p-4 rounded-2xl border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group ${
+                          isApproved ? 'bg-[#E8F5E9]/60' : 'bg-[#FAF7F0]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Slot Icon Thumbnail */}
+                          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-[#121316] flex-shrink-0 flex items-center justify-center ${
+                            isApproved ? 'bg-[#2ED573]/20' : 'bg-white'
+                          }`}>
+                            <FlaskConical className={`w-6 h-6 ${isApproved ? 'text-[#2E7D32]' : 'text-[#2ED573]'}`} />
+                          </div>
+
+                          {/* Request Details */}
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              {renderLabStatusBadge(request.status, request.queuePosition)}
+                            </div>
+                            <h4 className="font-black text-sm text-[#121316] truncate group-hover:text-[#6C5CE7] transition-colors">
+                              {request.purpose || 'Lab Access Session'}
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-gray-600">
+                              <span className="flex items-center gap-1 font-mono text-[11px]">
+                                <Calendar className="w-3 h-3 text-[#6C5CE7]" />
+                                {labDate}
+                              </span>
+                              <span className="flex items-center gap-1 font-mono text-[11px] text-gray-700">
+                                <Clock className="w-3 h-3 text-[#FF793F]" />
+                                <span>{timeBlock}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* View Details Button */}
+                        <div className="flex items-center justify-end sm:justify-center flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#121316]/10">
+                          <Link
+                            to="/student/lab-bookings"
+                            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#2ED573] hover:bg-[#26af5f] border-2 border-[#121316] text-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                          >
+                            <span>View Details</span>
+                            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Empty State */
+                <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center text-xl">
+                    🧪
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-black text-sm text-[#121316]">
+                      NO LAB BOOKINGS YET
+                    </h4>
+                    <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
+                      Need space to build something?
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <Link
+                      to="/lab-access"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2ED573] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+                    >
+                      <span>REQUEST LAB ACCESS →</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="pt-3 border-t-2 border-[#121316]/10 text-xs font-mono font-bold text-gray-500 text-center">
-              <span>Robotics & IoT Workstation Integration</span>
-            </div>
+            {labRequests.length > 0 && (
+              <div className="pt-3 border-t-2 border-[#121316]/10">
+                <Link
+                  to="/student/lab-bookings"
+                  className="w-full py-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#2ED573] border-2 border-[#121316] text-[#121316] font-mono text-xs font-black uppercase flex items-center justify-center gap-2 transition-all shadow-pop-sm"
+                >
+                  <span>Go to My Lab Bookings Archive</span>
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                </Link>
+              </div>
+            )}
           </div>
 
         </section>

@@ -626,9 +626,16 @@ export const AdminLabPage: React.FC = () => {
                       >
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="font-black text-base text-[#121316]">
-                              {req.requesterName}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-black text-base text-[#121316]">
+                                {req.requesterName}
+                              </span>
+                              {req.userId && (
+                                <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[#2E86DE] text-[9px] font-mono font-bold border border-blue-300" title="Verified Student Account">
+                                  STUDENT
+                                </span>
+                              )}
+                            </div>
                             <span className="px-2 py-0.5 rounded-full bg-[#F0EBFF] text-[#6C5CE7] font-mono text-[10px] font-black border border-[#6C5CE7]/30">
                               PENDING
                             </span>
@@ -991,6 +998,11 @@ export const AdminLabPage: React.FC = () => {
                         <span className="font-black text-base sm:text-lg text-[#121316]">
                           {req.requesterName}
                         </span>
+                        {req.userId && (
+                          <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[#2E86DE] text-[9px] font-mono font-bold border border-blue-300" title="Verified Student Account">
+                            STUDENT
+                          </span>
+                        )}
 
                         {/* Status Badge */}
                         <span
@@ -1173,8 +1185,15 @@ export const AdminLabPage: React.FC = () => {
                                 #{req.queuePosition || idx + 1}
                               </div>
                               <div className="space-y-0.5">
-                                <div className="font-black text-sm text-[#121316]">
-                                  {req.requesterName}
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-black text-sm text-[#121316]">
+                                    {req.requesterName}
+                                  </span>
+                                  {req.userId && (
+                                    <span className="px-1.5 py-0.2 rounded bg-blue-100 text-[#2E86DE] text-[9px] font-mono font-bold border border-blue-300" title="Verified Student Account">
+                                      STUDENT
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="text-xs font-bold text-gray-600">
                                   {req.purpose}

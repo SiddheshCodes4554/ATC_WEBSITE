@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { LabAccessHero } from '../components/lab-access/LabAccessHero';
 import { LabDateSelector } from '../components/lab-access/LabDateSelector';
 import { LabSlotCard } from '../components/lab-access/LabSlotCard';
@@ -16,10 +18,13 @@ import {
   HelpCircle,
   ShieldCheck,
   CheckCircle2,
+  ArrowRight,
+  UserCheck,
 } from 'lucide-react';
 import { SparkleDoodle, SpiralScribble } from '../components/doodles/DoodleSvgs';
 
 export const LabAccessPage: React.FC = () => {
+  const { user, isAuthenticated, isAdmin } = useAuth();
   const scheduleSectionRef = useRef<HTMLDivElement>(null);
 
   // Default to today's date in local YYYY-MM-DD
@@ -136,6 +141,32 @@ export const LabAccessPage: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
           
+          {/* Authenticated Student Banner */}
+          {isAuthenticated && user && !isAdmin && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-[#E1DCFF] border-3 border-[#121316] shadow-pop flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-xs flex items-center justify-center flex-shrink-0">
+                  <UserCheck className="w-5 h-5 text-[#6C5CE7]" />
+                </div>
+                <div>
+                  <span className="font-mono text-[10px] font-black uppercase text-[#6C5CE7] block">
+                    SIGNED IN AS STUDENT MEMBER
+                  </span>
+                  <span className="font-black text-sm text-[#121316]">
+                    {user.name} ({user.email})
+                  </span>
+                </div>
+              </div>
+
+              <Link
+                to="/student/lab-bookings"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#121316] text-[#FFE600] hover:bg-[#121316]/90 font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all self-start sm:self-auto"
+              >
+                <span>MY LAB BOOKINGS →</span>
+              </Link>
+            </div>
+          )}
+
           {/* Date Selector Ribbon */}
           <div className="p-6 sm:p-8 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-xl space-y-6">
             <LabDateSelector

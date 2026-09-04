@@ -12,6 +12,7 @@ import {
   LabBookingResult,
   AdminLabOverviewStats,
   LabRequestStatus,
+  StudentLabRequestWithSlot,
 } from '../types/labBooking.types';
 import { LabSlotService } from './labSlotService';
 
@@ -20,7 +21,7 @@ import { LabSlotService } from './labSlotService';
  * Lab Request & Queue Management Service (Appwrite Database: `lab_requests`)
  * ============================================================================
  * Centralizes all slot booking logic, queue safety algorithms, auto-promotions,
- * capacity checks, and public data privacy shielding.
+ * capacity checks, student request ownership, and public data privacy shielding.
  */
 export class LabRequestService {
   private static get databaseId(): string {
@@ -36,14 +37,19 @@ export class LabRequestService {
   }
 
   /**
-   * Helper: Standard permissions (Public create/read, Authenticated Admin update/delete)
+   * Helper: Standard permissions (Public create/read, Authenticated Admin update/delete, User-specific read)
    */
-  private static getRequestPermissions(): string[] {
-    return [
+  private static getRequestPermissions(userId?: string | null): string[] {
+    const perms = [
       Permission.read(Role.any()),
       Permission.update(Role.users()),
       Permission.delete(Role.users()),
     ];
+    if (userId && userId.trim()) {
+      perms.push(Permission.read(Role.user(userId.trim())));
+      perms.push(Permission.update(Role.user(userId.trim())));
+    }
+    return perms;
   }
 
   /**
@@ -60,6 +66,7 @@ export class LabRequestService {
       queuePosition: typeof doc.queuePosition === 'number' ? doc.queuePosition : null,
       requestedAt: doc.requestedAt || doc.$createdAt,
       adminNotes: doc.adminNotes || '',
+      userId: doc.userId || null,
       $createdAt: doc.$createdAt,
       $updatedAt: doc.$updatedAt,
     };
@@ -77,6 +84,7 @@ export class LabRequestService {
       status: req.status,
       queuePosition: req.queuePosition,
       requestedAt: req.requestedAt,
+      userId: req.userId || null,
     };
   }
 
@@ -271,7 +279,7 @@ export class LabRequestService {
       }
 
       // 4. Create document in Appwrite
-      const payload = {
+      const payload: Record<string, any> = {
         slotId: slotId,
         requesterName: name,
         requesterPhone: phone,
@@ -282,13 +290,30 @@ export class LabRequestService {
         adminNotes: '',
       };
 
-      const doc = await databases.createDocument<LabRequestDocument>(
-        this.databaseId,
-        this.collectionId,
-        ID.unique(),
-        payload,
-        this.getRequestPermissions()
-      );
+      if (input.userId && input.userId.trim()) {
+        payload.userId = input.userId.trim();
+      }
+
+      const docPermissions = this.getRequestPermissions(input.userId);
+
+      let doc: LabRequestDocument;
+      try {
+        doc = await databases.createDocument<LabRequestDocument>(
+          this.databaseId,
+          this.collectionId,
+          ID.unique(),
+          payload as any,
+          docPermissions
+        );
+      } catch (docErr1) {
+        // Fallback without explicit document permissions if custom perms fail
+        doc = await databases.createDocument<LabRequestDocument>(
+          this.databaseId,
+          this.collectionId,
+          ID.unique(),
+          payload as any
+        );
+      }
 
       const createdRequest = this.mapDocumentToRequest(doc);
 
@@ -307,6 +332,112 @@ export class LabRequestService {
     } catch (err: any) {
       console.error('[LabRequestService] Error submitting request:', err);
       return { success: false, error: err?.message || 'Failed to submit lab slot request.' };
+    }
+  }
+
+  /* ======================================================================== */
+  /* AUTHENTICATED STUDENT LAB REQUEST METHODS                                */
+  /* ======================================================================== */
+
+  /**
+   * Student: Fetches all lab booking requests belonging to an authenticated user ID.
+   * Filters strictly by userId = authenticatedUser.$id.
+   * Sorts by requestedAt descending.
+   */
+  static async getRequestsByUserId(
+    userId: string
+  ): Promise<LabBookingResult<LabRequest[]>> {
+    try {
+      if (!isAppwriteReady() || !userId?.trim()) {
+        return { success: true, data: [] };
+      }
+
+      const cleanUserId = userId.trim();
+
+      const queries = [
+        Query.equal('userId', cleanUserId),
+        Query.orderDesc('requestedAt'),
+        Query.limit(100),
+      ];
+
+      const response = await databases.listDocuments<LabRequestDocument>(
+        this.databaseId,
+        this.collectionId,
+        queries
+      );
+
+      const requests = response.documents.map((doc) => this.mapDocumentToRequest(doc));
+
+      return {
+        success: true,
+        data: requests,
+      };
+    } catch (error: any) {
+      console.error('[LabRequestService] Error fetching user lab requests:', error);
+      return {
+        success: false,
+        error: error?.message || 'Failed to retrieve your lab requests.',
+        data: [],
+      };
+    }
+  }
+
+  /**
+   * Student: Fetches user lab requests along with corresponding slot details in parallel.
+   * Caches / deduplicates slot queries and handles missing/deleted slots gracefully.
+   */
+  static async getUserRequestsWithSlots(
+    userId: string
+  ): Promise<LabBookingResult<StudentLabRequestWithSlot[]>> {
+    try {
+      const reqResult = await this.getRequestsByUserId(userId);
+      if (!reqResult.success || !reqResult.data) {
+        return {
+          success: false,
+          error: reqResult.error || 'Failed to load your lab requests.',
+          data: [],
+        };
+      }
+
+      const requests = reqResult.data;
+      if (requests.length === 0) {
+        return { success: true, data: [] };
+      }
+
+      // Extract unique slot IDs to avoid N duplicate requests
+      const uniqueSlotIds = Array.from(
+        new Set(requests.map((r) => r.slotId).filter(Boolean))
+      );
+
+      // Fetch all unique slots in parallel
+      const slotMap = new Map<string, LabSlot>();
+      const slotPromises = uniqueSlotIds.map(async (slotId) => {
+        try {
+          const res = await LabSlotService.getSlotById(slotId);
+          if (res.success && res.data) {
+            slotMap.set(slotId, res.data);
+          }
+        } catch (err) {
+          console.warn(`[LabRequestService] Notice: Could not load slot ${slotId}:`, err);
+        }
+      });
+
+      await Promise.allSettled(slotPromises);
+
+      // Combine request + slot models
+      const combined: StudentLabRequestWithSlot[] = requests.map((request) => ({
+        request,
+        slot: slotMap.get(request.slotId) || null,
+      }));
+
+      return { success: true, data: combined };
+    } catch (error: any) {
+      console.error('[LabRequestService] Error retrieving user requests with slots:', error);
+      return {
+        success: false,
+        error: error?.message || 'Failed to load your lab bookings.',
+        data: [],
+      };
     }
   }
 
