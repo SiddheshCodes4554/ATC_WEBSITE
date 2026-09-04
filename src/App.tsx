@@ -17,6 +17,7 @@ import { JoinPage } from './pages/JoinPage';
 import { SignupPage } from './pages/SignupPage';
 import { LoginPage } from './pages/LoginPage';
 import { StudentDashboardPage } from './pages/student/StudentDashboardPage';
+import { StudentEventsPage } from './pages/student/StudentEventsPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminEventsPage } from './pages/admin/AdminEventsPage';
@@ -90,6 +91,7 @@ export const App: React.FC = () => {
           <Route path="/student" element={<StudentProtectedRoute />}>
             <Route index element={<Navigate to="/student/dashboard" replace />} />
             <Route path="dashboard" element={<PublicLayout><StudentDashboardPage /></PublicLayout>} />
+            <Route path="events" element={<PublicLayout><StudentEventsPage /></PublicLayout>} />
             <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
           </Route>
 

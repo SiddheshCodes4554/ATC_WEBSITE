@@ -40,14 +40,19 @@ export class RegistrationService {
 
   /**
    * Permissions for student registrations:
-   * Public users create the document, while read/update/delete is restricted to ATC Admin users.
+   * Grants read permissions to the user and authenticated users.
    */
-  private static getParticipantPermissions(): string[] {
-    return [
+  private static getParticipantPermissions(userId?: string | null): string[] {
+    const perms = [
       Permission.read(Role.users()),
       Permission.update(Role.users()),
       Permission.delete(Role.users()),
     ];
+    if (userId && userId.trim()) {
+      perms.push(Permission.read(Role.user(userId.trim())));
+      perms.push(Permission.update(Role.user(userId.trim())));
+    }
+    return perms;
   }
 
   /* ======================================================================== */
@@ -310,11 +315,13 @@ export class RegistrationService {
     form,
     formFields,
     answers,
+    userId,
   }: {
     event: ATCEvent;
     form?: EventForm | null;
     formFields: FormField[];
     answers: Record<string, any>;
+    userId?: string | null;
   }): Promise<RegistrationSubmissionResult> {
     if (!isAppwriteReady()) {
       return {
@@ -415,6 +422,11 @@ export class RegistrationService {
     if (participantPhone) regPayload.phone = participantPhone;
     if (passId) regPayload.passId = passId;
     regPayload.passStatus = 'active';
+    if (userId && userId.trim()) {
+      regPayload.userId = userId.trim();
+    }
+
+    const docPermissions = this.getParticipantPermissions(userId);
 
     // Attempt 1: Full payload with document-level permissions
     try {
@@ -423,7 +435,7 @@ export class RegistrationService {
         this.registrationsCollection,
         registrationId,
         regPayload as any,
-        this.getParticipantPermissions()
+        docPermissions
       );
     } catch (err1: any) {
       console.warn('[RegistrationService] Attempt 1 failed. Trying Attempt 2 (no custom doc permissions)...', err1?.message);
@@ -449,6 +461,7 @@ export class RegistrationService {
         };
         if (participantPhone) corePayload.phone = participantPhone;
         if (form?.$id) corePayload.formId = form.$id;
+        if (userId && userId.trim()) corePayload.userId = userId.trim();
 
         try {
           createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
@@ -456,7 +469,7 @@ export class RegistrationService {
             this.registrationsCollection,
             registrationId,
             corePayload as any,
-            this.getParticipantPermissions()
+            docPermissions
           );
         } catch (err3: any) {
           console.warn('[RegistrationService] Attempt 3 failed. Trying Attempt 4 (core schema no custom permissions)...', err3?.message);
@@ -511,7 +524,7 @@ export class RegistrationService {
             fieldId: field.$id || field.label,
             value: serializedValue,
           },
-          this.getParticipantPermissions()
+          docPermissions
         );
         createdAnswerDocIds.push(answerDoc.$id);
       } catch (ansErr1) {
@@ -549,6 +562,7 @@ export class RegistrationService {
         registeredAt: createdRegistrationDoc.registeredAt,
         passId: createdRegistrationDoc.passId || passId,
         passStatus: createdRegistrationDoc.passStatus || 'active',
+        userId: createdRegistrationDoc.userId || (userId?.trim() || null),
       },
     };
   }
@@ -613,6 +627,129 @@ export class RegistrationService {
       return {
         success: false,
         error: error?.message || 'Unable to retrieve event pass.',
+      };
+    }
+  }
+
+  /* ======================================================================== */
+  /* AUTHENTICATED STUDENT REGISTRATION METHODS                               */
+  /* ======================================================================== */
+
+  /**
+   * Student: Fetches all registrations belonging to an authenticated user ID.
+   * Filters strictly by userId = authenticatedUser.$id.
+   * Sorts by registeredAt descending.
+   */
+  static async getRegistrationsByUserId(
+    userId: string
+  ): Promise<{ success: boolean; data?: EventRegistration[]; total?: number; error?: string }> {
+    try {
+      if (!isAppwriteReady() || !userId?.trim()) {
+        return { success: true, data: [], total: 0 };
+      }
+
+      const cleanUserId = userId.trim();
+
+      const queries = [
+        Query.equal('userId', cleanUserId),
+        Query.orderDesc('registeredAt'),
+        Query.limit(100),
+      ];
+
+      const response = await databases.listDocuments<EventRegistrationDocument>(
+        this.databaseId,
+        this.registrationsCollection,
+        queries
+      );
+
+      const registrations: EventRegistration[] = response.documents.map((doc) => ({
+        $id: doc.$id,
+        eventId: doc.eventId,
+        formId: doc.formId,
+        name: doc.name,
+        email: doc.email,
+        phone: doc.phone,
+        status: doc.status,
+        registeredAt: doc.registeredAt,
+        passId: doc.passId,
+        passStatus: doc.passStatus || (doc.status === 'cancelled' ? 'cancelled' : 'active'),
+        checkedInAt: doc.checkedInAt,
+        userId: doc.userId,
+      }));
+
+      return {
+        success: true,
+        data: registrations,
+        total: response.total,
+      };
+    } catch (error: any) {
+      console.error('[RegistrationService] Error fetching user registrations:', error);
+      return {
+        success: false,
+        error: error?.message || 'Failed to retrieve your event registrations.',
+      };
+    }
+  }
+
+  /**
+   * Student: Fetches registrations along with full event details in parallel.
+   * Safely handles deleted or missing events.
+   */
+  static async getUserRegistrationsWithEvents(
+    userId: string
+  ): Promise<{
+    success: boolean;
+    data?: { registration: EventRegistration; event: ATCEvent | null }[];
+    error?: string;
+  }> {
+    try {
+      const regResult = await this.getRegistrationsByUserId(userId);
+      if (!regResult.success || !regResult.data) {
+        return {
+          success: false,
+          error: regResult.error || 'Failed to load your event registrations.',
+          data: [],
+        };
+      }
+
+      const registrations = regResult.data;
+      if (registrations.length === 0) {
+        return { success: true, data: [] };
+      }
+
+      // Extract unique event IDs
+      const uniqueEventIds = Array.from(
+        new Set(registrations.map((r) => r.eventId).filter(Boolean))
+      );
+
+      // Fetch all required events in parallel
+      const eventMap = new Map<string, ATCEvent>();
+      const eventPromises = uniqueEventIds.map(async (eventId) => {
+        try {
+          const res = await EventService.getEventById(eventId);
+          if (res.success && res.data) {
+            eventMap.set(eventId, res.data);
+          }
+        } catch (err) {
+          console.warn(`[RegistrationService] Notice: Could not load event ${eventId}:`, err);
+        }
+      });
+
+      await Promise.allSettled(eventPromises);
+
+      // Map combined registration + event object
+      const combined = registrations.map((registration) => ({
+        registration,
+        event: eventMap.get(registration.eventId) || null,
+      }));
+
+      return { success: true, data: combined };
+    } catch (error: any) {
+      console.error('[RegistrationService] Error retrieving user registrations with events:', error);
+      return {
+        success: false,
+        error: error?.message || 'Failed to load your event registrations.',
+        data: [],
       };
     }
   }

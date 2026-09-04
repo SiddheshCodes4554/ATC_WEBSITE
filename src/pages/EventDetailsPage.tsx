@@ -5,6 +5,7 @@ import { FormService } from '../services/formService';
 import { StorageService } from '../services/storage.service';
 import { EventGalleryService } from '../services/eventGalleryService';
 import { RegistrationService } from '../services/registrationService';
+import { useAuth } from '../context/AuthContext';
 import { ATCEvent } from '../types/event.types';
 import { EventForm, FormField, EventRegistration } from '../types/form.types';
 import { EventGalleryImage } from '../types/eventGallery.types';
@@ -37,6 +38,7 @@ import confetti from 'canvas-confetti';
 export const EventDetailsPage: React.FC = () => {
   const params = useParams<{ slug?: string; eventId?: string }>();
   const slug = params.slug || params.eventId || '';
+  const { user } = useAuth();
 
   const [event, setEvent] = useState<ATCEvent | null>(null);
   const [eventForm, setEventForm] = useState<EventForm | null>(null);
@@ -366,6 +368,7 @@ export const EventDetailsPage: React.FC = () => {
         form: eventForm,
         formFields: fieldsToUse,
         answers: formValues,
+        userId: user?.$id || null,
       });
 
       if (result.success && result.registration) {

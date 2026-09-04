@@ -111,6 +111,7 @@ export interface EventRegistration {
   passId?: string;
   passStatus?: PassStatus;
   checkedInAt?: string | null;
+  userId?: string | null;
 }
 
 export interface EventRegistrationDocument extends Models.Document {
@@ -124,6 +125,7 @@ export interface EventRegistrationDocument extends Models.Document {
   passId?: string;
   passStatus?: PassStatus;
   checkedInAt?: string | null;
+  userId?: string | null;
 }
 
 export type CheckInValidationCode =
@@ -174,6 +176,7 @@ export interface SubmitRegistrationInput {
   eventId: string;
   formId?: string;
   answers: Record<string, any>; // field identifier -> user submitted value
+  userId?: string | null;
 }
 
 export interface RegistrationSubmissionResult {

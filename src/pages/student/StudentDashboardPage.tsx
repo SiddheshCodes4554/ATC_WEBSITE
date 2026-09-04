@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { RegistrationService } from '../../services/registrationService';
+import { StorageService } from '../../services/storage.service';
+import { EventRegistration, RegistrationStatus } from '../../types/form.types';
+import { ATCEvent } from '../../types/event.types';
 import {
   Sparkles,
   Calendar,
@@ -11,13 +15,26 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Clock,
-  Layers,
   ShieldCheck,
-  Compass
+  Compass,
+  Ticket,
+  AlertTriangle,
+  RotateCw,
+  XCircle,
+  ExternalLink,
+  MapPin
 } from 'lucide-react';
+
+interface StudentRegistrationItem {
+  registration: EventRegistration;
+  event: ATCEvent | null;
+}
 
 export const StudentDashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const [registrations, setRegistrations] = useState<StudentRegistrationItem[]>([]);
+  const [eventsLoading, setEventsLoading] = useState<boolean>(true);
+  const [eventsError, setEventsError] = useState<string | null>(null);
 
   // Derive first name safely from user.name
   const firstName =
@@ -27,6 +44,74 @@ export const StudentDashboardPage: React.FC = () => {
 
   const fullName = user?.name?.trim() || 'Student Builder';
   const email = user?.email || 'No email attached';
+
+  const fetchRegistrations = async () => {
+    if (!user?.$id) {
+      setEventsLoading(false);
+      return;
+    }
+
+    setEventsLoading(true);
+    setEventsError(null);
+
+    try {
+      const result = await RegistrationService.getUserRegistrationsWithEvents(user.$id);
+      if (result.success && result.data) {
+        setRegistrations(result.data);
+      } else {
+        setEventsError(result.error || 'Unable to fetch your registrations.');
+      }
+    } catch (err: any) {
+      setEventsError(err?.message || 'Could not load your registered events.');
+    } finally {
+      setEventsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRegistrations();
+  }, [user?.$id]);
+
+  const renderStatusBadge = (status: RegistrationStatus) => {
+    switch (status) {
+      case 'checked_in':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E1DCFF] border border-[#121316] font-mono text-[9px] font-black uppercase text-[#6C5CE7]">
+            <CheckCircle2 className="w-2.5 h-2.5" />
+            CHECKED IN
+          </span>
+        );
+      case 'cancelled':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFE5E5] border border-[#121316] font-mono text-[9px] font-black uppercase text-[#FF4757]">
+            <XCircle className="w-2.5 h-2.5" />
+            CANCELLED
+          </span>
+        );
+      case 'registered':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#2ED573]/20 border border-[#121316] font-mono text-[9px] font-black uppercase text-[#121316]">
+            <CheckCircle2 className="w-2.5 h-2.5 text-[#2ED573]" />
+            REGISTERED
+          </span>
+        );
+    }
+  };
+
+  const formatEventDate = (isoString?: string | null) => {
+    if (!isoString) return 'Date TBA';
+    try {
+      const d = new Date(isoString);
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return isoString;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#FAF7F0] text-[#121316] paper-pattern pb-20 select-none">
@@ -100,22 +185,22 @@ export const StudentDashboardPage: React.FC = () => {
             
             {/* Card 1: My Events */}
             <Link
-              to="/events"
+              to="/student/events"
               className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer"
             >
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center mb-4 group-hover:rotate-6 transition-transform">
-                  <Calendar className="w-6 h-6 text-[#121316] stroke-[2.5]" />
+                  <Ticket className="w-6 h-6 text-[#121316] stroke-[2.5]" />
                 </div>
                 <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
                   My Events
                 </h3>
                 <p className="text-xs font-bold text-gray-600 mt-1.5 leading-relaxed">
-                  Browse upcoming hackathons, bootcamps, and technical workshops.
+                  View your registered hackathons, workshop passes, and attendance.
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-xs font-mono font-black text-[#121316]">
-                <span>View Events</span>
+                <span>My Passes</span>
                 <ArrowRight className="w-4 h-4 stroke-[3] group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
@@ -280,81 +365,187 @@ export const StudentDashboardPage: React.FC = () => {
         </section>
 
         {/* ============================================================= */}
-        {/* 3. PLACEHOLDER DASHBOARD ACTIVITY SECTIONS                   */}
+        {/* 3. DYNAMIC DASHBOARD ACTIVITY SECTIONS                        */}
         {/* ============================================================= */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Section A: Event Activity */}
-          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop space-y-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-[#121316] flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-[#6C5CE7]" />
-                <span>My Event Activity</span>
-              </h3>
-              <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-[10px] font-bold">
-                PREVIEW
-              </span>
+          {/* Section A: Event Activity (Dynamic) */}
+          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop flex flex-col justify-between space-y-5">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-black text-[#121316] flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-[#6C5CE7]" />
+                  <span>My Events</span>
+                </h3>
+                {registrations.length > 0 && (
+                  <Link
+                    to="/student/events"
+                    className="inline-flex items-center gap-1 font-mono text-xs font-black text-[#6C5CE7] hover:underline"
+                  >
+                    <span>View All ({registrations.length})</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                )}
+              </div>
+
+              {eventsLoading ? (
+                /* Skeleton Loader */
+                <div className="space-y-3 animate-pulse">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-gray-200 space-y-2">
+                      <div className="w-2/3 h-5 bg-gray-200 rounded" />
+                      <div className="w-1/2 h-3.5 bg-gray-200 rounded" />
+                    </div>
+                  ))}
+                </div>
+              ) : eventsError ? (
+                /* Error State */
+                <div className="p-5 rounded-2xl bg-[#FFE5E5] border-2 border-[#FF4757] text-center space-y-3">
+                  <AlertTriangle className="w-6 h-6 text-[#FF4757] mx-auto" />
+                  <p className="text-xs font-bold text-gray-700">{eventsError}</p>
+                  <button
+                    type="button"
+                    onClick={fetchRegistrations}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-[#FF4757] font-mono text-[10px] font-black uppercase text-[#FF4757]"
+                  >
+                    <RotateCw className="w-3 h-3" />
+                    Retry
+                  </button>
+                </div>
+              ) : registrations.length > 0 ? (
+                /* Top Registrations List */
+                <div className="space-y-3">
+                  {registrations.slice(0, 3).map(({ registration, event }) => {
+                    const eventTitle = event?.title || 'ATC Event';
+                    const eventDate = formatEventDate(event?.startDate);
+                    const eventSlug = event?.slug || event?.$id || registration.eventId;
+
+                    return (
+                      <div
+                        key={registration.$id || registration.passId}
+                        className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] hover:border-[#6C5CE7] transition-all flex items-center justify-between gap-3 group"
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            {renderStatusBadge(registration.status)}
+                            {registration.passId && (
+                              <span className="font-mono text-[10px] text-gray-500 font-bold">
+                                #{registration.passId}
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="font-black text-sm text-[#121316] truncate group-hover:text-[#6C5CE7] transition-colors">
+                            {eventTitle}
+                          </h4>
+                          <div className="flex items-center gap-2 text-xs font-bold text-gray-600 font-mono">
+                            <Calendar className="w-3 h-3 text-[#6C5CE7]" />
+                            <span>{eventDate}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {registration.passId && (
+                            <Link
+                              to={`/pass/${registration.passId}`}
+                              className="px-2.5 py-1 rounded-xl bg-white border border-[#121316] text-[#6C5CE7] hover:bg-[#E1DCFF] font-mono text-xs font-black transition-colors"
+                              title="View Pass"
+                            >
+                              Pass
+                            </Link>
+                          )}
+                          <Link
+                            to={`/events/${eventSlug}`}
+                            className="p-2 rounded-xl bg-[#FFE600] border border-[#121316] text-[#121316] hover:bg-[#FFD32A] transition-colors"
+                            title="View Event Details"
+                          >
+                            <ArrowRight className="w-4 h-4 stroke-[3]" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Empty State */
+                <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center">
+                    <Ticket className="w-6 h-6 text-[#6C5CE7]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-black text-sm text-[#121316]">
+                      No Event Registrations Yet
+                    </h4>
+                    <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
+                      You haven't registered for any workshops or hackathons yet. Check out what's coming up!
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <Link
+                      to="/events"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FFE600] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all cursor-pointer"
+                    >
+                      <span>Browse Upcoming Events</span>
+                      <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-[#6C5CE7]" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-black text-sm text-[#121316]">
-                  Event Registrations Coming Soon
-                </h4>
-                <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
-                  Your registered workshop passes, check-in history, and certificates will be organized right here.
-                </p>
-              </div>
-
-              <div className="pt-2">
+            {registrations.length > 0 && (
+              <div className="pt-3 border-t-2 border-[#121316]/10">
                 <Link
-                  to="/events"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FFE600] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all cursor-pointer"
+                  to="/student/events"
+                  className="w-full py-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] text-[#121316] font-mono text-xs font-black uppercase flex items-center justify-center gap-2 transition-all shadow-pop-sm"
                 >
-                  <span>Browse Upcoming Events</span>
+                  <span>Go to My Events Page</span>
                   <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                 </Link>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Section B: Lab Activity */}
-          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop space-y-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-black text-[#121316] flex items-center gap-2">
-                <FlaskConical className="w-5 h-5 text-[#2ED573]" />
-                <span>Lab Activity</span>
-              </h3>
-              <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-[10px] font-bold">
-                PREVIEW
-              </span>
+          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop flex flex-col justify-between space-y-5">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-black text-[#121316] flex items-center gap-2">
+                  <FlaskConical className="w-5 h-5 text-[#2ED573]" />
+                  <span>Lab Activity</span>
+                </h3>
+                <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-500 font-mono text-[10px] font-bold">
+                  PREVIEW
+                </span>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center">
+                  <FlaskConical className="w-6 h-6 text-[#2ED573]" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-black text-sm text-[#121316]">
+                    Lab Bookings Coming Soon
+                  </h4>
+                  <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
+                    Your workstation reservations, component issue requests, and access logs will synchronize here.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <Link
+                    to="/lab-access"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2ED573] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all cursor-pointer"
+                  >
+                    <span>Book a Lab Slot</span>
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                  </Link>
+                </div>
+              </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center">
-                <FlaskConical className="w-6 h-6 text-[#2ED573]" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-black text-sm text-[#121316]">
-                  Lab Bookings Coming Soon
-                </h4>
-                <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
-                  Your workstation reservations, component issue requests, and access logs will synchronize here.
-                </p>
-              </div>
-
-              <div className="pt-2">
-                <Link
-                  to="/lab-access"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2ED573] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all cursor-pointer"
-                >
-                  <span>Book a Lab Slot</span>
-                  <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
-                </Link>
-              </div>
+            <div className="pt-3 border-t-2 border-[#121316]/10 text-xs font-mono font-bold text-gray-500 text-center">
+              <span>Robotics & IoT Workstation Integration</span>
             </div>
           </div>
 
@@ -366,3 +557,4 @@ export const StudentDashboardPage: React.FC = () => {
 };
 
 export default StudentDashboardPage;
+
