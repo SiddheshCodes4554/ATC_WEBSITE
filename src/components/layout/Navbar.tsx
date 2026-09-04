@@ -50,6 +50,7 @@ export const Navbar: React.FC = () => {
     { name: 'Events', path: '/events' },
     { name: 'Projects', path: '/projects' },
     { name: 'Lab 5.0', path: '/lab' },
+    { name: 'Inventory', path: '/inventory' },
     { name: 'Lab Slots', path: '/lab-access', badge: 'SLOTS' },
     { name: 'Team', path: '/team' },
     { name: 'Gallery', path: '/gallery' },

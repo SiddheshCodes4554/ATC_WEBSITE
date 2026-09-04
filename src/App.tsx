@@ -10,6 +10,7 @@ import { EventPassPage } from './pages/EventPassPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectDetailsPage } from './pages/ProjectDetailsPage';
 import { LabPage } from './pages/LabPage';
+import { InventoryPage } from './pages/InventoryPage';
 import { TeamPage } from './pages/TeamPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { JoinPage } from './pages/JoinPage';
@@ -74,6 +75,7 @@ export const App: React.FC = () => {
           <Route path="/projects/:slug" element={<PublicLayout><ProjectDetailsPage /></PublicLayout>} />
           <Route path="/lab" element={<PublicLayout><LabPage /></PublicLayout>} />
           <Route path="/lab-access" element={<PublicLayout><LabAccessPage /></PublicLayout>} />
+          <Route path="/inventory" element={<PublicLayout><InventoryPage /></PublicLayout>} />
           <Route path="/team" element={<PublicLayout><TeamPage /></PublicLayout>} />
           <Route path="/gallery" element={<PublicLayout><GalleryPage /></PublicLayout>} />
           <Route path="/join" element={<PublicLayout><JoinPage /></PublicLayout>} />
