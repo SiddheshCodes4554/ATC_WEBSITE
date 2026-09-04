@@ -13,6 +13,7 @@ import { LabPage } from './pages/LabPage';
 import { TeamPage } from './pages/TeamPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { JoinPage } from './pages/JoinPage';
+import { SignupPage } from './pages/SignupPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminEventsPage } from './pages/admin/AdminEventsPage';
@@ -75,6 +76,7 @@ export const App: React.FC = () => {
           <Route path="/team" element={<PublicLayout><TeamPage /></PublicLayout>} />
           <Route path="/gallery" element={<PublicLayout><GalleryPage /></PublicLayout>} />
           <Route path="/join" element={<PublicLayout><JoinPage /></PublicLayout>} />
+          <Route path="/signup" element={<SignupPage />} />
 
           {/* ============================================================= */}
           {/* ADMIN AUTHENTICATION ROUTES                                    */}

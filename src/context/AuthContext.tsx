@@ -9,6 +9,11 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<AuthResult<Models.Session>>;
+  signup: (
+    name: string,
+    email: string,
+    password: string
+  ) => Promise<AuthResult<{ user: Models.User<Models.Preferences>; session: Models.Session | null }>>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -53,6 +58,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const signup = async (
+    name: string,
+    email: string,
+    password: string
+  ): Promise<AuthResult<{ user: Models.User<Models.Preferences>; session: Models.Session | null }>> => {
+    setLoading(true);
+    try {
+      // 1. Create the Appwrite account
+      const signupResult = await AuthService.signup(name, email, password);
+      if (!signupResult.success || !signupResult.data) {
+        return {
+          success: false,
+          error: signupResult.error || 'Failed to create account.',
+          code: signupResult.code,
+        };
+      }
+
+      // 2. Automatically log in the newly registered user
+      const loginResult = await AuthService.login(email, password);
+      if (loginResult.success) {
+        const currentUser = await AuthService.getCurrentUser();
+        setUser(currentUser);
+        return {
+          success: true,
+          data: {
+            user: currentUser || signupResult.data,
+            session: loginResult.data || null,
+          },
+        };
+      }
+
+      // If auto-login fails, return success for creation with a warning note
+      return {
+        success: true,
+        data: {
+          user: signupResult.data,
+          session: null,
+        },
+        error: 'Account created successfully! Please sign in with your credentials.',
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async (): Promise<void> => {
     setLoading(true);
     try {
@@ -72,6 +122,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isAuthenticated: Boolean(user),
         isAdmin,
         login,
+        signup,
         logout,
         checkAuth,
       }}

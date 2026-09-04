@@ -1,4 +1,4 @@
-import { Models } from 'appwrite';
+import { Models, ID } from 'appwrite';
 import { account } from './appwrite';
 
 /**
@@ -18,7 +18,46 @@ export interface AuthResult<T = any> {
 
 export class AuthService {
   /**
-   * Authenticate an admin using email and password
+   * Register a new student/user account using Appwrite SDK v26 API
+   */
+  static async signup(
+    name: string,
+    email: string,
+    password: string
+  ): Promise<AuthResult<Models.User<Models.Preferences>>> {
+    try {
+      const user = await account.create(
+        ID.unique(),
+        email.trim(),
+        password,
+        name.trim()
+      );
+      return { success: true, data: user };
+    } catch (error: any) {
+      let friendlyMessage = 'Unable to create your account. Please try again.';
+
+      if (error?.code === 409 || error?.type === 'user_already_exists') {
+        friendlyMessage = 'An account with this email already exists. Please try logging in.';
+      } else if (
+        error?.code === 400 ||
+        error?.type === 'password_recently_used' ||
+        error?.type === 'password_invalid'
+      ) {
+        friendlyMessage = error.message || 'Password must be at least 8 characters long.';
+      } else if (error?.message) {
+        friendlyMessage = error.message;
+      }
+
+      return {
+        success: false,
+        error: friendlyMessage,
+        code: error?.code,
+      };
+    }
+  }
+
+  /**
+   * Authenticate an admin or student using email and password
    */
   static async login(
     email: string,
