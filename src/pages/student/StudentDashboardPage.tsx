@@ -78,7 +78,7 @@ export const StudentDashboardPage: React.FC = () => {
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E1DCFF] border border-[#121316] font-mono text-[9px] font-black uppercase text-[#6C5CE7]">
             <CheckCircle2 className="w-2.5 h-2.5" />
-            CHECKED IN
+            CHECKED IN ✓
           </span>
         );
       case 'cancelled':
@@ -93,7 +93,7 @@ export const StudentDashboardPage: React.FC = () => {
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#2ED573]/20 border border-[#121316] font-mono text-[9px] font-black uppercase text-[#121316]">
             <CheckCircle2 className="w-2.5 h-2.5 text-[#2ED573]" />
-            REGISTERED
+            REGISTERED ✓
           </span>
         );
     }
@@ -370,20 +370,24 @@ export const StudentDashboardPage: React.FC = () => {
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Section A: Event Activity (Dynamic) */}
-          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop flex flex-col justify-between space-y-5">
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-[#121316] flex items-center gap-2">
-                  <Ticket className="w-5 h-5 text-[#6C5CE7]" />
-                  <span>My Events</span>
-                </h3>
+          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h3 className="text-xl font-black text-[#121316] flex items-center gap-2">
+                    <Ticket className="w-5 h-5 text-[#6C5CE7]" />
+                    <span>MY EVENTS 🎟️</span>
+                  </h3>
+                  <p className="text-xs font-bold text-gray-600 mt-0.5">
+                    Your registrations and upcoming ATC experiences.
+                  </p>
+                </div>
                 {registrations.length > 0 && (
                   <Link
                     to="/student/events"
-                    className="inline-flex items-center gap-1 font-mono text-xs font-black text-[#6C5CE7] hover:underline"
+                    className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#6C5CE7] hover:underline flex-shrink-0"
                   >
-                    <span>View All ({registrations.length})</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>VIEW ALL →</span>
                   </Link>
                 )}
               </div>
@@ -392,73 +396,94 @@ export const StudentDashboardPage: React.FC = () => {
                 /* Skeleton Loader */
                 <div className="space-y-3 animate-pulse">
                   {[1, 2].map((i) => (
-                    <div key={i} className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-gray-200 space-y-2">
-                      <div className="w-2/3 h-5 bg-gray-200 rounded" />
-                      <div className="w-1/2 h-3.5 bg-gray-200 rounded" />
+                    <div key={i} className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-gray-200 flex gap-4">
+                      <div className="w-16 h-16 rounded-xl bg-gray-200 flex-shrink-0" />
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="w-2/3 h-4 bg-gray-200 rounded" />
+                        <div className="w-1/2 h-3 bg-gray-200 rounded" />
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : eventsError ? (
                 /* Error State */
-                <div className="p-5 rounded-2xl bg-[#FFE5E5] border-2 border-[#FF4757] text-center space-y-3">
-                  <AlertTriangle className="w-6 h-6 text-[#FF4757] mx-auto" />
-                  <p className="text-xs font-bold text-gray-700">{eventsError}</p>
+                <div className="p-6 rounded-2xl bg-[#FFE5E5] border-2 border-[#FF4757] text-center space-y-3">
+                  <AlertTriangle className="w-8 h-8 text-[#FF4757] mx-auto" />
+                  <div className="space-y-1">
+                    <h4 className="font-black text-sm text-[#121316]">
+                      WE COULDN'T LOAD YOUR EVENT ACTIVITY
+                    </h4>
+                    <p className="text-xs font-bold text-gray-600">{eventsError}</p>
+                  </div>
                   <button
                     type="button"
                     onClick={fetchRegistrations}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-[#FF4757] font-mono text-[10px] font-black uppercase text-[#FF4757]"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
                   >
-                    <RotateCw className="w-3 h-3" />
-                    Retry
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>TRY AGAIN</span>
                   </button>
                 </div>
               ) : registrations.length > 0 ? (
-                /* Top Registrations List */
+                /* Top Registrations List (Max 3) */
                 <div className="space-y-3">
                   {registrations.slice(0, 3).map(({ registration, event }) => {
                     const eventTitle = event?.title || 'ATC Event';
                     const eventDate = formatEventDate(event?.startDate);
+                    const eventVenue = event?.venue || 'ATC Lab 5.0, NIAT Pune';
                     const eventSlug = event?.slug || event?.$id || registration.eventId;
+                    const coverUrl = event?.coverImageId
+                      ? StorageService.getEventImageUrl(event.coverImageId, 200)
+                      : '';
 
                     return (
                       <div
                         key={registration.$id || registration.passId}
-                        className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] hover:border-[#6C5CE7] transition-all flex items-center justify-between gap-3 group"
+                        className="p-3.5 sm:p-4 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                       >
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            {renderStatusBadge(registration.status)}
-                            {registration.passId && (
-                              <span className="font-mono text-[10px] text-gray-500 font-bold">
-                                #{registration.passId}
-                              </span>
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Event Thumbnail */}
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white border-2 border-[#121316] overflow-hidden flex-shrink-0 flex items-center justify-center">
+                            {coverUrl ? (
+                              <img
+                                src={coverUrl}
+                                alt={eventTitle}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            ) : (
+                              <Ticket className="w-6 h-6 text-[#6C5CE7]" />
                             )}
                           </div>
-                          <h4 className="font-black text-sm text-[#121316] truncate group-hover:text-[#6C5CE7] transition-colors">
-                            {eventTitle}
-                          </h4>
-                          <div className="flex items-center gap-2 text-xs font-bold text-gray-600 font-mono">
-                            <Calendar className="w-3 h-3 text-[#6C5CE7]" />
-                            <span>{eventDate}</span>
+
+                          {/* Event Details */}
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              {renderStatusBadge(registration.status)}
+                            </div>
+                            <h4 className="font-black text-sm text-[#121316] truncate group-hover:text-[#6C5CE7] transition-colors">
+                              {eventTitle}
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-gray-600">
+                              <span className="flex items-center gap-1 font-mono text-[11px]">
+                                <Calendar className="w-3 h-3 text-[#6C5CE7]" />
+                                {eventDate}
+                              </span>
+                              <span className="flex items-center gap-1 truncate text-[11px]">
+                                <MapPin className="w-3 h-3 text-[#FF4757]" />
+                                <span className="truncate max-w-[130px]">{eventVenue}</span>
+                              </span>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {registration.passId && (
-                            <Link
-                              to={`/pass/${registration.passId}`}
-                              className="px-2.5 py-1 rounded-xl bg-white border border-[#121316] text-[#6C5CE7] hover:bg-[#E1DCFF] font-mono text-xs font-black transition-colors"
-                              title="View Pass"
-                            >
-                              Pass
-                            </Link>
-                          )}
+                        {/* View Event Button */}
+                        <div className="flex items-center justify-end sm:justify-center flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#121316]/10">
                           <Link
                             to={`/events/${eventSlug}`}
-                            className="p-2 rounded-xl bg-[#FFE600] border border-[#121316] text-[#121316] hover:bg-[#FFD32A] transition-colors"
-                            title="View Event Details"
+                            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] border-2 border-[#121316] text-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all"
                           >
-                            <ArrowRight className="w-4 h-4 stroke-[3]" />
+                            <span>View Event</span>
+                            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                           </Link>
                         </div>
                       </div>
@@ -468,25 +493,24 @@ export const StudentDashboardPage: React.FC = () => {
               ) : (
                 /* Empty State */
                 <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center">
-                    <Ticket className="w-6 h-6 text-[#6C5CE7]" />
+                  <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center text-xl">
+                    🎟️
                   </div>
                   <div className="space-y-1">
                     <h4 className="font-black text-sm text-[#121316]">
-                      No Event Registrations Yet
+                      NO EVENTS YET
                     </h4>
                     <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
-                      You haven't registered for any workshops or hackathons yet. Check out what's coming up!
+                      You haven't registered for any ATC events yet.
                     </p>
                   </div>
 
                   <div className="pt-2">
                     <Link
                       to="/events"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FFE600] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FFE600] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
                     >
-                      <span>Browse Upcoming Events</span>
-                      <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>EXPLORE EVENTS →</span>
                     </Link>
                   </div>
                 </div>
@@ -499,7 +523,7 @@ export const StudentDashboardPage: React.FC = () => {
                   to="/student/events"
                   className="w-full py-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] text-[#121316] font-mono text-xs font-black uppercase flex items-center justify-center gap-2 transition-all shadow-pop-sm"
                 >
-                  <span>Go to My Events Page</span>
+                  <span>Go to My Events Archive</span>
                   <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                 </Link>
               </div>

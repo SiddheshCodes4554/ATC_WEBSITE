@@ -156,11 +156,11 @@ export const StudentEventsPage: React.FC = () => {
               </div>
 
               <h1 className="text-3xl sm:text-5xl font-black text-[#121316] tracking-tight leading-tight">
-                MY EVENTS 🎟️
+                MY EVENTS
               </h1>
 
               <p className="text-base sm:text-lg font-bold text-gray-700 leading-relaxed">
-                Your registered ATC hackathons, bootcamps, workshops, and participation passes.
+                Your ATC registrations and experiences.
               </p>
             </div>
 
@@ -201,9 +201,9 @@ export const StudentEventsPage: React.FC = () => {
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              {(['ALL', 'registered', 'checked_in', 'cancelled'] as const).map((status) => {
+              {(['ALL', 'registered', 'cancelled', 'checked_in'] as const).map((status) => {
                 const isSelected = statusFilter === status;
-                const label = status === 'ALL' ? 'All Registrations' : status.replace('_', ' ');
+                const label = status === 'ALL' ? 'ALL' : status.replace('_', ' ').toUpperCase();
 
                 return (
                   <button
