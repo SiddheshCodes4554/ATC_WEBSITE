@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowUpRight, Sparkles } from 'lucide-react';
+import { Menu, X, ArrowUpRight, Sparkles, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { PlayfulButton } from '../ui/PlayfulButton';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  const { user, isAuthenticated, logout, isAdmin } = useAuth();
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -75,17 +78,67 @@ export const Navbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Primary CTA on Right: Let's Build ↗ */}
-          <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
-            <PlayfulButton
-              to="/join"
-              variant="primary"
-              size="md"
-              withConfetti
-              icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
-            >
-              Let's Build
-            </PlayfulButton>
+          {/* Primary CTA / Auth on Right */}
+          <div className="hidden sm:flex items-center gap-2.5 flex-shrink-0">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2">
+                <span
+                  className="font-mono text-xs font-black text-[#6C5CE7] bg-white px-3 py-1 rounded-full border-2 border-[#121316] shadow-pop-sm max-w-[130px] truncate"
+                  title={user?.email || 'Logged in user'}
+                >
+                  {user?.name ? user.name.split(' ')[0] : (user?.email ? user.email.split('@')[0] : 'User')}
+                </span>
+                <button
+                  onClick={async () => {
+                    await logout();
+                  }}
+                  className="p-1.5 rounded-full bg-white hover:bg-[#FFE5E5] text-gray-500 hover:text-[#FF4757] transition-colors border-2 border-[#121316] shadow-pop-sm cursor-pointer"
+                  title="Sign Out"
+                  aria-label="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+                {isAdmin ? (
+                  <PlayfulButton
+                    to="/admin/dashboard"
+                    variant="primary"
+                    size="md"
+                    withConfetti
+                    icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
+                  >
+                    Dashboard
+                  </PlayfulButton>
+                ) : (
+                  <PlayfulButton
+                    to="/join"
+                    variant="primary"
+                    size="md"
+                    withConfetti
+                    icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
+                  >
+                    Let's Build
+                  </PlayfulButton>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="px-3.5 py-1.5 rounded-full text-xs font-black text-[#121316] hover:bg-[#FFE600]/30 transition-colors font-mono uppercase border-2 border-transparent hover:border-[#121316]"
+                >
+                  Sign In
+                </Link>
+                <PlayfulButton
+                  to="/join"
+                  variant="primary"
+                  size="md"
+                  withConfetti
+                  icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
+                >
+                  Let's Build
+                </PlayfulButton>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Toggle Button */}
@@ -129,14 +182,41 @@ export const Navbar: React.FC = () => {
             })}
           </div>
 
-          {/* Mobile CTA */}
-          <div className="pt-2">
+          {/* Mobile User/Auth & CTA */}
+          <div className="pt-2 space-y-2">
+            {isAuthenticated ? (
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm">
+                <span className="font-mono text-xs font-black text-[#6C5CE7] truncate">
+                  👤 {user?.name || user?.email}
+                </span>
+                <button
+                  onClick={async () => {
+                    setMobileMenuOpen(false);
+                    await logout();
+                  }}
+                  className="px-2.5 py-1 rounded-full bg-[#FFE5E5] text-[#FF4757] font-mono text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <LogOut className="w-3 h-3" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-2.5 rounded-2xl bg-white border-2 border-[#121316] font-mono text-xs font-black text-[#121316] flex items-center justify-center gap-2 text-center"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Student Sign In / Register</span>
+              </Link>
+            )}
+
             <Link
-              to="/join"
+              to={isAdmin ? '/admin/dashboard' : '/join'}
               onClick={() => setMobileMenuOpen(false)}
               className="w-full py-3 rounded-2xl bg-[#FFE600] border-3 border-[#121316] shadow-pop font-mono text-xs font-black text-[#121316] flex items-center justify-center gap-2 text-center"
             >
-              <span>Join ATC • Let's Build</span>
+              <span>{isAdmin ? 'Admin Dashboard' : "Join ATC • Let's Build"}</span>
               <ArrowUpRight className="w-4 h-4 stroke-[3]" />
             </Link>
           </div>

@@ -13,6 +13,7 @@ import {
   EyeOff,
   Sparkles,
   LogIn,
+  LogOut,
   CheckCircle2,
   KeyRound
 } from 'lucide-react';
@@ -25,21 +26,9 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, isAuthenticated, isAdmin, loading } = useAuth();
+  const { user, login, logout, isAuthenticated, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // If already authenticated, redirect safely (Admin -> Dashboard, Student -> Home)
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      if (isAdmin) {
-        navigate('/admin/dashboard', { replace: true });
-      } else {
-        const destination = (location.state as any)?.from?.pathname || '/';
-        navigate(destination, { replace: true });
-      }
-    }
-  }, [isAuthenticated, isAdmin, loading, navigate, location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +90,66 @@ export const LoginPage: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  // If already authenticated, show friendly session status with quick navigation or logout
+  if (!loading && isAuthenticated) {
+    return (
+      <div className="min-h-[90vh] bg-[#FAF7F0] flex flex-col items-center justify-center p-4 sm:p-8 paper-pattern select-none">
+        <div className="w-full max-w-md mb-6 flex items-center justify-between">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
+          </Link>
+          <span className="font-mono text-[11px] font-bold text-gray-500">
+            NIAT PUNE
+          </span>
+        </div>
+
+        <div className="w-full max-w-md bg-white rounded-[36px] border-4 border-[#121316] shadow-pop-xl p-8 sm:p-10 text-center relative">
+          <div className="tape-strip pointer-events-none bg-[#2ED573]" />
+
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E1DCFF] border-2 border-[#121316] shadow-pop-sm font-mono font-black text-xs uppercase text-[#6C5CE7] mb-4">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#2ED573]" />
+            ACTIVE SESSION
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-black text-[#121316] mb-2">
+            You're Signed In!
+          </h2>
+
+          <p className="text-xs sm:text-sm font-bold text-gray-600 mb-2">
+            Currently authenticated as:
+          </p>
+          <div className="p-3 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] font-mono text-xs font-black text-[#6C5CE7] mb-6 break-all">
+            {user?.name ? `${user.name} (${user.email})` : user?.email || 'Student'}
+          </div>
+
+          <div className="space-y-3">
+            <Link
+              to={isAdmin ? '/admin/dashboard' : '/'}
+              className="w-full py-3.5 px-6 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-black text-base border-3 border-[#121316] shadow-pop hover:shadow-pop-lg active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <span>{isAdmin ? 'Go to Admin Dashboard' : 'Continue to Home Page'}</span>
+              <ArrowRight className="w-5 h-5 stroke-[3]" />
+            </Link>
+
+            <button
+              onClick={async () => {
+                await logout();
+              }}
+              className="w-full py-3 px-6 rounded-full bg-[#FAF7F0] hover:bg-gray-100 text-[#121316] font-bold text-sm border-2 border-[#121316] shadow-pop-sm active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-2 cursor-pointer transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Log Out / Sign In with Another Account</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[90vh] bg-[#FAF7F0] flex flex-col items-center justify-center p-4 sm:p-8 paper-pattern select-none">
