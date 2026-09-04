@@ -11,6 +11,7 @@ import {
   UpdateLabSlotInput,
   AdminLabOverviewStats,
 } from '../../types/labBooking.types';
+import { getSlotTimeRemaining } from '../../utils/labTimeUtils';
 import {
   Calendar,
   Clock,
@@ -38,6 +39,7 @@ import {
   Check,
   X,
   RefreshCw,
+  Zap,
 } from 'lucide-react';
 
 export const AdminLabPage: React.FC = () => {
@@ -56,6 +58,7 @@ export const AdminLabPage: React.FC = () => {
   const [slots, setSlots] = useState<LabSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState<boolean>(true);
   const [slotDateFilter, setSlotDateFilter] = useState<string>('');
+  const [isCleaningUp, setIsCleaningUp] = useState<boolean>(false);
 
   // Requests State
   const [requests, setRequests] = useState<LabRequest[]>([]);
@@ -92,6 +95,30 @@ export const AdminLabPage: React.FC = () => {
   const showError = (msg: string) => {
     setErrorMessage(msg);
     setTimeout(() => setErrorMessage(null), 6000);
+  };
+
+  // Manual Trigger for Storage Cleanup & Purging Expired Slots
+  const handleCleanExpiredSlots = async () => {
+    setIsCleaningUp(true);
+    try {
+      const res = await LabSlotService.cleanupExpiredSlots();
+      if (res.success && res.data) {
+        if (res.data.deletedSlotsCount > 0) {
+          showSuccess(`⚡ Storage Optimized: Purged ${res.data.deletedSlotsCount} expired slot(s) and ${res.data.deletedRequestsCount} past booking request(s)!`);
+        } else {
+          showSuccess('Database already optimized: No expired slots found.');
+        }
+        loadSlots();
+        loadRequests();
+        loadOverview();
+      } else {
+        showError(res.error || 'Failed to clean up expired slots.');
+      }
+    } catch (err: any) {
+      showError('Error during slot cleanup.');
+    } finally {
+      setIsCleaningUp(false);
+    }
   };
 
   // Load Overview Data
@@ -355,6 +382,21 @@ export const AdminLabPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleCleanExpiredSlots}
+            disabled={isCleaningUp}
+            className="px-4 py-2.5 rounded-full bg-[#E8F5E9] hover:bg-[#c8e6c9] text-[#2E7D32] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            title="Clean up all slots whose date and end time have passed"
+          >
+            {isCleaningUp ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Zap className="w-3.5 h-3.5 text-[#2E7D32]" />
+            )}
+            <span>Purge Expired</span>
+          </button>
+
           <Link
             to="/lab-access"
             target="_blank"
@@ -661,6 +703,33 @@ export const AdminLabPage: React.FC = () => {
         {/* ============================================================= */}
         {activeTab === 'slots' && (
           <div className="space-y-6">
+            {/* Auto-Expire & Optimization Status Banner */}
+            <div className="p-4 rounded-3xl bg-[#E8F5E9] border-3 border-[#2ED573] shadow-pop-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#2E7D32]">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-xl border border-[#2ED573] shadow-pop-xs">
+                  <ShieldCheck className="w-5 h-5 text-[#2ED573]" />
+                </div>
+                <div>
+                  <h4 className="font-mono text-xs font-black uppercase text-[#1B5E20]">
+                    Auto-Expire & Space Optimization Active ⚡
+                  </h4>
+                  <p className="text-xs font-bold text-[#2E7D32]">
+                    Slots and booking requests automatically delete once their scheduled time ends to preserve Appwrite database limits.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCleanExpiredSlots}
+                disabled={isCleaningUp}
+                className="px-4 py-2 rounded-2xl bg-[#2ED573] hover:bg-[#26af5f] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all self-start sm:self-auto cursor-pointer"
+              >
+                {isCleaningUp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                <span>Purge Expired Slots Now</span>
+              </button>
+            </div>
+
             {/* Filters Bar */}
             <div className="p-4 rounded-3xl bg-white border-3 border-[#121316] shadow-pop-sm flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -688,7 +757,7 @@ export const AdminLabPage: React.FC = () => {
 
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono font-bold text-gray-500">
-                  Showing {slots.length} slots
+                  Showing {slots.length} active slots
                 </span>
                 <button
                   type="button"
@@ -711,7 +780,7 @@ export const AdminLabPage: React.FC = () => {
               <div className="p-12 rounded-3xl bg-white border-3 border-[#121316] shadow-pop text-center space-y-3">
                 <Clock className="w-8 h-8 text-gray-400 mx-auto" />
                 <p className="font-mono text-xs font-bold text-gray-600">
-                  No slots found for the selected criteria.
+                  No active slots found. Expired slots have been automatically purged.
                 </p>
                 <button
                   type="button"
@@ -723,49 +792,56 @@ export const AdminLabPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {slots.map((slot) => (
-                  <div
-                    key={slot.$id}
-                    className={`p-6 rounded-[32px] bg-white border-3 border-[#121316] shadow-pop hover:shadow-pop-md transition-all flex flex-col justify-between space-y-4 ${
-                      slot.status === 'blocked' ? 'opacity-70 bg-gray-50' : ''
-                    }`}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs font-black text-gray-500">
-                          {slot.date}
-                        </span>
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-black uppercase border ${
-                            slot.status === 'available'
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                              : slot.status === 'blocked'
-                              ? 'bg-red-100 text-red-800 border-red-300'
-                              : 'bg-gray-200 text-gray-800 border-gray-400'
-                          }`}
-                        >
-                          {slot.status}
-                        </span>
-                      </div>
+                {slots.map((slot) => {
+                  const timeRemaining = getSlotTimeRemaining(slot.date, slot.endTime);
+                  return (
+                    <div
+                      key={slot.$id}
+                      className={`p-6 rounded-[32px] bg-white border-3 border-[#121316] shadow-pop hover:shadow-pop-md transition-all flex flex-col justify-between space-y-4 ${
+                        slot.status === 'blocked' ? 'opacity-70 bg-gray-50' : ''
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs font-black text-gray-500">
+                            {slot.date}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#2E86DE] font-mono text-[10px] font-black border border-blue-200">
+                              {timeRemaining.label}
+                            </span>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] font-black uppercase border ${
+                                slot.status === 'available'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                  : slot.status === 'blocked'
+                                  ? 'bg-red-100 text-red-800 border-red-300'
+                                  : 'bg-gray-200 text-gray-800 border-gray-400'
+                              }`}
+                            >
+                              {slot.status}
+                            </span>
+                          </div>
+                        </div>
 
-                      <div className="text-xl font-black text-[#121316] flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-[#6C5CE7]" />
-                        <span>
-                          {slot.startTime} — {slot.endTime}
-                        </span>
-                      </div>
+                        <div className="text-xl font-black text-[#121316] flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-[#6C5CE7]" />
+                          <span>
+                            {slot.startTime} — {slot.endTime}
+                          </span>
+                        </div>
 
-                      <div className="text-xs font-mono font-bold text-gray-600 flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span>Capacity: {slot.capacity} {slot.capacity === 1 ? 'maker' : 'makers'}</span>
-                      </div>
+                        <div className="text-xs font-mono font-bold text-gray-600 flex items-center gap-1.5">
+                          <Users className="w-4 h-4 text-gray-500" />
+                          <span>Capacity: {slot.capacity} {slot.capacity === 1 ? 'maker' : 'makers'}</span>
+                        </div>
 
-                      {slot.notes && (
-                        <p className="text-xs font-bold text-gray-600 bg-[#FAF7F0] p-2.5 rounded-xl border border-[#121316]/10">
-                          {slot.notes}
-                        </p>
-                      )}
-                    </div>
+                        {slot.notes && (
+                          <p className="text-xs font-bold text-gray-600 bg-[#FAF7F0] p-2.5 rounded-xl border border-[#121316]/10">
+                            {slot.notes}
+                          </p>
+                        )}
+                      </div>
 
                     {/* Actions */}
                     <div className="pt-3 border-t border-[#121316]/10 flex flex-wrap items-center justify-between gap-2">
@@ -835,7 +911,8 @@ export const AdminLabPage: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

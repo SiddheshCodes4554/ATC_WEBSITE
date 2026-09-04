@@ -7,12 +7,14 @@ import {
   UpdateLabSlotInput,
   LabBookingResult,
 } from '../types/labBooking.types';
+import { isSlotExpired } from '../utils/labTimeUtils';
 
 /**
  * ============================================================================
  * Lab Slot Service (Appwrite Database: `lab_slots`)
  * ============================================================================
- * Handles CRUD operations for physical laboratory time slots.
+ * Handles CRUD operations for physical laboratory time slots,
+ * with automatic expiration & space optimization.
  */
 export class LabSlotService {
   private static get databaseId(): string {
@@ -21,6 +23,10 @@ export class LabSlotService {
 
   private static get collectionId(): string {
     return APPWRITE_CONFIG.COLLECTIONS.LAB_SLOTS || 'lab_slots';
+  }
+
+  private static get requestsCollectionId(): string {
+    return APPWRITE_CONFIG.COLLECTIONS.LAB_REQUESTS || 'lab_requests';
   }
 
   private static getSlotPermissions(): string[] {
@@ -46,7 +52,82 @@ export class LabSlotService {
   }
 
   /**
-   * Public & Admin: Fetch all slots for a given date (sorted by startTime ASC)
+   * Auto-Expiration & Storage Optimization:
+   * Automatically deletes expired slots whose endTime on their date has already passed.
+   * Also cascades and purges all associated requests for those expired slots.
+   */
+  static async cleanupExpiredSlots(options?: { bufferMinutes?: number }): Promise<LabBookingResult<{ deletedSlotsCount: number; deletedRequestsCount: number }>> {
+    try {
+      if (!isAppwriteReady()) {
+        return { success: false, error: 'Appwrite is not configured.' };
+      }
+
+      const bufferMinutes = options?.bufferMinutes ?? 0;
+
+      // Fetch slots to evaluate
+      const response = await databases.listDocuments<LabSlotDocument>(
+        this.databaseId,
+        this.collectionId,
+        [Query.limit(200), Query.orderAsc('date')]
+      );
+
+      const slots = response.documents.map(this.mapDocumentToSlot);
+      const expiredSlots = slots.filter((slot) => isSlotExpired(slot.date, slot.endTime, bufferMinutes));
+
+      if (expiredSlots.length === 0) {
+        return {
+          success: true,
+          data: { deletedSlotsCount: 0, deletedRequestsCount: 0 },
+          message: 'No expired slots found. Database is clean.',
+        };
+      }
+
+      let deletedSlotsCount = 0;
+      let deletedRequestsCount = 0;
+
+      // Clean up each expired slot and its associated requests
+      for (const slot of expiredSlots) {
+        try {
+          // 1. Find and delete all requests for this expired slot
+          const reqRes = await databases.listDocuments(
+            this.databaseId,
+            this.requestsCollectionId,
+            [Query.equal('slotId', slot.$id), Query.limit(100)]
+          );
+
+          for (const reqDoc of reqRes.documents) {
+            try {
+              await databases.deleteDocument(this.databaseId, this.requestsCollectionId, reqDoc.$id);
+              deletedRequestsCount++;
+            } catch (rErr) {
+              console.warn(`[LabSlotService] Could not delete request ${reqDoc.$id}:`, rErr);
+            }
+          }
+
+          // 2. Delete the slot document
+          await databases.deleteDocument(this.databaseId, this.collectionId, slot.$id);
+          deletedSlotsCount++;
+        } catch (sErr) {
+          console.warn(`[LabSlotService] Could not delete expired slot ${slot.$id}:`, sErr);
+        }
+      }
+
+      console.log(`[LabSlotService] Auto-cleanup: Purged ${deletedSlotsCount} expired slot(s) and ${deletedRequestsCount} request(s).`);
+
+      return {
+        success: true,
+        data: { deletedSlotsCount, deletedRequestsCount },
+        message: `Auto-cleanup: Purged ${deletedSlotsCount} expired slot(s) to optimize space.`,
+      };
+    } catch (err: any) {
+      console.error('[LabSlotService] Error during cleanupExpiredSlots:', err);
+      return { success: false, error: err?.message || 'Failed to clean up expired slots.' };
+    }
+  }
+
+  /**
+   * Public & Admin: Fetch all slots for a given date (sorted by startTime ASC).
+   * Automatically filters out and cleans up expired slots.
    */
   static async getSlotsByDate(date: string): Promise<LabBookingResult<LabSlot[]>> {
     try {
@@ -58,6 +139,9 @@ export class LabSlotService {
         return { success: false, error: 'Date is required.' };
       }
 
+      // Background auto-cleanup
+      this.cleanupExpiredSlots().catch(() => {});
+
       const response = await databases.listDocuments<LabSlotDocument>(
         this.databaseId,
         this.collectionId,
@@ -68,7 +152,10 @@ export class LabSlotService {
         ]
       );
 
-      const slots = response.documents.map(this.mapDocumentToSlot);
+      const slots = response.documents
+        .map(this.mapDocumentToSlot)
+        .filter((slot) => !isSlotExpired(slot.date, slot.endTime));
+
       return { success: true, data: slots };
     } catch (err: any) {
       console.error('[LabSlotService] Error fetching slots by date:', err);
@@ -77,13 +164,17 @@ export class LabSlotService {
   }
 
   /**
-   * Public & Admin: Fetch upcoming slots starting from a specific date
+   * Public & Admin: Fetch upcoming slots starting from a specific date.
+   * Automatically purges and filters out expired slots.
    */
   static async getUpcomingSlots(fromDate?: string, limit = 100): Promise<LabBookingResult<LabSlot[]>> {
     try {
       if (!isAppwriteReady()) {
         return { success: false, error: 'Appwrite is not configured.' };
       }
+
+      // Trigger cleanup
+      await this.cleanupExpiredSlots().catch(() => {});
 
       const today = fromDate || new Date().toISOString().split('T')[0];
       const response = await databases.listDocuments<LabSlotDocument>(
@@ -97,7 +188,10 @@ export class LabSlotService {
         ]
       );
 
-      const slots = response.documents.map(this.mapDocumentToSlot);
+      const slots = response.documents
+        .map(this.mapDocumentToSlot)
+        .filter((slot) => !isSlotExpired(slot.date, slot.endTime));
+
       return { success: true, data: slots };
     } catch (err: any) {
       console.error('[LabSlotService] Error fetching upcoming slots:', err);
@@ -106,12 +200,17 @@ export class LabSlotService {
   }
 
   /**
-   * Admin: Fetch all slots with optional filtering and pagination
+   * Admin: Fetch all slots with optional filtering and pagination.
+   * Automatically cleans up expired slots to maintain peak database performance.
    */
-  static async getAllSlots(options?: { date?: string; status?: string; limit?: number }): Promise<LabBookingResult<LabSlot[]>> {
+  static async getAllSlots(options?: { date?: string; status?: string; limit?: number; autoClean?: boolean }): Promise<LabBookingResult<LabSlot[]>> {
     try {
       if (!isAppwriteReady()) {
         return { success: false, error: 'Appwrite is not configured.' };
+      }
+
+      if (options?.autoClean !== false) {
+        await this.cleanupExpiredSlots().catch(() => {});
       }
 
       const queries: string[] = [Query.orderDesc('date'), Query.orderAsc('startTime'), Query.limit(options?.limit || 100)];
@@ -128,7 +227,10 @@ export class LabSlotService {
         queries
       );
 
-      const slots = response.documents.map(this.mapDocumentToSlot);
+      const slots = response.documents
+        .map(this.mapDocumentToSlot)
+        .filter((slot) => !isSlotExpired(slot.date, slot.endTime));
+
       return { success: true, data: slots };
     } catch (err: any) {
       console.error('[LabSlotService] Error fetching all slots:', err);

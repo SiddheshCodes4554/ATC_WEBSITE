@@ -12,6 +12,7 @@ import {
   Info,
 } from 'lucide-react';
 import { PublicLabSlotWithDetails, LabSlotDisplayState } from '../../types/labBooking.types';
+import { getSlotTimeRemaining } from '../../utils/labTimeUtils';
 
 interface LabSlotCardProps {
   slotDetails: PublicLabSlotWithDetails;
@@ -34,6 +35,8 @@ export const LabSlotCard: React.FC<LabSlotCardProps> = ({
     totalCapacity,
     availableCapacity,
   } = slotDetails;
+
+  const timeRemaining = getSlotTimeRemaining(slot.date, slot.endTime);
 
   // Visual Theme Mapping based on calculated dynamic state
   const stateConfigs: Record<
@@ -119,11 +122,18 @@ export const LabSlotCard: React.FC<LabSlotCardProps> = ({
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Time Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#121316] text-white font-mono text-xs sm:text-sm font-black shadow-pop-sm">
-            <Clock className="w-4 h-4 text-[#FFE600]" />
-            <span>
-              {slot.startTime} — {slot.endTime}
-            </span>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-[#121316] text-white font-mono text-xs sm:text-sm font-black shadow-pop-sm">
+              <Clock className="w-4 h-4 text-[#FFE600]" />
+              <span>
+                {slot.startTime} — {slot.endTime}
+              </span>
+            </div>
+            {!timeRemaining.isExpired && (
+              <span className="hidden sm:inline-block px-2.5 py-1 rounded-xl bg-blue-50 text-[#2E86DE] font-mono text-[11px] font-black border border-blue-200 shadow-pop-xs">
+                {timeRemaining.label}
+              </span>
+            )}
           </div>
 
           {/* Dynamic Status Pill */}
