@@ -67,6 +67,17 @@ export class AuthService {
   }
 
   /**
+   * Evaluates if a given Appwrite user account has the "admin" label.
+   * Returns true ONLY if the user exists and their labels array contains "admin".
+   */
+  static isAdminUser(user: Models.User<Models.Preferences> | null): boolean {
+    if (!user || !Array.isArray(user.labels)) {
+      return false;
+    }
+    return user.labels.includes('admin');
+  }
+
+  /**
    * Check whether a valid Appwrite session currently exists
    */
   static async hasActiveSession(): Promise<boolean> {

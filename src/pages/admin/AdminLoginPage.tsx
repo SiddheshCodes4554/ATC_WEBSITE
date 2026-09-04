@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { AuthService } from '../../services/authService';
 import { 
   Lock, 
   Mail, 
@@ -21,17 +22,17 @@ export const AdminLoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, isAuthenticated, loading } = useAuth();
+  const { login, logout, isAuthenticated, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // If already authenticated, redirect to the admin dashboard immediately
+  // If already authenticated as an admin, redirect to the admin dashboard immediately
   useEffect(() => {
-    if (!loading && isAuthenticated) {
+    if (!loading && isAuthenticated && isAdmin) {
       const destination = (location.state as any)?.from?.pathname || '/admin/dashboard';
       navigate(destination, { replace: true });
     }
-  }, [isAuthenticated, loading, navigate, location]);
+  }, [isAuthenticated, isAdmin, loading, navigate, location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,19 +54,30 @@ export const AdminLoginPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Re-use existing Appwrite authentication service
+      // 1. Authenticate with Appwrite
       const result = await login(trimmedEmail, password);
 
       if (result.success) {
-        confetti({
-          particleCount: 70,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#2ED573'],
-        });
+        // 2. Fetch authenticated user and verify the Appwrite "admin" label
+        const currentUser = await AuthService.getCurrentUser();
+        const userIsAdmin = AuthService.isAdminUser(currentUser);
 
-        const destination = (location.state as any)?.from?.pathname || '/admin/dashboard';
-        navigate(destination, { replace: true });
+        if (userIsAdmin) {
+          // Authorized Admin
+          confetti({
+            particleCount: 70,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#2ED573'],
+          });
+
+          const destination = (location.state as any)?.from?.pathname || '/admin/dashboard';
+          navigate(destination, { replace: true });
+        } else {
+          // Unauthorized Non-Admin: Immediately delete the Appwrite session and clear state
+          await logout();
+          setError('Access Denied: Administrator privileges required.');
+        }
       } else {
         setError(result.error || 'Authentication failed. Please verify your admin credentials.');
       }

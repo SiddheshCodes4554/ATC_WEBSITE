@@ -5,7 +5,9 @@ import { AuthService, AuthResult } from '../services/authService';
 interface AuthContextType {
   user: Models.User<Models.Preferences> | null;
   loading: boolean;
+  isLoading: boolean;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<AuthResult<Models.Session>>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -16,6 +18,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Derived state directly from the authenticated Appwrite user (source of truth)
+  const isAdmin = AuthService.isAdminUser(user);
 
   // Verify session on initial app mount
   const checkAuth = async () => {
@@ -63,7 +68,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         user,
         loading,
+        isLoading: loading,
         isAuthenticated: Boolean(user),
+        isAdmin,
         login,
         logout,
         checkAuth,
