@@ -1,15 +1,49 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowUpRight, Sparkles, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Menu,
+  X,
+  ArrowUpRight,
+  Sparkles,
+  LogIn,
+  LogOut,
+  User as UserIcon,
+  UserPlus,
+  ChevronDown,
+  Shield,
+  LayoutDashboard,
+  ArrowRight
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PlayfulButton } from '../ui/PlayfulButton';
 
+/**
+ * Generate safe 2-letter uppercase initials for avatar badge
+ */
+const getInitials = (name?: string, email?: string): string => {
+  if (name && name.trim()) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  if (email && email.trim()) {
+    return email.trim().slice(0, 2).toUpperCase();
+  }
+  return 'ST';
+};
+
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout, isAdmin, loading } = useAuth();
 
-  const { user, isAuthenticated, logout, isAdmin } = useAuth();
-
+  // Navigation Links
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
@@ -20,6 +54,50 @@ export const Navbar: React.FC = () => {
     { name: 'Team', path: '/team' },
     { name: 'Gallery', path: '/gallery' },
   ];
+
+  // Derived user name with safe fallbacks
+  const displayName =
+    user?.name?.trim() ||
+    (user?.email ? user.email.split('@')[0] : (isAdmin ? 'Administrator' : 'Student'));
+
+  // Close menus on route navigation
+  useEffect(() => {
+    setUserDropdownOpen(false);
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Click outside and Escape key handler for dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setUserDropdownOpen(false);
+      }
+    };
+
+    if (userDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [userDropdownOpen]);
+
+  // Handle user logout and clean redirect
+  const handleLogout = async () => {
+    setUserDropdownOpen(false);
+    setMobileMenuOpen(false);
+    await logout();
+    navigate('/', { replace: true });
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-[#FAF7F0]/95 backdrop-blur-md text-[#121316] border-b-3 border-[#121316] transition-all select-none">
@@ -47,7 +125,7 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Menu with Clean Proportions */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -78,70 +156,173 @@ export const Navbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Primary CTA / Auth on Right */}
+          {/* Desktop Auth Controls & Actions on Right */}
           <div className="hidden sm:flex items-center gap-2.5 flex-shrink-0">
-            {isAuthenticated ? (
+            {loading ? (
+              /* Loading Skeleton (Prevents auth UI flicker) */
               <div className="flex items-center gap-2">
-                <span
-                  className="font-mono text-xs font-black text-[#6C5CE7] bg-white px-3 py-1 rounded-full border-2 border-[#121316] shadow-pop-sm max-w-[130px] truncate"
-                  title={user?.email || 'Logged in user'}
-                >
-                  {user?.name ? user.name.split(' ')[0] : (user?.email ? user.email.split('@')[0] : 'User')}
-                </span>
+                <div className="w-16 h-8 bg-gray-200/80 rounded-full animate-pulse border-2 border-transparent" />
+                <div className="w-24 h-9 bg-gray-200/80 rounded-full animate-pulse border-2 border-transparent" />
+              </div>
+            ) : isAuthenticated ? (
+              /* AUTHENTICATED USER MENU (Student or Admin) */
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={async () => {
-                    await logout();
-                  }}
-                  className="p-1.5 rounded-full bg-white hover:bg-[#FFE5E5] text-gray-500 hover:text-[#FF4757] transition-colors border-2 border-[#121316] shadow-pop-sm cursor-pointer"
-                  title="Sign Out"
-                  aria-label="Sign Out"
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  aria-expanded={userDropdownOpen}
+                  aria-haspopup="true"
+                  aria-label="User account menu"
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 border-[#121316] transition-all cursor-pointer select-none ${
+                    isAdmin
+                      ? 'bg-[#FFE600] hover:bg-[#FFD32A]'
+                      : 'bg-white hover:bg-[#FAF7F0]'
+                  } ${
+                    userDropdownOpen
+                      ? 'shadow-pop-sm ring-2 ring-[#121316]'
+                      : 'shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px]'
+                  }`}
                 >
-                  <LogOut className="w-4 h-4" />
+                  {/* User Avatar / Initials */}
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center font-mono font-black text-xs border border-[#121316] flex-shrink-0 ${
+                      isAdmin
+                        ? 'bg-[#121316] text-[#FFE600]'
+                        : 'bg-[#6C5CE7] text-white'
+                    }`}
+                  >
+                    {isAdmin ? (
+                      <Shield className="w-3.5 h-3.5" />
+                    ) : (
+                      getInitials(user?.name, user?.email)
+                    )}
+                  </div>
+
+                  {/* Display Name */}
+                  <span className="font-mono text-xs font-black text-[#121316] max-w-[100px] xl:max-w-[130px] truncate">
+                    {displayName}
+                  </span>
+
+                  {/* Badge for Admin */}
+                  {isAdmin && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#121316] text-[#FFE600] font-mono text-[9px] font-black">
+                      ADMIN
+                    </span>
+                  )}
+
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-[#121316] transition-transform duration-200 ${
+                      userDropdownOpen ? 'rotate-180' : ''
+                    }`}
+                  />
                 </button>
-                {isAdmin ? (
-                  <PlayfulButton
-                    to="/admin/dashboard"
-                    variant="primary"
-                    size="md"
-                    withConfetti
-                    icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
+
+                {/* Dropdown Menu */}
+                {userDropdownOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 mt-2 w-64 bg-white rounded-3xl border-3 border-[#121316] shadow-pop-xl p-3 z-50 animate-fadeIn select-none"
                   >
-                    Dashboard
-                  </PlayfulButton>
-                ) : (
-                  <PlayfulButton
-                    to="/join"
-                    variant="primary"
-                    size="md"
-                    withConfetti
-                    icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
-                  >
-                    Let's Build
-                  </PlayfulButton>
+                    {/* User Profile Header Card */}
+                    <div className="p-3 bg-[#FAF7F0] rounded-2xl border-2 border-[#121316] mb-2">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="font-mono font-black text-xs text-[#121316] truncate">
+                          {displayName}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full border border-[#121316] font-mono text-[9px] font-black ${
+                            isAdmin
+                              ? 'bg-[#FFE600] text-[#121316]'
+                              : 'bg-[#E1DCFF] text-[#6C5CE7]'
+                          }`}
+                        >
+                          {isAdmin ? 'ADMINISTRATOR' : 'STUDENT'}
+                        </span>
+                      </div>
+                      <p className="font-mono text-[11px] text-gray-500 font-bold truncate">
+                        {user?.email || (isAdmin ? 'Admin Session' : 'Student Account')}
+                      </p>
+                    </div>
+
+                    {/* Actions Menu */}
+                    <div className="space-y-1">
+                      {isAdmin ? (
+                        /* Admin Dashboard Link */
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black text-[#121316] hover:bg-[#FFE600]/40 transition-colors"
+                        >
+                          <div className="flex items-center gap-2">
+                            <LayoutDashboard className="w-4 h-4 text-[#121316]" />
+                            <span>Admin Dashboard</span>
+                          </div>
+                          <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                        </Link>
+                      ) : (
+                        /* Student: My Account (Coming Soon) */
+                        <div
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-50/80 border border-dashed border-gray-300 cursor-not-allowed select-none"
+                          title="Student account management coming soon"
+                        >
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="w-4 h-4 text-gray-400" />
+                            <span>My Account</span>
+                          </div>
+                          <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
+                            Coming Soon
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Divider */}
+                      <div className="h-px bg-[#121316]/10 my-1.5" />
+
+                      {/* Logout Action */}
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black text-[#FF4757] hover:bg-[#FFE5E5] transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             ) : (
+              /* GUEST STATE: Login & Sign Up Actions */
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
                   className="px-3.5 py-1.5 rounded-full text-xs font-black text-[#121316] hover:bg-[#FFE600]/30 transition-colors font-mono uppercase border-2 border-transparent hover:border-[#121316]"
                 >
-                  Sign In
+                  Login
                 </Link>
-                <PlayfulButton
-                  to="/join"
-                  variant="primary"
-                  size="md"
-                  withConfetti
-                  icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
+
+                <Link
+                  to="/signup"
+                  className="px-4 py-1.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all"
                 >
-                  Let's Build
-                </PlayfulButton>
+                  Sign Up
+                </Link>
               </div>
             )}
+
+            {/* Let's Build CTA */}
+            <PlayfulButton
+              to="/join"
+              variant="primary"
+              size="md"
+              withConfetti
+              icon={<ArrowUpRight className="w-4 h-4 text-[#121316] stroke-[3]" />}
+            >
+              Let's Build
+            </PlayfulButton>
           </div>
 
-          {/* Mobile Menu Toggle Button */}
+          {/* Mobile Menu Hamburger Toggle */}
           <div className="flex lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -154,9 +335,10 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu with Playful Cascade */}
+      {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t-3 border-[#121316] bg-[#FAF7F0] px-5 py-6 space-y-4 animate-fadeIn">
+          {/* Mobile Nav Links Grid */}
           <div className="grid grid-cols-2 gap-2">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -182,41 +364,113 @@ export const Navbar: React.FC = () => {
             })}
           </div>
 
-          {/* Mobile User/Auth & CTA */}
+          {/* Mobile Authentication & User Section */}
           <div className="pt-2 space-y-2">
-            {isAuthenticated ? (
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm">
-                <span className="font-mono text-xs font-black text-[#6C5CE7] truncate">
-                  👤 {user?.name || user?.email}
-                </span>
+            {loading ? (
+              <div className="h-12 bg-gray-200/70 rounded-2xl animate-pulse" />
+            ) : isAuthenticated ? (
+              <div className="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm space-y-3">
+                {/* User Info Header */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center font-mono font-black text-xs border border-[#121316] flex-shrink-0 ${
+                        isAdmin
+                          ? 'bg-[#121316] text-[#FFE600]'
+                          : 'bg-[#6C5CE7] text-white'
+                      }`}
+                    >
+                      {isAdmin ? (
+                        <Shield className="w-4 h-4" />
+                      ) : (
+                        getInitials(user?.name, user?.email)
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-mono text-xs font-black text-[#121316] truncate">
+                        {displayName}
+                      </p>
+                      <p className="font-mono text-[10px] text-gray-500 font-bold truncate">
+                        {user?.email || (isAdmin ? 'Admin Session' : 'Student Account')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`px-2 py-0.5 rounded-full border border-[#121316] font-mono text-[9px] font-black flex-shrink-0 ${
+                      isAdmin
+                        ? 'bg-[#FFE600] text-[#121316]'
+                        : 'bg-[#E1DCFF] text-[#6C5CE7]'
+                    }`}
+                  >
+                    {isAdmin ? 'ADMIN' : 'STUDENT'}
+                  </span>
+                </div>
+
+                {/* Contextual Action: Admin Dashboard or Disabled My Account */}
+                {isAdmin ? (
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border-2 border-[#121316] text-xs font-black text-[#121316] transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <LayoutDashboard className="w-4 h-4 text-[#121316]" />
+                      <span>Admin Dashboard</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                  </Link>
+                ) : (
+                  <div className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-50 border border-dashed border-gray-300 select-none">
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="w-3.5 h-3.5" />
+                      <span>My Account</span>
+                    </div>
+                    <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
+                      Coming Soon
+                    </span>
+                  </div>
+                )}
+
+                {/* Logout Button */}
                 <button
-                  onClick={async () => {
-                    setMobileMenuOpen(false);
-                    await logout();
-                  }}
-                  className="px-2.5 py-1 rounded-full bg-[#FFE5E5] text-[#FF4757] font-mono text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full py-2 px-3 rounded-xl bg-[#FFE5E5] hover:bg-[#FFD2D2] text-[#FF4757] font-mono text-xs font-black flex items-center justify-center gap-1.5 border border-[#FF4757]/30 transition-colors cursor-pointer"
                 >
-                  <LogOut className="w-3 h-3" />
-                  Sign Out
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
-              <Link
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-2.5 rounded-2xl bg-white border-2 border-[#121316] font-mono text-xs font-black text-[#121316] flex items-center justify-center gap-2 text-center"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Student Sign In / Register</span>
-              </Link>
+              /* Mobile Guest Actions */
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2.5 rounded-2xl bg-white hover:bg-gray-50 border-2 border-[#121316] font-mono text-xs font-black text-[#121316] flex items-center justify-center gap-1.5 text-center shadow-pop-sm transition-transform active:scale-95"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Login</span>
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-2.5 rounded-2xl bg-[#FFE600] hover:bg-[#FFD32A] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] flex items-center justify-center gap-1.5 text-center shadow-pop-sm transition-transform active:scale-95"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Sign Up</span>
+                </Link>
+              </div>
             )}
 
+            {/* Mobile Primary CTA */}
             <Link
-              to={isAdmin ? '/admin/dashboard' : '/join'}
+              to="/join"
               onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-3 rounded-2xl bg-[#FFE600] border-3 border-[#121316] shadow-pop font-mono text-xs font-black text-[#121316] flex items-center justify-center gap-2 text-center"
+              className="w-full py-3 rounded-2xl bg-[#121316] text-[#FFE600] hover:bg-[#121316]/90 border-3 border-[#121316] shadow-pop font-mono text-xs font-black flex items-center justify-center gap-2 text-center transition-transform active:scale-95"
             >
-              <span>{isAdmin ? 'Admin Dashboard' : "Join ATC • Let's Build"}</span>
+              <span>Join ATC • Let's Build</span>
               <ArrowUpRight className="w-4 h-4 stroke-[3]" />
             </Link>
           </div>
