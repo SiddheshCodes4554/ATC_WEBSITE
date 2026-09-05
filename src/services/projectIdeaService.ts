@@ -217,9 +217,13 @@ export class ProjectIdeaService {
       return { success: true, data: this.mapDocumentToIdea(document) };
     } catch (error: any) {
       console.error('[ProjectIdeaService.createIdea] Error:', error);
+      let errorMsg = error?.message || 'Failed to create project idea.';
+      if (error?.code === 404 || /could not be found|not found/i.test(error?.message || '')) {
+        errorMsg = `Appwrite Collection '${this.collectionId}' is not found in database '${this.databaseId}'. Please create the collection in your Appwrite Console.`;
+      }
       return {
         success: false,
-        error: error?.message || 'Failed to create project idea.',
+        error: errorMsg,
         code: error?.code,
       };
     }
