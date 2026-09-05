@@ -331,9 +331,19 @@ export const AdminCreateEventPage: React.FC = () => {
         }
       }
 
-      const isoStartDate = new Date(startDate).toISOString();
-      const isoEndDate = endDate ? new Date(endDate).toISOString() : null;
-      const isoDeadline = registrationDeadline ? new Date(registrationDeadline).toISOString() : null;
+      const safeToISO = (val: string) => {
+        if (!val) return null;
+        try {
+          const d = new Date(val);
+          return isNaN(d.getTime()) ? null : d.toISOString();
+        } catch {
+          return null;
+        }
+      };
+
+      const isoStartDate = safeToISO(startDate) || new Date().toISOString();
+      const isoEndDate = safeToISO(endDate);
+      const isoDeadline = safeToISO(registrationDeadline);
       const parsedLimit = registrationLimit ? parseInt(registrationLimit, 10) : null;
 
       const eventPayload = {

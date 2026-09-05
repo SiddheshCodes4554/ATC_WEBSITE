@@ -376,7 +376,7 @@ export const AdminEditEventPage: React.FC = () => {
 
   const goToNextStep = () => {
     if (validateCurrentStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, 5));
+      setCurrentStep((prev) => Math.min(prev + 1, 6));
     }
   };
 
@@ -429,9 +429,19 @@ export const AdminEditEventPage: React.FC = () => {
 
       const finalGalleryImageIds = [...existingGalleryImageIds, ...uploadedGalleryIds];
 
-      const isoStartDate = new Date(startDate).toISOString();
-      const isoEndDate = endDate ? new Date(endDate).toISOString() : null;
-      const isoDeadline = registrationDeadline ? new Date(registrationDeadline).toISOString() : null;
+      const safeToISO = (val: string) => {
+        if (!val) return null;
+        try {
+          const d = new Date(val);
+          return isNaN(d.getTime()) ? null : d.toISOString();
+        } catch {
+          return null;
+        }
+      };
+
+      const isoStartDate = safeToISO(startDate) || new Date().toISOString();
+      const isoEndDate = safeToISO(endDate);
+      const isoDeadline = safeToISO(registrationDeadline);
       const parsedLimit = registrationLimit ? parseInt(registrationLimit, 10) : null;
 
       const updatePayload = {
@@ -561,6 +571,21 @@ export const AdminEditEventPage: React.FC = () => {
           <div className="flex items-center gap-3 self-start sm:self-auto">
             <button
               type="button"
+              disabled={isSubmitting}
+              onClick={() => handleUpdateEvent()}
+              className="px-4 py-1.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] border-2 border-[#121316] font-mono text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-pop-sm disabled:opacity-50"
+              title="Save event changes immediately"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5 stroke-[3]" />
+              )}
+              <span>Quick Save</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setShowDeleteModal(true)}
               className="px-3.5 py-1.5 rounded-full bg-[#FFE5E5] hover:bg-[#FF4757] hover:text-white border-2 border-[#FF4757] font-mono text-xs font-black text-[#FF4757] flex items-center gap-1.5 transition-all cursor-pointer shadow-pop-sm"
             >
@@ -570,7 +595,7 @@ export const AdminEditEventPage: React.FC = () => {
 
             <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E1DCFF] border border-[#121316] font-mono text-xs font-black text-[#6C5CE7]">
               <ShieldCheck className="w-4 h-4" />
-              <span>STEP {currentStep} OF 5</span>
+              <span>STEP {currentStep} OF 6</span>
             </div>
           </div>
         </div>

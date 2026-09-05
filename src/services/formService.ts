@@ -1,4 +1,4 @@
-import { ID, Query, Permission, Role } from 'appwrite';
+import { ID, Query, Permission, Role, Models } from 'appwrite';
 import { databases, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 import {
   EventForm,
@@ -43,6 +43,51 @@ export class FormService {
   }
 
   /**
+   * Resilient document creator that removes unknown attributes if the collection schema lacks them
+   */
+  private static async createDocumentResilient<T extends Models.Document = Models.Document>(
+    databaseId: string,
+    collectionId: string,
+    documentId: string,
+    data: Record<string, any>,
+    permissions?: string[]
+  ): Promise<T> {
+    const payload = { ...data };
+    let currentPermissions = permissions;
+    const maxRetries = 10;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        if (currentPermissions && currentPermissions.length > 0) {
+          return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any, currentPermissions);
+        } else {
+          return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any);
+        }
+      } catch (err: any) {
+        if (currentPermissions && (err?.code === 401 || err?.code === 403 || /permission/i.test(err?.message || ''))) {
+          currentPermissions = undefined;
+          continue;
+        }
+
+        const match =
+          err?.message?.match(/Unknown attribute:\s*"([^"]+)"/i) ||
+          err?.message?.match(/Attribute not found.*?:\s*"([^"]+)"/i) ||
+          err?.message?.match(/attribute\s+"([^"]+)"\s+is unknown/i);
+
+        if (match && match[1] && payload[match[1]] !== undefined) {
+          console.warn(`[FormService] Stripping unknown attribute "${match[1]}" from payload and retrying...`);
+          delete payload[match[1]];
+          continue;
+        }
+
+        throw err;
+      }
+    }
+
+    return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any);
+  }
+
+  /**
    * Creates an Event Form record and its nested Form Field records in Appwrite
    */
   static async createEventForm(
@@ -60,7 +105,7 @@ export class FormService {
       const formId = ID.unique();
 
       // 1. Create event_forms record
-      const formDoc = await databases.createDocument<EventFormDocument>(
+      const formDoc = await this.createDocumentResilient<EventFormDocument>(
         this.databaseId,
         this.formCollectionId,
         formId,
@@ -85,7 +130,7 @@ export class FormService {
             : '';
 
           try {
-            const fieldDoc = await databases.createDocument<FormFieldDocument>(
+            const fieldDoc = await this.createDocumentResilient<FormFieldDocument>(
               this.databaseId,
               this.fieldsCollectionId,
               fieldId,
@@ -316,7 +361,7 @@ export class FormService {
         } else {
           // Create new form
           formId = ID.unique();
-          await databases.createDocument(
+          await this.createDocumentResilient(
             this.databaseId,
             this.formCollectionId,
             formId,
@@ -337,7 +382,7 @@ export class FormService {
           const optionsString = field.options && field.options.length > 0 ? JSON.stringify(field.options) : '';
 
           try {
-            await databases.createDocument(
+            await this.createDocumentResilient(
               this.databaseId,
               this.fieldsCollectionId,
               fieldId,

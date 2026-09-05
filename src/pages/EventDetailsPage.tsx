@@ -76,6 +76,15 @@ export const EventDetailsPage: React.FC = () => {
       setIsLegacyArchive(false);
       setLegacyEventData(null);
 
+      if (user) {
+        setFormValues((prev) => ({
+          ...prev,
+          name: user.name || '',
+          email: user.email || '',
+          ...(user.phone ? { phone: user.phone } : {}),
+        }));
+      }
+
       try {
         // 1. Fetch from Appwrite database first using the exact slug
         const result = await EventService.getEventBySlug(slug.trim());
@@ -304,8 +313,67 @@ export const EventDetailsPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2500);
   };
 
+  // Ensures core attendee fields (Full Name, Email, Phone) are ALWAYS present in registration forms
+  const getCombinedFormFields = (customFields?: FormField[]): FormField[] => {
+    const coreFields: FormField[] = [
+      {
+        $id: 'core-name',
+        label: 'Full Name',
+        fieldType: 'short_text',
+        placeholder: 'Enter your full name',
+        required: true,
+        position: 0,
+        systemKey: 'name',
+      },
+      {
+        $id: 'core-email',
+        label: 'Email Address',
+        fieldType: 'email',
+        placeholder: 'your.email@example.com',
+        required: true,
+        position: 1,
+        systemKey: 'email',
+      },
+      {
+        $id: 'core-phone',
+        label: 'Phone Number',
+        fieldType: 'phone',
+        placeholder: '+91 98765 43210',
+        required: false,
+        position: 2,
+        systemKey: 'phone',
+      },
+    ];
+
+    if (!customFields || customFields.length === 0) {
+      return coreFields;
+    }
+
+    const hasName = customFields.some((f) => f.systemKey === 'name' || /^(full\s*)?name$/i.test(f.label.trim()));
+    const hasEmail = customFields.some((f) => f.systemKey === 'email' || f.fieldType === 'email' || /email/i.test(f.label.trim()));
+    const hasPhone = customFields.some((f) => f.systemKey === 'phone' || f.fieldType === 'phone' || /phone|mobile|contact/i.test(f.label.trim()));
+
+    const missingCore: FormField[] = [];
+    if (!hasName) missingCore.push(coreFields[0]);
+    if (!hasEmail) missingCore.push(coreFields[1]);
+    if (!hasPhone) missingCore.push(coreFields[2]);
+
+    const formattedCustom = customFields.map((f, idx) => ({
+      ...f,
+      position: missingCore.length + (f.position ?? idx),
+    }));
+
+    return [...missingCore, ...formattedCustom];
+  };
+
   const handleFieldChange = (key: string, value: any) => {
-    setFormValues((prev) => ({ ...prev, [key]: value }));
+    setFormValues((prev) => ({
+      ...prev,
+      [key]: value,
+      ...(key === 'core-name' || key === 'name' ? { name: value } : {}),
+      ...(key === 'core-email' || key === 'email' ? { email: value } : {}),
+      ...(key === 'core-phone' || key === 'phone' ? { phone: value } : {}),
+    }));
     if (fieldErrors[key]) {
       setFieldErrors((prev) => {
         const next = { ...prev };
@@ -319,12 +387,28 @@ export const EventDetailsPage: React.FC = () => {
     const errors: Record<string, string> = {};
 
     for (const field of fieldsToValidate) {
-      const key = field.systemKey || field.$id || `field_${field.position}`;
-      const val = formValues[key];
+      const keysToTry = [
+        field.systemKey,
+        field.$id,
+        (field as any).id,
+        field.label,
+        `field_${field.position}`,
+      ].filter(Boolean) as string[];
+
+      let val: any = undefined;
+      let primaryKey = field.systemKey || field.$id || `field_${field.position}`;
+
+      for (const k of keysToTry) {
+        if (formValues[k] !== undefined && formValues[k] !== null && String(formValues[k]).trim() !== '') {
+          val = formValues[k];
+          primaryKey = k;
+          break;
+        }
+      }
 
       if (field.required) {
         if (val === undefined || val === null || String(val).trim() === '') {
-          errors[key] = `${field.label} is required.`;
+          errors[primaryKey] = `${field.label} is required.`;
           continue;
         }
       }
@@ -332,7 +416,7 @@ export const EventDetailsPage: React.FC = () => {
       if (field.fieldType === 'email' && val && String(val).trim()) {
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(String(val).trim())) {
-          errors[key] = 'Please enter a valid email address.';
+          errors[primaryKey] = 'Please enter a valid email address.';
         }
       }
     }
@@ -347,13 +431,7 @@ export const EventDetailsPage: React.FC = () => {
 
     setFormErrorMessage(null);
 
-    const fieldsToUse: FormField[] = eventForm?.fields && eventForm.fields.length > 0
-      ? eventForm.fields
-      : [
-          { label: 'Full Name', fieldType: 'short_text', placeholder: 'Enter your full name', required: true, position: 0, systemKey: 'name' },
-          { label: 'Email Address', fieldType: 'email', placeholder: 'your.email@example.com', required: true, position: 1, systemKey: 'email' },
-          { label: 'Phone Number', fieldType: 'phone', placeholder: '+91 98765 43210', required: false, position: 2, systemKey: 'phone' },
-        ];
+    const fieldsToUse = getCombinedFormFields(eventForm?.fields);
 
     if (!validateForm(fieldsToUse)) {
       setFormErrorMessage('Please complete all required fields correctly before submitting.');
@@ -490,14 +568,8 @@ export const EventDetailsPage: React.FC = () => {
   const accentColor = event.accentColor || '#FFE600';
   const isRegistrationActive = event.registrationEnabled && (event.status === 'upcoming' || event.status === 'ongoing');
 
-  // Fallback default fields if no custom form_fields exist in Appwrite yet
-  const displayedFields: FormField[] = eventForm?.fields && eventForm.fields.length > 0
-    ? eventForm.fields
-    : [
-        { label: 'Full Name', fieldType: 'short_text', placeholder: 'Enter your full name', required: true, position: 0, systemKey: 'name' },
-        { label: 'Email Address', fieldType: 'email', placeholder: 'your.email@example.com', required: true, position: 1, systemKey: 'email' },
-        { label: 'Phone Number', fieldType: 'phone', placeholder: '+91 98765 43210', required: false, position: 2, systemKey: 'phone' },
-      ];
+  // Combined fields: always guarantees Full Name, Email, Phone + custom fields
+  const displayedFields: FormField[] = getCombinedFormFields(eventForm?.fields);
 
   return (
     <EventExperienceRenderer

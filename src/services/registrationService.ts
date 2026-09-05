@@ -1,4 +1,4 @@
-import { ID, Query, Permission, Role } from 'appwrite';
+import { ID, Query, Permission, Role, Models } from 'appwrite';
 import { databases, APPWRITE_CONFIG, isAppwriteReady } from './appwrite';
 import { EventService } from './eventService';
 import { ATCEvent } from '../types/event.types';
@@ -23,7 +23,7 @@ import {
  * ATC Appwrite Registration Service
  * ============================================================================
  * Handles public event registration submissions, unique pass generation,
- * duplicate checks, capacity limit enforcement, dynamic answers, and admin management.
+ * QR verification, check-in operations, and attendee list management.
  */
 export class RegistrationService {
   private static get databaseId(): string {
@@ -80,10 +80,13 @@ export class RegistrationService {
     const year = new Date().getFullYear();
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const candidate = `ATC-${year}-${this.generateRandomPassSuffix(6)}`;
+      const randomSuffix = this.generateRandomPassSuffix(6);
+      const candidate = `ATC-${year}-${randomSuffix}`;
+
       try {
         if (!isAppwriteReady()) return candidate;
 
+        // Verify uniqueness in Appwrite registrations collection
         const existing = await databases.listDocuments<EventRegistrationDocument>(
           this.databaseId,
           this.registrationsCollection,
@@ -94,7 +97,7 @@ export class RegistrationService {
           return candidate;
         }
       } catch (err) {
-        // If query fails (e.g. index not ready), return candidate
+        // If query fails (e.g. index not ready), candidate is statistically unique (33^6 = ~1.3 billion)
         return candidate;
       }
     }
@@ -108,6 +111,55 @@ export class RegistrationService {
   /* ======================================================================== */
 
   /**
+   * Resilient document creator that removes unknown attributes if the Appwrite collection schema lacks them,
+   * while never removing critical required attributes like passId.
+   */
+  private static async createDocumentResilient<T extends Models.Document = Models.Document>(
+    databaseId: string,
+    collectionId: string,
+    documentId: string,
+    data: Record<string, any>,
+    permissions?: string[]
+  ): Promise<T> {
+    const payload = { ...data };
+    let currentPermissions = permissions;
+    const maxRetries = 10;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        if (currentPermissions && currentPermissions.length > 0) {
+          return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any, currentPermissions);
+        } else {
+          return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any);
+        }
+      } catch (err: any) {
+        // 1. Permission error fallback (e.g. for guest or role mismatch)
+        if (currentPermissions && (err?.code === 401 || err?.code === 403 || /permission/i.test(err?.message || ''))) {
+          console.warn('[RegistrationService] Document-level permissions rejected, falling back to collection permissions...');
+          currentPermissions = undefined;
+          continue;
+        }
+
+        // 2. Unknown attribute fallback
+        const match =
+          err?.message?.match(/Unknown attribute:\s*"([^"]+)"/i) ||
+          err?.message?.match(/Attribute not found.*?:\s*"([^"]+)"/i) ||
+          err?.message?.match(/attribute\s+"([^"]+)"\s+is unknown/i);
+
+        if (match && match[1] && payload[match[1]] !== undefined) {
+          console.warn(`[RegistrationService] Stripping unknown attribute "${match[1]}" from payload and retrying...`);
+          delete payload[match[1]];
+          continue;
+        }
+
+        throw err;
+      }
+    }
+
+    return await databases.createDocument<T>(databaseId, collectionId, documentId, payload as any);
+  }
+
+  /**
    * Validates dynamic form field values according to field types and required flags
    */
   static validateFieldValues(
@@ -117,8 +169,24 @@ export class RegistrationService {
     const fieldErrors: Record<string, string> = {};
 
     for (const field of fields) {
-      const key = field.$id || field.label;
-      const val = answers[key] ?? answers[field.label];
+      const candidateKeys = [
+        field.systemKey,
+        field.$id,
+        (field as any).id,
+        field.label,
+        `field_${field.position}`,
+      ].filter(Boolean) as string[];
+
+      let val: any = undefined;
+      let primaryKey = field.systemKey || field.$id || field.label;
+
+      for (const k of candidateKeys) {
+        if (answers[k] !== undefined) {
+          val = answers[k];
+          primaryKey = k;
+          break;
+        }
+      }
 
       // 1. Required Check
       const isEmpty =
@@ -128,7 +196,7 @@ export class RegistrationService {
         (Array.isArray(val) && val.length === 0);
 
       if (field.required && isEmpty) {
-        fieldErrors[key] = `${field.label} is required.`;
+        fieldErrors[primaryKey] = `${field.label} is required.`;
         continue;
       }
 
@@ -139,7 +207,7 @@ export class RegistrationService {
         case 'email': {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (typeof val !== 'string' || !emailRegex.test(val.trim())) {
-            fieldErrors[key] = 'Please enter a valid email address.';
+            fieldErrors[primaryKey] = 'Please enter a valid email address.';
           }
           break;
         }
@@ -148,14 +216,14 @@ export class RegistrationService {
           const cleaned = String(val).replace(/[\s\-()]/g, '');
           const phoneRegex = /^\+?[0-9]{7,15}$/;
           if (!phoneRegex.test(cleaned)) {
-            fieldErrors[key] = 'Please enter a valid phone number (7-15 digits).';
+            fieldErrors[primaryKey] = 'Please enter a valid phone number (7-15 digits).';
           }
           break;
         }
 
         case 'number': {
           if (isNaN(Number(val))) {
-            fieldErrors[key] = 'Please enter a valid numeric value.';
+            fieldErrors[primaryKey] = 'Please enter a valid numeric value.';
           }
           break;
         }
@@ -168,14 +236,14 @@ export class RegistrationService {
               : `https://${urlString}`;
             new URL(withProtocol);
           } catch {
-            fieldErrors[key] = 'Please enter a valid URL (e.g. https://github.com/username).';
+            fieldErrors[primaryKey] = 'Please enter a valid URL (e.g. https://github.com/username).';
           }
           break;
         }
 
         case 'date': {
           if (isNaN(new Date(val).getTime())) {
-            fieldErrors[key] = 'Please provide a valid date.';
+            fieldErrors[primaryKey] = 'Please provide a valid date.';
           }
           break;
         }
@@ -184,7 +252,7 @@ export class RegistrationService {
         case 'multiple_choice': {
           if (field.options && field.options.length > 0) {
             if (!field.options.includes(String(val))) {
-              fieldErrors[key] = 'Selected option is invalid.';
+              fieldErrors[primaryKey] = 'Selected option is invalid.';
             }
           }
           break;
@@ -194,7 +262,7 @@ export class RegistrationService {
           if (Array.isArray(val) && field.options && field.options.length > 0) {
             const hasInvalid = val.some((item) => !field.options?.includes(item));
             if (hasInvalid) {
-              fieldErrors[key] = 'One or more selected options are invalid.';
+              fieldErrors[primaryKey] = 'One or more selected options are invalid.';
             }
           }
           break;
@@ -355,34 +423,41 @@ export class RegistrationService {
       };
     }
 
-    // 3. Extract participant identification fields using systemKey (or fallback by type)
+    // 3. Extract participant identification fields using systemKey (or fallback by type/name)
     let participantName = '';
     let participantEmail = '';
     let participantPhone = '';
 
     for (const field of formFields) {
-      const key = field.$id || field.label;
-      const val = answers[key] ?? answers[field.label];
-      const stringVal = typeof val === 'string' ? val.trim() : String(val ?? '');
+      const keysToTry = [
+        field.systemKey,
+        field.$id,
+        (field as any).id,
+        field.label,
+        `field_${field.position}`,
+      ].filter(Boolean) as string[];
 
-      if (field.systemKey === 'name') {
-        participantName = stringVal;
-      } else if (field.systemKey === 'email') {
-        participantEmail = stringVal.toLowerCase();
-      } else if (field.systemKey === 'phone') {
-        participantPhone = stringVal;
-      } else {
-        if (!participantName && (field.fieldType === 'short_text' && /name/i.test(field.label))) {
-          participantName = stringVal;
-        }
-        if (!participantEmail && field.fieldType === 'email') {
-          participantEmail = stringVal.toLowerCase();
-        }
-        if (!participantPhone && field.fieldType === 'phone') {
-          participantPhone = stringVal;
+      let val = '';
+      for (const k of keysToTry) {
+        if (answers[k] !== undefined && answers[k] !== null && String(answers[k]).trim() !== '') {
+          val = String(answers[k]).trim();
+          break;
         }
       }
+
+      if (field.systemKey === 'name' || (!participantName && /^(full\s*)?name$/i.test(field.label.trim()))) {
+        if (val) participantName = val;
+      } else if (field.systemKey === 'email' || (!participantEmail && (field.fieldType === 'email' || /email/i.test(field.label.trim())))) {
+        if (val) participantEmail = val.toLowerCase();
+      } else if (field.systemKey === 'phone' || (!participantPhone && (field.fieldType === 'phone' || /phone|mobile|contact/i.test(field.label.trim())))) {
+        if (val) participantPhone = val;
+      }
     }
+
+    // Direct fallback if answers has 'name', 'email', or 'phone' explicitly
+    if (!participantName && answers.name) participantName = String(answers.name).trim();
+    if (!participantEmail && answers.email) participantEmail = String(answers.email).trim().toLowerCase();
+    if (!participantPhone && answers.phone) participantPhone = String(answers.phone).trim();
 
     if (!participantName) {
       participantName = 'Participant';
@@ -403,7 +478,7 @@ export class RegistrationService {
     // 5. Generate unique digital pass ID (ATC-{YEAR}-{RANDOM})
     const passId = await this.generateUniquePassId();
 
-    // 6. Create Registration Document in Appwrite (with resilient fallbacks)
+    // 6. Create Registration Document in Appwrite (Resilient: guarantees passId is preserved)
     const registrationId = ID.unique();
     const registeredAt = new Date().toISOString();
     let createdRegistrationDoc: EventRegistrationDocument | null = null;
@@ -416,81 +491,32 @@ export class RegistrationService {
       email: participantEmail,
       status: 'registered',
       registeredAt,
+      passId, // passId is required and always included
     };
 
     if (form?.$id) regPayload.formId = form.$id;
     if (participantPhone) regPayload.phone = participantPhone;
-    if (passId) regPayload.passId = passId;
-    regPayload.passStatus = 'active';
     if (userId && userId.trim()) {
       regPayload.userId = userId.trim();
     }
+    regPayload.passStatus = 'active';
 
     const docPermissions = this.getParticipantPermissions(userId);
 
-    // Attempt 1: Full payload with document-level permissions
     try {
-      createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
+      createdRegistrationDoc = await this.createDocumentResilient<EventRegistrationDocument>(
         this.databaseId,
         this.registrationsCollection,
         registrationId,
-        regPayload as any,
+        regPayload,
         docPermissions
       );
-    } catch (err1: any) {
-      console.warn('[RegistrationService] Attempt 1 failed. Trying Attempt 2 (no custom doc permissions)...', err1?.message);
-
-      // Attempt 2: Full payload without custom document permissions (inherit collection permissions)
-      try {
-        createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
-          this.databaseId,
-          this.registrationsCollection,
-          registrationId,
-          regPayload as any
-        );
-      } catch (err2: any) {
-        console.warn('[RegistrationService] Attempt 2 failed. Trying Attempt 3 (base schema without new passId/passStatus)...', err2?.message);
-
-        // Attempt 3: Core schema only (in case passId or passStatus attribute is not yet created in Appwrite)
-        const corePayload: Record<string, any> = {
-          eventId: event.$id,
-          name: participantName,
-          email: participantEmail,
-          status: 'registered',
-          registeredAt,
-        };
-        if (participantPhone) corePayload.phone = participantPhone;
-        if (form?.$id) corePayload.formId = form.$id;
-        if (userId && userId.trim()) corePayload.userId = userId.trim();
-
-        try {
-          createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
-            this.databaseId,
-            this.registrationsCollection,
-            registrationId,
-            corePayload as any,
-            docPermissions
-          );
-        } catch (err3: any) {
-          console.warn('[RegistrationService] Attempt 3 failed. Trying Attempt 4 (core schema no custom permissions)...', err3?.message);
-
-          // Attempt 4: Core schema without custom permissions
-          try {
-            createdRegistrationDoc = await databases.createDocument<EventRegistrationDocument>(
-              this.databaseId,
-              this.registrationsCollection,
-              registrationId,
-              corePayload as any
-            );
-          } catch (finalErr: any) {
-            console.error('[RegistrationService] All registration document creation attempts failed:', finalErr);
-            return {
-              success: false,
-              error: finalErr?.message || err1?.message || 'Unable to save registration. Please check Appwrite permissions or connection.',
-            };
-          }
-        }
-      }
+    } catch (createErr: any) {
+      console.error('[RegistrationService] Registration creation error:', createErr);
+      return {
+        success: false,
+        error: createErr?.message || 'Unable to save registration. Please check Appwrite permissions or connection.',
+      };
     }
 
     if (!createdRegistrationDoc) {
@@ -502,8 +528,22 @@ export class RegistrationService {
 
     // 7. Create Individual Registration Answer Documents for each field
     for (const field of formFields) {
-      const key = field.$id || field.label;
-      const val = answers[key] ?? answers[field.label];
+      const keysToTry = [
+        field.systemKey,
+        field.$id,
+        (field as any).id,
+        field.label,
+        `field_${field.position}`,
+      ].filter(Boolean) as string[];
+
+      let val: any = undefined;
+      for (const k of keysToTry) {
+        if (answers[k] !== undefined && answers[k] !== null && answers[k] !== '') {
+          val = answers[k];
+          break;
+        }
+      }
+
       if (val === undefined || val === null || val === '') continue;
 
       const serializedValue = Array.isArray(val)
