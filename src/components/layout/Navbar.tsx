@@ -12,7 +12,8 @@ import {
   ChevronDown,
   Shield,
   LayoutDashboard,
-  ArrowRight
+  ArrowRight,
+  Lightbulb,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PlayfulButton } from '../ui/PlayfulButton';
@@ -49,6 +50,7 @@ export const Navbar: React.FC = () => {
     { name: 'About', path: '/about' },
     { name: 'Events', path: '/events' },
     { name: 'Projects', path: '/projects' },
+    { name: 'Idea Hub', path: '/ideas', badge: 'NEW' },
     { name: 'Lab 5.0', path: '/lab' },
     { name: 'Inventory', path: '/inventory' },
     { name: 'Lab Slots', path: '/lab-access', badge: 'SLOTS' },
@@ -248,20 +250,34 @@ export const Navbar: React.FC = () => {
                     {/* Actions Menu */}
                     <div className="space-y-1">
                       {isAdmin ? (
-                        /* Admin Dashboard Link */
-                        <Link
-                          to="/admin/dashboard"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black text-[#121316] hover:bg-[#FFE600]/40 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <LayoutDashboard className="w-4 h-4 text-[#121316]" />
-                            <span>Admin Dashboard</span>
-                          </div>
-                          <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
-                        </Link>
+                        /* Admin Dashboard & Moderation Links */
+                        <>
+                          <Link
+                            to="/admin/dashboard"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black text-[#121316] hover:bg-[#FFE600]/40 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <LayoutDashboard className="w-4 h-4 text-[#121316]" />
+                              <span>Admin Dashboard</span>
+                            </div>
+                            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                          </Link>
+
+                          <Link
+                            to="/admin/project-ideas"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black text-[#121316] hover:bg-[#FFE600]/40 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Lightbulb className="w-4 h-4 text-[#FFA502]" />
+                              <span>Moderate Ideas</span>
+                            </div>
+                            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                          </Link>
+                        </>
                       ) : (
-                        /* Student: Dashboard & My Account */
+                        /* Student: Dashboard & My Ideas */
                         <>
                           <Link
                             to="/student/dashboard"
@@ -275,18 +291,17 @@ export const Navbar: React.FC = () => {
                             <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                           </Link>
 
-                          <div
-                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-50/80 border border-dashed border-gray-300 cursor-not-allowed select-none"
-                            title="Student account management coming soon"
+                          <Link
+                            to="/student/ideas"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black text-[#121316] hover:bg-[#FFE600]/40 transition-colors"
                           >
                             <div className="flex items-center gap-2">
-                              <UserIcon className="w-4 h-4 text-gray-400" />
-                              <span>My Account</span>
+                              <Lightbulb className="w-4 h-4 text-[#FFA502]" />
+                              <span>My Project Ideas</span>
                             </div>
-                            <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
-                              Coming Soon
-                            </span>
-                          </div>
+                            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                          </Link>
                         </>
                       )}
 
@@ -424,17 +439,31 @@ export const Navbar: React.FC = () => {
 
                 {/* Contextual Action: Admin Dashboard or Student Dashboard */}
                 {isAdmin ? (
-                  <Link
-                    to="/admin/dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border-2 border-[#121316] text-xs font-black text-[#121316] transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <LayoutDashboard className="w-4 h-4 text-[#121316]" />
-                      <span>Admin Dashboard</span>
-                    </div>
-                    <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
-                  </Link>
+                  <div className="space-y-1.5">
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border-2 border-[#121316] text-xs font-black text-[#121316] transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <LayoutDashboard className="w-4 h-4 text-[#121316]" />
+                        <span>Admin Dashboard</span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                    </Link>
+
+                    <Link
+                      to="/admin/project-ideas"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border-2 border-[#121316] text-xs font-black text-[#121316] transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-[#FFA502]" />
+                        <span>Moderate Project Ideas</span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                    </Link>
+                  </div>
                 ) : (
                   <div className="space-y-1.5">
                     <Link
@@ -449,15 +478,17 @@ export const Navbar: React.FC = () => {
                       <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                     </Link>
 
-                    <div className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-gray-400 bg-gray-50 border border-dashed border-gray-300 select-none">
+                    <Link
+                      to="/student/ideas"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border-2 border-[#121316] text-xs font-black text-[#121316] transition-colors shadow-pop-sm"
+                    >
                       <div className="flex items-center gap-2">
-                        <UserIcon className="w-3.5 h-3.5" />
-                        <span>My Account</span>
+                        <Lightbulb className="w-4 h-4 text-[#FFA502]" />
+                        <span>My Project Ideas</span>
                       </div>
-                      <span className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
-                        Coming Soon
-                      </span>
-                    </div>
+                      <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                    </Link>
                   </div>
                 )}
 

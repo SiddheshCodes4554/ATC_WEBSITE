@@ -15,6 +15,7 @@ import {
   Ticket,
   ChevronRight,
   Clock,
+  Lightbulb,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -86,6 +87,16 @@ export const AdminDashboardPage: React.FC = () => {
       color: 'bg-[#FFF9DB]',
       linkText: 'Manage Lab Slots',
       path: '/admin/lab',
+      isInternal: true,
+    },
+    {
+      title: 'Project Ideas Moderation',
+      desc: 'Moderate student pitches, review technical architecture, provide mentor feedback, and approve projects.',
+      icon: <Lightbulb className="w-6 h-6 text-[#121316]" />,
+      badge: 'IDEAS HUB',
+      color: 'bg-[#FFF3E0]',
+      linkText: 'Moderate Ideas',
+      path: '/admin/project-ideas',
       isInternal: true,
     },
   ];
@@ -207,6 +218,14 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <Clock className="w-3.5 h-3.5" />
               <span>Lab Slots</span>
+            </Link>
+
+            <Link
+              to="/admin/project-ideas"
+              className="px-5 py-2.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <Lightbulb className="w-3.5 h-3.5" />
+              <span>Project Ideas</span>
             </Link>
           </div>
 

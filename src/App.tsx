@@ -33,6 +33,13 @@ import { AdminEditProjectPage } from './pages/admin/AdminEditProjectPage';
 import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
 import { AdminLabPage } from './pages/admin/AdminLabPage';
 import { LabAccessPage } from './pages/LabAccessPage';
+import { IdeasPage } from './pages/IdeasPage';
+import { IdeaDetailsPage } from './pages/IdeaDetailsPage';
+import { StudentIdeasPage } from './pages/student/StudentIdeasPage';
+import { SubmitIdeaPage } from './pages/student/SubmitIdeaPage';
+import { StudentIdeaDetailsPage } from './pages/student/StudentIdeaDetailsPage';
+import { AdminProjectIdeasPage } from './pages/admin/AdminProjectIdeasPage';
+import { AdminProjectIdeaReviewPage } from './pages/admin/AdminProjectIdeaReviewPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { StudentProtectedRoute } from './components/auth/StudentProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -77,6 +84,8 @@ export const App: React.FC = () => {
           <Route path="/pass/:passId" element={<PublicLayout><EventPassPage /></PublicLayout>} />
           <Route path="/projects" element={<PublicLayout><ProjectsPage /></PublicLayout>} />
           <Route path="/projects/:slug" element={<PublicLayout><ProjectDetailsPage /></PublicLayout>} />
+          <Route path="/ideas" element={<PublicLayout><IdeasPage /></PublicLayout>} />
+          <Route path="/ideas/:ideaId" element={<PublicLayout><IdeaDetailsPage /></PublicLayout>} />
           <Route path="/lab" element={<PublicLayout><LabPage /></PublicLayout>} />
           <Route path="/lab-access" element={<PublicLayout><LabAccessPage /></PublicLayout>} />
           <Route path="/inventory" element={<PublicLayout><InventoryPage /></PublicLayout>} />
@@ -94,6 +103,10 @@ export const App: React.FC = () => {
             <Route path="dashboard" element={<PublicLayout><StudentDashboardPage /></PublicLayout>} />
             <Route path="events" element={<PublicLayout><StudentEventsPage /></PublicLayout>} />
             <Route path="lab-bookings" element={<PublicLayout><StudentLabBookingsPage /></PublicLayout>} />
+            <Route path="ideas" element={<PublicLayout><StudentIdeasPage /></PublicLayout>} />
+            <Route path="ideas/new" element={<PublicLayout><SubmitIdeaPage /></PublicLayout>} />
+            <Route path="ideas/:ideaId" element={<PublicLayout><StudentIdeaDetailsPage /></PublicLayout>} />
+            <Route path="ideas/:ideaId/edit" element={<PublicLayout><SubmitIdeaPage /></PublicLayout>} />
             <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
           </Route>
 
@@ -120,6 +133,8 @@ export const App: React.FC = () => {
             <Route path="projects/create" element={<AdminCreateProjectPage />} />
             <Route path="projects/:id/edit" element={<AdminEditProjectPage />} />
             <Route path="projects/edit/:id" element={<AdminEditProjectPage />} />
+            <Route path="project-ideas" element={<AdminProjectIdeasPage />} />
+            <Route path="project-ideas/:ideaId" element={<AdminProjectIdeaReviewPage />} />
             <Route path="gallery" element={<AdminGalleryPage />} />
             <Route path="lab" element={<AdminLabPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />

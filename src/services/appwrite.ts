@@ -36,6 +36,7 @@ export const APPWRITE_CONFIG = {
     GALLERY: import.meta.env.VITE_APPWRITE_COLLECTION_GALLERY || 'gallery',
     LAB_SLOTS: import.meta.env.VITE_APPWRITE_COLLECTION_LAB_SLOTS || 'lab_slots',
     LAB_REQUESTS: import.meta.env.VITE_APPWRITE_COLLECTION_LAB_REQUESTS || 'lab_requests',
+    PROJECT_IDEAS: import.meta.env.VITE_APPWRITE_COLLECTION_PROJECT_IDEAS || 'project_ideas',
     WEBSITE_CONTENT: import.meta.env.VITE_APPWRITE_COLLECTION_WEBSITE_CONTENT || 'website_content',
   },
 

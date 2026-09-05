@@ -30,7 +30,10 @@ import {
   MapPin,
   ListOrdered,
   Hourglass,
+  Lightbulb,
 } from 'lucide-react';
+import { projectIdeaService } from '../../services/projectIdeaService';
+import { ProjectIdea } from '../../types/projectIdea.types';
 
 interface StudentRegistrationItem {
   registration: EventRegistration;
@@ -49,6 +52,10 @@ export const StudentDashboardPage: React.FC = () => {
   const [labRequests, setLabRequests] = useState<StudentLabRequestWithSlot[]>([]);
   const [labLoading, setLabLoading] = useState<boolean>(true);
   const [labError, setLabError] = useState<string | null>(null);
+
+  // Project Ideas State
+  const [ideas, setIdeas] = useState<ProjectIdea[]>([]);
+  const [ideasLoading, setIdeasLoading] = useState<boolean>(true);
 
   // Derive first name safely from user.name
   const firstName =
@@ -105,9 +112,29 @@ export const StudentDashboardPage: React.FC = () => {
     }
   };
 
+  const fetchIdeas = async () => {
+    if (!user?.$id) {
+      setIdeasLoading(false);
+      return;
+    }
+
+    setIdeasLoading(true);
+    try {
+      const res = await projectIdeaService.getIdeasByUserId(user.$id);
+      if (res.success && res.data) {
+        setIdeas(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching student project ideas:', err);
+    } finally {
+      setIdeasLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchRegistrations();
     fetchLabRequests();
+    fetchIdeas();
   }, [user?.$id]);
 
   const renderEventStatusBadge = (status: RegistrationStatus) => {
@@ -343,29 +370,34 @@ export const StudentDashboardPage: React.FC = () => {
               </div>
             </Link>
 
-            {/* Card 4: My Profile */}
-            <div className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop flex flex-col justify-between relative group select-none">
+            {/* Card 4: My Project Ideas */}
+            <Link
+              to="/student/ideas"
+              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+            >
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center mb-4">
-                  <UserIcon className="w-6 h-6 text-[#121316] stroke-[2.5]" />
+                <div className="w-12 h-12 rounded-2xl bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center mb-4 group-hover:rotate-6 transition-transform">
+                  <Lightbulb className="w-6 h-6 text-[#121316] stroke-[2.5]" />
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-black text-lg text-[#121316]">
-                    My Profile
+                  <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
+                    My Project Ideas
                   </h3>
-                  <span className="px-2 py-0.5 rounded bg-gray-200 text-gray-600 font-mono text-[9px] font-bold">
-                    Coming Soon
-                  </span>
+                  {ideas.length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-[#E1DCFF] text-[#6C5CE7] border border-[#121316] font-mono text-[10px] font-black">
+                      {ideas.length}
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs font-bold text-gray-600 mt-1.5 leading-relaxed">
-                  Manage your student credentials, club badges, and project contributions.
+                  Pitch hardware & software ideas, track review feedback, and get approved for lab builds.
                 </p>
               </div>
-              <div className="mt-5 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-xs font-mono font-bold text-gray-400">
-                <span>Profile Management</span>
-                <Clock className="w-4 h-4 text-gray-400" />
+              <div className="mt-5 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-xs font-mono font-black text-[#121316]">
+                <span>Manage Ideas</span>
+                <ArrowRight className="w-4 h-4 stroke-[3] group-hover:translate-x-1 transition-transform" />
               </div>
-            </div>
+            </Link>
 
           </div>
         </section>
