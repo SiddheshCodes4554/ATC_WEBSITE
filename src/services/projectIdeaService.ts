@@ -475,7 +475,11 @@ export class ProjectIdeaService {
 
       return { success: true, data: ideas };
     } catch (error: any) {
-      console.error('[ProjectIdeaService.getPublicIdeas] Error:', error);
+      console.warn('[ProjectIdeaService.getPublicIdeas] Warning/Error:', error?.message);
+      // If collection is not yet created in Appwrite, return empty list gracefully so page doesn't crash
+      if (error?.code === 404 || /could not be found|not found/i.test(error?.message || '')) {
+        return { success: true, data: [] };
+      }
       return {
         success: false,
         error: error?.message || 'Failed to fetch public ideas.',
@@ -554,7 +558,10 @@ export class ProjectIdeaService {
       const ideas = response.documents.map((doc) => this.mapDocumentToIdea(doc));
       return { success: true, data: ideas };
     } catch (error: any) {
-      console.error('[ProjectIdeaService.getIdeasByUserId] Error:', error);
+      console.warn('[ProjectIdeaService.getIdeasByUserId] Warning/Error:', error?.message);
+      if (error?.code === 404 || /could not be found|not found/i.test(error?.message || '')) {
+        return { success: true, data: [] };
+      }
       return {
         success: false,
         error: error?.message || 'Failed to fetch your ideas.',
@@ -636,7 +643,25 @@ export class ProjectIdeaService {
 
       return { success: true, data: { ideas, stats } };
     } catch (error: any) {
-      console.error('[ProjectIdeaService.getAllIdeas] Error:', error);
+      console.warn('[ProjectIdeaService.getAllIdeas] Warning/Error:', error?.message);
+      if (error?.code === 404 || /could not be found|not found/i.test(error?.message || '')) {
+        return {
+          success: true,
+          data: {
+            ideas: [],
+            stats: {
+              total: 0,
+              draft: 0,
+              submitted: 0,
+              under_review: 0,
+              approved: 0,
+              changes_requested: 0,
+              rejected: 0,
+              pendingReview: 0,
+            },
+          },
+        };
+      }
       return {
         success: false,
         error: error?.message || 'Failed to fetch all ideas.',
