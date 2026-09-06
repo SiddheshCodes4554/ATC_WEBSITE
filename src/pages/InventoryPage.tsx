@@ -19,6 +19,7 @@ import { InventoryStats } from '../components/inventory/InventoryStats';
 import { InventoryFilters } from '../components/inventory/InventoryFilters';
 import { InventoryCard } from '../components/inventory/InventoryCard';
 import { InventoryDetailsModal } from '../components/inventory/InventoryDetailsModal';
+import { ComponentRequestModal } from '../components/inventory/ComponentRequestModal';
 import { InventorySkeleton } from '../components/inventory/InventorySkeleton';
 import { ATCEmptyState } from '../components/visual';
 
@@ -36,6 +37,7 @@ export const InventoryPage: React.FC = () => {
 
   // Selected item for modal
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [requestingItem, setRequestingItem] = useState<InventoryItem | null>(null);
 
   // Fetch inventory data
   const loadInventory = useCallback(async (isManualRefresh = false) => {
@@ -237,6 +239,7 @@ export const InventoryPage: React.FC = () => {
                     key={item.id}
                     item={item}
                     onSelect={setSelectedItem}
+                    onRequest={setRequestingItem}
                   />
                 ))}
               </div>
@@ -260,6 +263,14 @@ export const InventoryPage: React.FC = () => {
       <InventoryDetailsModal
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
+        onRequest={(item) => setRequestingItem(item)}
+      />
+
+      {/* Component Request Modal */}
+      <ComponentRequestModal
+        isOpen={Boolean(requestingItem)}
+        item={requestingItem}
+        onClose={() => setRequestingItem(null)}
       />
     </div>
   );

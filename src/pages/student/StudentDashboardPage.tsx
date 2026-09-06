@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { projectIdeaService } from '../../services/projectIdeaService';
 import { ProjectIdea } from '../../types/projectIdea.types';
+import { componentRequestService } from '../../services/componentRequestService';
+import { ComponentRequest } from '../../types/componentRequest.types';
 import { MembershipApplicationService } from '../../services/membershipApplicationService';
 import { MembershipApplication } from '../../types/membershipApplication.types';
 import {
@@ -64,6 +66,10 @@ export const StudentDashboardPage: React.FC = () => {
   // Project Ideas State
   const [ideas, setIdeas] = useState<ProjectIdea[]>([]);
   const [ideasLoading, setIdeasLoading] = useState<boolean>(true);
+
+  // Component Requests State
+  const [componentRequests, setComponentRequests] = useState<ComponentRequest[]>([]);
+  const [componentRequestsLoading, setComponentRequestsLoading] = useState<boolean>(true);
 
   // Membership Application State
   const [membershipApplication, setMembershipApplication] = useState<MembershipApplication | null>(null);
@@ -96,6 +102,25 @@ export const StudentDashboardPage: React.FC = () => {
       console.error('Error fetching membership application:', err);
     } finally {
       setMembershipLoading(false);
+    }
+  };
+
+  const fetchComponentRequests = async () => {
+    if (!user?.$id) {
+      setComponentRequestsLoading(false);
+      return;
+    }
+
+    setComponentRequestsLoading(true);
+    try {
+      const res = await componentRequestService.getStudentRequests(user.$id);
+      if (res.success && res.data) {
+        setComponentRequests(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching student component requests:', err);
+    } finally {
+      setComponentRequestsLoading(false);
     }
   };
 
@@ -168,6 +193,7 @@ export const StudentDashboardPage: React.FC = () => {
     fetchRegistrations();
     fetchLabRequests();
     fetchIdeas();
+    fetchComponentRequests();
     fetchMembership();
   }, [user?.$id, user?.email]);
 
@@ -256,6 +282,36 @@ export const StudentDashboardPage: React.FC = () => {
       {/* Main Dashboard Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-10">
         
+        {/* Ready for Collection Banner if approved components exist */}
+        {componentRequests.some((r) => r.status === 'approved') && (
+          <div className="p-5 sm:p-6 rounded-[28px] bg-[#D4F8E8] border-3 border-[#121316] shadow-pop flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-xs flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-6 h-6 text-emerald-700 stroke-[2.5]" />
+              </div>
+              <div>
+                <h3 className="font-black text-base sm:text-lg text-[#121316]">
+                  {componentRequests.filter((r) => r.status === 'approved').length}{' '}
+                  {componentRequests.filter((r) => r.status === 'approved').length === 1
+                    ? 'HARDWARE COMPONENT IS'
+                    : 'HARDWARE COMPONENTS ARE'}{' '}
+                  APPROVED & READY FOR PICKUP!
+                </h3>
+                <p className="text-xs font-bold text-gray-700 mt-0.5">
+                  Visit Lab 5.0 with your student ID to collect your allocated parts.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/student/component-requests"
+              className="px-5 py-2.5 rounded-full bg-[#121316] text-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs hover:shadow-pop flex-shrink-0 flex items-center justify-center gap-1.5 transition-all"
+            >
+              <span>View Component Passes</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+            </Link>
+          </div>
+        )}
+
         {/* ============================================================= */}
         {/* 1. QUICK ACTIONS SECTION                                      */}
         {/* ============================================================= */}
@@ -270,7 +326,7 @@ export const StudentDashboardPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-5">
             
             {/* Card 1: My Events */}
             <Link
@@ -293,7 +349,7 @@ export const StudentDashboardPage: React.FC = () => {
                   My Events
                 </h3>
                 <p className="text-xs font-bold text-gray-600 mt-1.5 leading-relaxed">
-                  View your registered hackathons, workshop passes, and attendance.
+                  View registered hackathons, workshop passes & QR tickets.
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-xs font-mono font-black text-[#121316]">
@@ -323,7 +379,7 @@ export const StudentDashboardPage: React.FC = () => {
                   Lab Access
                 </h3>
                 <p className="text-xs font-bold text-gray-600 mt-1.5 leading-relaxed">
-                  Reserve workbench slots and request access to Lab 5.0 robotics stations.
+                  Reserve workbench slots & prototyping stations in Lab 5.0.
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-xs font-mono font-black text-[#121316]">
@@ -332,7 +388,44 @@ export const StudentDashboardPage: React.FC = () => {
               </div>
             </Link>
 
-            {/* Card 3: Inventory */}
+            {/* Card 3: Component Requests */}
+            <Link
+              to="/student/component-requests"
+              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
+            >
+              <div className="absolute top-3 right-3">
+                <ScrewHead rotation={90} />
+              </div>
+              <div>
+                <div className="mb-4">
+                  <IconModule
+                    icon={<Package className="w-6 h-6 stroke-[2.5]" />}
+                    size="lg"
+                    variant="purple"
+                    hoverEffect="bounce"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
+                    Hardware Requests
+                  </h3>
+                  {componentRequests.length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-[#E1DCFF] text-[#6C5CE7] border border-[#121316] font-mono text-[10px] font-black">
+                      {componentRequests.length}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs font-bold text-gray-600 mt-1.5 leading-relaxed">
+                  Track microcontrollers, sensor requisitions & collection status.
+                </p>
+              </div>
+              <div className="mt-5 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-xs font-mono font-black text-[#121316]">
+                <span>My Requests</span>
+                <ArrowRight className="w-4 h-4 stroke-[3] group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Card 4: Inventory */}
             <Link
               to="/inventory"
               className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
@@ -345,15 +438,15 @@ export const StudentDashboardPage: React.FC = () => {
                   <IconModule
                     icon={<Package className="w-6 h-6 stroke-[2.5]" />}
                     size="lg"
-                    variant="purple"
-                    hoverEffect="bounce"
+                    variant="yellow"
+                    hoverEffect="rotate"
                   />
                 </div>
                 <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
                   Inventory
                 </h3>
                 <p className="text-xs font-bold text-gray-600 mt-1.5 leading-relaxed">
-                  Explore microcontrollers, sensor modules, and equipment in stock.
+                  Explore microcontrollers, sensor modules & parts in stock.
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-xs font-mono font-black text-[#121316]">
@@ -362,7 +455,7 @@ export const StudentDashboardPage: React.FC = () => {
               </div>
             </Link>
 
-            {/* Card 4: My Project Ideas */}
+            {/* Card 5: My Project Ideas */}
             <Link
               to="/student/ideas"
               className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
@@ -375,22 +468,22 @@ export const StudentDashboardPage: React.FC = () => {
                   <IconModule
                     icon={<Lightbulb className="w-6 h-6 stroke-[2.5]" />}
                     size="lg"
-                    variant="yellow"
+                    variant="coral"
                     hoverEffect="rotate"
                   />
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
-                    My Project Ideas
+                    Project Ideas
                   </h3>
                   {ideas.length > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-[#E1DCFF] text-[#6C5CE7] border border-[#121316] font-mono text-[10px] font-black">
+                    <span className="px-2 py-0.5 rounded-full bg-[#FFEBF2] text-[#FF4757] border border-[#121316] font-mono text-[10px] font-black">
                       {ideas.length}
                     </span>
                   )}
                 </div>
                 <p className="text-xs font-bold text-gray-600 mt-1.5 leading-relaxed">
-                  Pitch hardware & software ideas, track review feedback, and get approved for lab builds.
+                  Pitch hardware & software ideas, track review feedback & mentor notes.
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t-2 border-[#121316]/10 flex items-center justify-between text-xs font-mono font-black text-[#121316]">
@@ -817,6 +910,134 @@ export const StudentDashboardPage: React.FC = () => {
                   className="w-full py-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#2ED573] border-2 border-[#121316] text-[#121316] font-mono text-xs font-black uppercase flex items-center justify-center gap-2 transition-all shadow-pop-sm"
                 >
                   <span>Go to My Lab Bookings Archive</span>
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Section C: Hardware Component Requests (Dynamic) */}
+          <div className="bg-white rounded-3xl border-3 border-[#121316] p-6 sm:p-7 shadow-pop flex flex-col justify-between space-y-6 md:col-span-2">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h3 className="text-xl font-black text-[#121316] flex items-center gap-2">
+                    <Package className="w-5 h-5 text-[#6C5CE7]" />
+                    <span>MY HARDWARE REQUISITIONS</span>
+                  </h3>
+                  <p className="text-xs font-bold text-gray-600 mt-0.5">
+                    Your requested sensors, microcontrollers & equipment from Lab 5.0.
+                  </p>
+                </div>
+                {componentRequests.length > 0 && (
+                  <Link
+                    to="/student/component-requests"
+                    className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#6C5CE7] hover:underline flex-shrink-0"
+                  >
+                    <span>VIEW ALL →</span>
+                  </Link>
+                )}
+              </div>
+
+              {componentRequestsLoading ? (
+                /* Skeleton Loader */
+                <div className="space-y-3 animate-pulse">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-gray-200 flex gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gray-200 flex-shrink-0" />
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="w-2/3 h-4 bg-gray-200 rounded" />
+                        <div className="w-1/2 h-3 bg-gray-200 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : componentRequests.length > 0 ? (
+                /* Top Component Requests List (Max 3) */
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {componentRequests.slice(0, 3).map((req) => {
+                    const isApproved = req.status === 'approved';
+                    const isCollected = req.status === 'collected';
+                    const isRejected = req.status === 'rejected';
+
+                    return (
+                      <div
+                        key={req.$id}
+                        className={`p-4 rounded-2xl border-2 border-[#121316] shadow-pop-sm hover:shadow-pop transition-all flex flex-col justify-between gap-3 group ${
+                          isApproved
+                            ? 'bg-[#E8F5E9]/60'
+                            : isCollected
+                            ? 'bg-[#F0EBFF]/40'
+                            : isRejected
+                            ? 'bg-[#FFE5E5]/40'
+                            : 'bg-[#FAF7F0]'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <ATCStatusBadge status={req.status} size="xs" />
+                            <span className="font-mono text-[10px] font-bold text-gray-500">
+                              #{req.$id.slice(-6)}
+                            </span>
+                          </div>
+
+                          <h4 className="font-black text-sm text-[#121316] truncate group-hover:text-[#6C5CE7] transition-colors">
+                            {req.componentName}
+                          </h4>
+
+                          <p className="text-xs font-bold text-gray-600 line-clamp-2 leading-relaxed">
+                            {req.reason}
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-[#121316]/10 flex items-center justify-between text-xs">
+                          <span className="font-mono font-black text-[#121316]">
+                            Qty: {req.requestedQuantity}
+                          </span>
+                          <Link
+                            to={`/student/component-requests/${req.$id}`}
+                            className="inline-flex items-center gap-1 font-mono text-[11px] font-black text-[#6C5CE7] hover:underline"
+                          >
+                            <span>Details</span>
+                            <ArrowRight className="w-3 h-3 stroke-[3]" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Empty State */
+                <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] mx-auto flex items-center justify-center shadow-pop-xs">
+                    <Package className="w-6 h-6 text-[#6C5CE7]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-black text-sm text-[#121316]">
+                      NO HARDWARE REQUESTS YET
+                    </h4>
+                    <p className="text-xs font-bold text-gray-600 max-w-sm mx-auto">
+                      Need sensors, microcontrollers, or robotics parts for a project?
+                    </p>
+                  </div>
+                  <Link
+                    to="/inventory"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] shadow-pop-xs transition-all"
+                  >
+                    <span>Browse Lab Inventory</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {componentRequests.length > 0 && (
+              <div className="pt-3 border-t-2 border-[#121316]/10">
+                <Link
+                  to="/student/component-requests"
+                  className="w-full py-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] border-2 border-[#121316] text-[#121316] font-mono text-xs font-black uppercase flex items-center justify-center gap-2 transition-all shadow-pop-sm"
+                >
+                  <span>Go to My Hardware Requests</span>
                   <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                 </Link>
               </div>

@@ -13,11 +13,13 @@ import { InventoryItem } from '../../types/inventory.types';
 interface InventoryDetailsModalProps {
   item: InventoryItem | null;
   onClose: () => void;
+  onRequest?: (item: InventoryItem) => void;
 }
 
 export const InventoryDetailsModal: React.FC<InventoryDetailsModalProps> = ({
   item,
   onClose,
+  onRequest,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -142,24 +144,40 @@ export const InventoryDetailsModal: React.FC<InventoryDetailsModalProps> = ({
             </div>
           )}
 
-          {/* Lab Usage Notice */}
-          <div className="p-3.5 rounded-2xl bg-[#FFE600]/20 border-2 border-[#121316] text-xs font-bold text-[#121316] flex items-center gap-2.5">
-            <Package className="w-5 h-5 text-[#121316] flex-shrink-0" />
-            <span>
-              Need this component for an ATC project? Visit Lab 5.0 or reach out during club workshop hours.
-            </span>
+          {/* Lab Usage Notice & Request CTA */}
+          <div className="p-4 rounded-2xl bg-[#FFE600]/20 border-2 border-[#121316] text-xs font-bold text-[#121316] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <Package className="w-5 h-5 text-[#121316] flex-shrink-0" />
+              <span>
+                Need this component for an ATC project? Submit an online hardware request.
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="mt-6 pt-4 border-t-2 border-[#121316]/10 flex justify-end">
+        <div className="mt-6 pt-4 border-t-2 border-[#121316]/10 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-white hover:bg-gray-100 text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
           >
             Close Details
           </button>
+
+          {onRequest && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onRequest(item);
+              }}
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop hover:shadow-pop-lg active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Request Component</span>
+              <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />
+            </button>
+          )}
         </div>
       </div>
     </div>

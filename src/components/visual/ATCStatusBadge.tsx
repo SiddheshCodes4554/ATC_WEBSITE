@@ -35,6 +35,7 @@ export type ATCStatusType =
   | 'completed'
   | 'draft'
   | 'submitted'
+  | 'collected'
   | 'active'
   | 'inactive';
 
@@ -107,6 +108,13 @@ const statusConfigs: Record<string, StatusConfig> = {
     text: 'text-[#6C5CE7]',
     border: 'border-[#121316]',
     icon: <Sparkles className="w-3.5 h-3.5 stroke-[2.5]" />,
+  },
+  collected: {
+    label: 'COLLECTED',
+    bg: 'bg-[#E1DCFF]',
+    text: 'text-[#6C5CE7]',
+    border: 'border-[#121316]',
+    icon: <CheckCircle2 className="w-3.5 h-3.5 text-[#6C5CE7] stroke-[2.5]" />,
   },
 
   // Lab Access & Slot Statuses

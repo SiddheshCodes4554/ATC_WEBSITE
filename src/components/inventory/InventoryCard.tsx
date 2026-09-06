@@ -34,9 +34,10 @@ const getItemIconConfig = (title: string): { icon: React.ReactNode; variant: 'pu
 export interface InventoryCardProps {
   item: InventoryItem;
   onSelect: (item: InventoryItem) => void;
+  onRequest?: (item: InventoryItem) => void;
 }
 
-export const InventoryCard: React.FC<InventoryCardProps> = ({ item, onSelect }) => {
+export const InventoryCard: React.FC<InventoryCardProps> = ({ item, onSelect, onRequest }) => {
   const hasDescription = Boolean(item.description && item.description.trim());
   const iconConfig = getItemIconConfig(item.title);
 
@@ -90,14 +91,29 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({ item, onSelect }) 
             </div>
           </div>
 
-          {/* View Details Action */}
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FFE600] group-hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm group-hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
-          >
-            <span>Details</span>
-            <ArrowRight className="w-3.5 h-3.5 stroke-[3] group-hover:translate-x-0.5 transition-transform" />
-          </button>
+          {/* Action buttons */}
+          <div className="flex items-center gap-1.5">
+            {onRequest && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRequest(item);
+                }}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#E1DCFF] hover:bg-[#6C5CE7] text-[#6C5CE7] hover:text-white font-mono text-xs font-black border-2 border-[#121316] shadow-pop-xs hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+              >
+                <span>Request</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FFE600] group-hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm group-hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+            >
+              <span>Details</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[3] group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

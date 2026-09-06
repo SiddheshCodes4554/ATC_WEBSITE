@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Clock,
   Lightbulb,
+  Package,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IconModule } from '../../components/visual';
@@ -116,6 +117,17 @@ export const AdminDashboardPage: React.FC = () => {
       color: 'bg-[#FAF7F0]',
       linkText: 'Review Applications',
       path: '/admin/membership-applications',
+      isInternal: true,
+    },
+    {
+      title: 'Hardware Component Requests',
+      desc: 'Review maker requisitions, allocate parts, track collection status, and supervise hardware usage.',
+      icon: <Package className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'yellow' as const,
+      badge: 'HARDWARE',
+      color: 'bg-[#FFF9DB]',
+      linkText: 'Manage Requests',
+      path: '/admin/component-requests',
       isInternal: true,
     },
   ];
@@ -253,6 +265,14 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <Users className="w-3.5 h-3.5 text-[#6C5CE7]" />
               <span>Member Applications</span>
+            </Link>
+
+            <Link
+              to="/admin/component-requests"
+              className="px-5 py-2.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <Package className="w-3.5 h-3.5 text-[#121316]" />
+              <span>Component Requests</span>
             </Link>
           </div>
 

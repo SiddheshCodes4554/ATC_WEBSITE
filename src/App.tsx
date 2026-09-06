@@ -40,6 +40,10 @@ import { IdeaDetailsPage } from './pages/IdeaDetailsPage';
 import { StudentIdeasPage } from './pages/student/StudentIdeasPage';
 import { SubmitIdeaPage } from './pages/student/SubmitIdeaPage';
 import { StudentIdeaDetailsPage } from './pages/student/StudentIdeaDetailsPage';
+import { StudentComponentRequestsPage } from './pages/student/StudentComponentRequestsPage';
+import { StudentComponentRequestDetailsPage } from './pages/student/StudentComponentRequestDetailsPage';
+import { AdminComponentRequestsPage } from './pages/admin/AdminComponentRequestsPage';
+import { AdminComponentRequestDetailsPage } from './pages/admin/AdminComponentRequestDetailsPage';
 import { AdminProjectIdeasPage } from './pages/admin/AdminProjectIdeasPage';
 import { AdminProjectIdeaReviewPage } from './pages/admin/AdminProjectIdeaReviewPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -105,6 +109,8 @@ export const App: React.FC = () => {
             <Route path="dashboard" element={<PublicLayout><StudentDashboardPage /></PublicLayout>} />
             <Route path="events" element={<PublicLayout><StudentEventsPage /></PublicLayout>} />
             <Route path="lab-bookings" element={<PublicLayout><StudentLabBookingsPage /></PublicLayout>} />
+            <Route path="component-requests" element={<PublicLayout><StudentComponentRequestsPage /></PublicLayout>} />
+            <Route path="component-requests/:requestId" element={<PublicLayout><StudentComponentRequestDetailsPage /></PublicLayout>} />
             <Route path="ideas" element={<PublicLayout><StudentIdeasPage /></PublicLayout>} />
             <Route path="ideas/new" element={<PublicLayout><SubmitIdeaPage /></PublicLayout>} />
             <Route path="ideas/:ideaId" element={<PublicLayout><StudentIdeaDetailsPage /></PublicLayout>} />
@@ -137,6 +143,8 @@ export const App: React.FC = () => {
             <Route path="projects/edit/:id" element={<AdminEditProjectPage />} />
             <Route path="project-ideas" element={<AdminProjectIdeasPage />} />
             <Route path="project-ideas/:ideaId" element={<AdminProjectIdeaReviewPage />} />
+            <Route path="component-requests" element={<AdminComponentRequestsPage />} />
+            <Route path="component-requests/:requestId" element={<AdminComponentRequestDetailsPage />} />
             <Route path="membership-applications" element={<AdminMembershipApplicationsPage />} />
             <Route path="membership-applications/:applicationId" element={<AdminMembershipApplicationDetailsPage />} />
             <Route path="gallery" element={<AdminGalleryPage />} />
