@@ -14,6 +14,14 @@ import {
   LayoutDashboard,
   ArrowRight,
   Lightbulb,
+  FolderGit2,
+  Calendar,
+  FlaskConical,
+  Package,
+  Clock,
+  Users,
+  Image,
+  Info,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PlayfulButton } from '../ui/PlayfulButton';
@@ -38,24 +46,95 @@ const getInitials = (name?: string, email?: string): string => {
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [openNavDropdown, setOpenNavDropdown] = useState<string | null>(null);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navDropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout, isAdmin, loading } = useAuth();
 
-  // Navigation Links
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
-    { name: 'Events', path: '/events' },
-    { name: 'Projects', path: '/projects' },
-    { name: 'Idea Hub', path: '/ideas', badge: 'NEW' },
-    { name: 'Lab 5.0', path: '/lab' },
-    { name: 'Inventory', path: '/inventory' },
-    { name: 'Lab Slots', path: '/lab-access', badge: 'SLOTS' },
-    { name: 'Team', path: '/team' },
-    { name: 'Gallery', path: '/gallery' },
+  // Navigation Structure (Organized into high-level categories)
+  const navSections = [
+    {
+      id: 'events',
+      name: 'Events',
+      path: '/events',
+      type: 'link' as const,
+    },
+    {
+      id: 'projects',
+      name: 'Projects',
+      type: 'dropdown' as const,
+      badge: 'NEW',
+      items: [
+        {
+          name: 'Projects Showcase',
+          desc: 'Hardware builds, robotics & apps',
+          path: '/projects',
+          icon: <FolderGit2 className="w-4 h-4 text-[#0288D1]" />,
+        },
+        {
+          name: 'Project Idea Hub',
+          desc: 'Pitch & brainstorm tech concepts',
+          path: '/ideas',
+          badge: 'NEW',
+          icon: <Lightbulb className="w-4 h-4 text-[#FFA502]" />,
+        },
+      ],
+    },
+    {
+      id: 'lab',
+      name: 'Lab 5.0',
+      type: 'dropdown' as const,
+      items: [
+        {
+          name: 'Lab Facilities',
+          desc: 'Explore workbenches & stations',
+          path: '/lab',
+          icon: <FlaskConical className="w-4 h-4 text-[#2ED573]" />,
+        },
+        {
+          name: 'Book Lab Slots',
+          desc: 'Reserve maker bench hours',
+          path: '/lab-access',
+          badge: 'SLOTS',
+          icon: <Clock className="w-4 h-4 text-[#FF793F]" />,
+        },
+        {
+          name: 'Hardware Inventory',
+          desc: 'Live sensor & MCU catalog',
+          path: '/inventory',
+          icon: <Package className="w-4 h-4 text-[#6C5CE7]" />,
+        },
+      ],
+    },
+    {
+      id: 'about',
+      name: 'About',
+      type: 'dropdown' as const,
+      items: [
+        {
+          name: 'About ATC',
+          desc: 'Mission, domains & club vision',
+          path: '/about',
+          icon: <Info className="w-4 h-4 text-[#6C5CE7]" />,
+        },
+        {
+          name: 'Leadership & Team',
+          desc: 'Meet core department leads',
+          path: '/team',
+          icon: <Users className="w-4 h-4 text-[#2ED573]" />,
+        },
+        {
+          name: 'Memory Wall & Gallery',
+          desc: 'Hackathons & club moments',
+          path: '/gallery',
+          icon: <Image className="w-4 h-4 text-[#FF4757]" />,
+        },
+      ],
+    },
   ];
 
   // Derived user name with safe fallbacks
@@ -67,32 +146,50 @@ export const Navbar: React.FC = () => {
   useEffect(() => {
     setUserDropdownOpen(false);
     setMobileMenuOpen(false);
+    setOpenNavDropdown(null);
   }, [location.pathname]);
 
-  // Click outside and Escape key handler for dropdown
+  // Click outside and Escape key handler for dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setUserDropdownOpen(false);
+      }
+      // Close nav dropdowns if click is outside header
+      const target = event.target as HTMLElement;
+      if (!target.closest('.nav-dropdown-container')) {
+        setOpenNavDropdown(null);
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setUserDropdownOpen(false);
+        setOpenNavDropdown(null);
       }
     };
 
-    if (userDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [userDropdownOpen]);
+  }, []);
+
+  const handleNavDropdownEnter = (id: string) => {
+    if (navDropdownTimeoutRef.current) {
+      clearTimeout(navDropdownTimeoutRef.current);
+    }
+    setOpenNavDropdown(id);
+  };
+
+  const handleNavDropdownLeave = () => {
+    navDropdownTimeoutRef.current = setTimeout(() => {
+      setOpenNavDropdown(null);
+    }, 150);
+  };
 
   // Handle user logout and clean redirect
   const handleLogout = async () => {
@@ -105,7 +202,7 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-50 bg-[#FAF7F0]/95 backdrop-blur-md text-[#121316] border-b-3 border-[#121316] transition-all select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-20 gap-4">
           
           {/* ATC Brand Logo on Left */}
           <Link to="/" className="flex items-center gap-3 group focus:outline-none flex-shrink-0">
@@ -128,44 +225,113 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.path;
+          {/* Desktop Navigation Links (Spacious & Cleanly Grouped) */}
+          <nav className="hidden md:flex items-center gap-1.5 lg:gap-3 xl:gap-4">
+            {navSections.map((section) => {
+              if (section.type === 'link') {
+                const isActive = location.pathname === section.path;
+                return (
+                  <Link
+                    key={section.id}
+                    to={section.path!}
+                    className={`px-3.5 py-2 rounded-full text-xs lg:text-sm font-extrabold transition-all duration-150 whitespace-nowrap ${
+                      isActive
+                        ? 'bg-[#FFE600] text-[#121316] border-2 border-[#121316] shadow-pop-xs font-black'
+                        : 'text-[#121316]/80 hover:text-[#121316] hover:bg-[#121316]/5'
+                    }`}
+                  >
+                    <span>{section.name}</span>
+                  </Link>
+                );
+              }
+
+              // Dropdown Group
+              const isChildActive = section.items?.some((item) => location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)));
+              const isDropdownOpen = openNavDropdown === section.id;
+
               return (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`group relative px-2.5 xl:px-3 py-1.5 rounded-full text-xs xl:text-[13px] font-extrabold transition-all duration-150 whitespace-nowrap ${
-                    isActive
-                      ? 'bg-[#FFE600] text-[#121316] border-2 border-[#121316] shadow-pop-sm font-black'
-                      : 'text-[#121316]/80 hover:text-[#121316] hover:bg-[#121316]/5'
-                  }`}
+                <div
+                  key={section.id}
+                  className="relative nav-dropdown-container"
+                  onMouseEnter={() => handleNavDropdownEnter(section.id)}
+                  onMouseLeave={handleNavDropdownLeave}
                 >
-                  <span className="relative z-10 flex items-center gap-1.5">
-                    {link.name}
-                    {link.badge && (
-                      <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] font-black ${
-                        isActive
-                          ? 'bg-[#121316] text-[#FFE600]'
-                          : 'bg-[#6C5CE7] text-white'
-                      }`}>
-                        {link.badge}
+                  <button
+                    type="button"
+                    onClick={() => setOpenNavDropdown(isDropdownOpen ? null : section.id)}
+                    aria-expanded={isDropdownOpen}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs lg:text-sm font-extrabold transition-all duration-150 whitespace-nowrap cursor-pointer ${
+                      isChildActive
+                        ? 'bg-[#FFE600] text-[#121316] border-2 border-[#121316] shadow-pop-xs font-black'
+                        : isDropdownOpen
+                        ? 'bg-[#121316]/5 text-[#121316]'
+                        : 'text-[#121316]/80 hover:text-[#121316] hover:bg-[#121316]/5'
+                    }`}
+                  >
+                    <span>{section.name}</span>
+                    {section.badge && !isChildActive && (
+                      <span className="px-1.5 py-0.2 rounded-full font-mono text-[9px] font-black bg-[#6C5CE7] text-white">
+                        {section.badge}
                       </span>
                     )}
-                  </span>
-                </Link>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        isDropdownOpen ? 'rotate-180 text-[#121316]' : 'text-gray-500'
+                      }`}
+                    />
+                  </button>
+
+                  {/* Dropdown Popup Menu */}
+                  {isDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1.5 w-72 bg-white rounded-3xl border-3 border-[#121316] shadow-pop-lg p-2 z-50 animate-fadeIn space-y-1">
+                      {section.items?.map((item) => {
+                        const isItemActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setOpenNavDropdown(null)}
+                            className={`flex items-center gap-3 p-2.5 rounded-2xl transition-all ${
+                              isItemActive
+                                ? 'bg-[#FFE600]/40 border border-[#121316]/20'
+                                : 'hover:bg-[#FAF7F0]'
+                            }`}
+                          >
+                            <div className="w-9 h-9 rounded-xl bg-white border-2 border-[#121316] shadow-pop-xs flex items-center justify-center flex-shrink-0">
+                              {item.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-black text-xs text-[#121316] truncate">
+                                  {item.name}
+                                </span>
+                                {item.badge && (
+                                  <span className="px-1.5 py-0.2 rounded-full font-mono text-[9px] font-black bg-[#6C5CE7] text-white">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] font-bold text-gray-500 truncate leading-tight">
+                                {item.desc}
+                              </p>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
 
-          {/* Desktop Auth Controls & Actions on Right */}
-          <div className="hidden sm:flex items-center gap-2.5 flex-shrink-0">
+          {/* Desktop Auth Controls & CTA on Right */}
+          <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
             {loading ? (
-              /* Loading Skeleton (Prevents auth UI flicker) */
+              /* Loading Skeleton */
               <div className="flex items-center gap-2">
-                <div className="w-16 h-8 bg-gray-200/80 rounded-full animate-pulse border-2 border-transparent" />
-                <div className="w-24 h-9 bg-gray-200/80 rounded-full animate-pulse border-2 border-transparent" />
+                <div className="w-16 h-8 bg-gray-200/80 rounded-full animate-pulse" />
+                <div className="w-24 h-9 bg-gray-200/80 rounded-full animate-pulse" />
               </div>
             ) : isAuthenticated ? (
               /* AUTHENTICATED USER MENU (Student or Admin) */
@@ -202,7 +368,7 @@ export const Navbar: React.FC = () => {
                   </div>
 
                   {/* Display Name */}
-                  <span className="font-mono text-xs font-black text-[#121316] max-w-[100px] xl:max-w-[130px] truncate">
+                  <span className="font-mono text-xs font-black text-[#121316] max-w-[90px] lg:max-w-[120px] truncate">
                     {displayName}
                   </span>
 
@@ -220,7 +386,7 @@ export const Navbar: React.FC = () => {
                   />
                 </button>
 
-                {/* Dropdown Menu */}
+                {/* User Dropdown Menu */}
                 {userDropdownOpen && (
                   <div
                     role="menu"
@@ -239,7 +405,7 @@ export const Navbar: React.FC = () => {
                               : 'bg-[#E1DCFF] text-[#6C5CE7]'
                           }`}
                         >
-                          {isAdmin ? 'ADMINISTRATOR' : 'STUDENT'}
+                          {isAdmin ? 'ADMIN' : 'STUDENT'}
                         </span>
                       </div>
                       <p className="font-mono text-[11px] text-gray-500 font-bold truncate">
@@ -250,7 +416,6 @@ export const Navbar: React.FC = () => {
                     {/* Actions Menu */}
                     <div className="space-y-1">
                       {isAdmin ? (
-                        /* Admin Dashboard & Moderation Links */
                         <>
                           <Link
                             to="/admin/dashboard"
@@ -277,7 +442,6 @@ export const Navbar: React.FC = () => {
                           </Link>
                         </>
                       ) : (
-                        /* Student: Dashboard & My Ideas */
                         <>
                           <Link
                             to="/student/dashboard"
@@ -322,7 +486,7 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
             ) : (
-              /* GUEST STATE: Login & Sign Up Actions */
+              /* GUEST STATE */
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
@@ -353,7 +517,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Mobile Menu Hamburger Toggle */}
-          <div className="flex lg:hidden">
+          <div className="flex md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-xl bg-[#FFE600] border-2 border-[#121316] text-[#121316] shadow-pop-sm active:scale-95 transition-transform cursor-pointer"
@@ -365,33 +529,123 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu (Structured Categories) */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t-3 border-[#121316] bg-[#FAF7F0] px-5 py-6 space-y-4 animate-fadeIn">
-          {/* Mobile Nav Links Grid */}
-          <div className="grid grid-cols-2 gap-2">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.path;
-              return (
+        <div className="md:hidden border-t-3 border-[#121316] bg-[#FAF7F0] px-5 py-6 space-y-5 animate-fadeIn max-h-[85vh] overflow-y-auto">
+          {/* Mobile Navigation List */}
+          <div className="space-y-4">
+            {/* Events Direct Link */}
+            <Link
+              to="/events"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`p-3 rounded-2xl border-2 flex items-center justify-between font-black text-sm transition-all ${
+                location.pathname === '/events'
+                  ? 'bg-[#FFE600] border-[#121316] shadow-pop-xs'
+                  : 'bg-white border-[#121316]/20'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Calendar className="w-5 h-5 text-[#6C5CE7]" />
+                <span>Events & Hackathons</span>
+              </div>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            {/* Projects Category */}
+            <div className="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-xs space-y-2">
+              <span className="font-mono text-[10px] font-black uppercase text-gray-500 tracking-wider">
+                Projects & Innovation
+              </span>
+              <div className="grid grid-cols-2 gap-2">
                 <Link
-                  key={link.name}
-                  to={link.path}
+                  to="/projects"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between border-2 transition-transform active:scale-95 ${
-                    isActive
-                      ? 'bg-[#FFE600] text-[#121316] border-[#121316] shadow-pop-sm font-black'
-                      : 'bg-white border-[#121316]/20 text-[#121316] hover:bg-gray-50'
-                  }`}
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col gap-1"
                 >
-                  <span>{link.name}</span>
-                  {link.badge && (
-                    <span className="px-1.5 py-0.5 bg-[#6C5CE7] text-white text-[9px] rounded-full font-mono font-bold">
-                      {link.badge}
-                    </span>
-                  )}
+                  <FolderGit2 className="w-4 h-4 text-[#0288D1]" />
+                  <span className="font-black text-xs text-[#121316]">Showcase</span>
                 </Link>
-              );
-            })}
+                <Link
+                  to="/ideas"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col gap-1 relative"
+                >
+                  <div className="flex items-center justify-between">
+                    <Lightbulb className="w-4 h-4 text-[#FFA502]" />
+                    <span className="px-1.5 py-0.2 bg-[#6C5CE7] text-white text-[8px] rounded font-mono font-bold">
+                      NEW
+                    </span>
+                  </div>
+                  <span className="font-black text-xs text-[#121316]">Idea Hub</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Lab Category */}
+            <div className="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-xs space-y-2">
+              <span className="font-mono text-[10px] font-black uppercase text-gray-500 tracking-wider">
+                Lab 5.0 & Hardware
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                <Link
+                  to="/lab"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                >
+                  <FlaskConical className="w-4 h-4 text-[#2ED573]" />
+                  <span className="font-black text-[11px] text-[#121316]">Overview</span>
+                </Link>
+                <Link
+                  to="/lab-access"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                >
+                  <Clock className="w-4 h-4 text-[#FF793F]" />
+                  <span className="font-black text-[11px] text-[#121316]">Book Slots</span>
+                </Link>
+                <Link
+                  to="/inventory"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                >
+                  <Package className="w-4 h-4 text-[#6C5CE7]" />
+                  <span className="font-black text-[11px] text-[#121316]">Inventory</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* About & Community */}
+            <div className="p-3.5 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-xs space-y-2">
+              <span className="font-mono text-[10px] font-black uppercase text-gray-500 tracking-wider">
+                Club & Community
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                <Link
+                  to="/about"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                >
+                  <Info className="w-4 h-4 text-[#6C5CE7]" />
+                  <span className="font-black text-[11px] text-[#121316]">About</span>
+                </Link>
+                <Link
+                  to="/team"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                >
+                  <Users className="w-4 h-4 text-[#2ED573]" />
+                  <span className="font-black text-[11px] text-[#121316]">Team</span>
+                </Link>
+                <Link
+                  to="/gallery"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                >
+                  <Image className="w-4 h-4 text-[#FF4757]" />
+                  <span className="font-black text-[11px] text-[#121316]">Gallery</span>
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Mobile Authentication & User Section */}
