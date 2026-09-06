@@ -7,37 +7,38 @@ import {
   Radio,
   Zap,
   Layers,
-  Sparkles
 } from 'lucide-react';
 import { InventoryItem } from '../../types/inventory.types';
+import { IconModule, SignalLed } from '../visual';
 
-interface InventoryCardProps {
+/**
+ * Returns contextual tech icon & variant based on equipment title
+ */
+const getItemIconConfig = (title: string): { icon: React.ReactNode; variant: 'purple' | 'coral' | 'yellow' | 'green' | 'white' } => {
+  const lower = title.toLowerCase();
+  if (lower.includes('sensor') || lower.includes('ir') || lower.includes('vibration') || lower.includes('max')) {
+    return { icon: <Radio className="w-5 h-5 stroke-[2.5]" />, variant: 'purple' };
+  }
+  if (lower.includes('module') || lower.includes('cam') || lower.includes('board') || lower.includes('chip')) {
+    return { icon: <Cpu className="w-5 h-5 stroke-[2.5]" />, variant: 'coral' };
+  }
+  if (lower.includes('motor') || lower.includes('driver') || lower.includes('power') || lower.includes('relay')) {
+    return { icon: <Zap className="w-5 h-5 stroke-[2.5]" />, variant: 'yellow' };
+  }
+  if (lower.includes('kit') || lower.includes('chassis') || lower.includes('frame')) {
+    return { icon: <Layers className="w-5 h-5 stroke-[2.5]" />, variant: 'green' };
+  }
+  return { icon: <Package className="w-5 h-5 stroke-[2.5]" />, variant: 'white' };
+};
+
+export interface InventoryCardProps {
   item: InventoryItem;
   onSelect: (item: InventoryItem) => void;
 }
 
-/**
- * Returns a contextual tech icon based on equipment title
- */
-const getItemIcon = (title: string) => {
-  const lower = title.toLowerCase();
-  if (lower.includes('sensor') || lower.includes('ir') || lower.includes('vibration') || lower.includes('max')) {
-    return <Radio className="w-5 h-5 text-[#6C5CE7] stroke-[2.5]" />;
-  }
-  if (lower.includes('module') || lower.includes('cam') || lower.includes('board') || lower.includes('chip')) {
-    return <Cpu className="w-5 h-5 text-[#FF6B6B] stroke-[2.5]" />;
-  }
-  if (lower.includes('motor') || lower.includes('driver') || lower.includes('power') || lower.includes('relay')) {
-    return <Zap className="w-5 h-5 text-[#FFE600] stroke-[2.5]" />;
-  }
-  if (lower.includes('kit') || lower.includes('chassis') || lower.includes('frame')) {
-    return <Layers className="w-5 h-5 text-[#2ED573] stroke-[2.5]" />;
-  }
-  return <Package className="w-5 h-5 text-[#121316] stroke-[2.5]" />;
-};
-
 export const InventoryCard: React.FC<InventoryCardProps> = ({ item, onSelect }) => {
   const hasDescription = Boolean(item.description && item.description.trim());
+  const iconConfig = getItemIconConfig(item.title);
 
   return (
     <div
@@ -47,9 +48,12 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({ item, onSelect }) 
       {/* Top Section: Icon & Location Pill */}
       <div>
         <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="p-2.5 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] shadow-pop-sm group-hover:rotate-6 transition-transform flex-shrink-0">
-            {getItemIcon(item.title)}
-          </div>
+          <IconModule
+            icon={iconConfig.icon}
+            size="md"
+            variant={iconConfig.variant}
+            hoverEffect="rotate"
+          />
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF7F0] border-2 border-[#121316] font-mono text-xs font-black text-[#121316] shadow-pop-sm flex-shrink-0">
             <MapPin className="w-3.5 h-3.5 text-[#6C5CE7]" />
@@ -78,8 +82,8 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({ item, onSelect }) 
             <span className="font-mono text-[9px] font-black uppercase tracking-wider text-gray-400">
               AVAILABLE
             </span>
-            <div className="inline-flex items-center gap-1.5 font-mono text-xs font-black text-[#121316]">
-              <span className={`w-2 h-2 rounded-full ${item.quantity > 0 ? 'bg-[#2ED573]' : 'bg-[#FF4757]'}`} />
+            <div className="inline-flex items-center gap-2 font-mono text-xs font-black text-[#121316]">
+              <SignalLed color={item.quantity > 0 ? 'green' : 'red'} pulse={item.quantity > 0} />
               <span>
                 {item.quantity.toLocaleString()} {item.quantity === 1 ? 'UNIT' : 'UNITS'}
               </span>

@@ -20,6 +20,7 @@ import { InventoryFilters } from '../components/inventory/InventoryFilters';
 import { InventoryCard } from '../components/inventory/InventoryCard';
 import { InventoryDetailsModal } from '../components/inventory/InventoryDetailsModal';
 import { InventorySkeleton } from '../components/inventory/InventorySkeleton';
+import { ATCEmptyState } from '../components/visual';
 
 export const InventoryPage: React.FC = () => {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -235,33 +236,20 @@ export const InventoryPage: React.FC = () => {
                   <InventoryCard
                     key={item.id}
                     item={item}
-                    onSelect={(selected) => setSelectedItem(selected)}
+                    onSelect={setSelectedItem}
                   />
                 ))}
               </div>
             ) : (
               /* Empty Search / Filter Results State */
-              <div className="bg-white rounded-3xl border-3 border-[#121316] p-10 sm:p-14 shadow-pop-lg text-center max-w-lg mx-auto space-y-5">
-                <div className="w-16 h-16 rounded-3xl bg-[#FAF7F0] border-3 border-[#121316] mx-auto flex items-center justify-center shadow-pop-sm">
-                  <SearchX className="w-8 h-8 text-[#6C5CE7]" />
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-[#121316]">
-                    NO EQUIPMENT FOUND
-                  </h3>
-                  <p className="text-sm font-bold text-gray-600">
-                    We couldn't find any components matching "{searchQuery}" in location "{selectedLocation}". Try refining your search terms.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleClearFilters}
-                  className="px-6 py-3 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
-                >
-                  Clear All Filters
-                </button>
+              <div className="max-w-lg mx-auto">
+                <ATCEmptyState
+                  type="storage"
+                  title="NO EQUIPMENT FOUND"
+                  description={`We couldn't find any components matching "${searchQuery}" in location "${selectedLocation}". Try refining your search terms.`}
+                  actionLabel="Clear All Filters"
+                  onAction={handleClearFilters}
+                />
               </div>
             )}
           </>

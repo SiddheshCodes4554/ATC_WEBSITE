@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PlayfulButton } from '../ui/PlayfulButton';
+import { IconModule } from '../visual/IconModule';
 
 /**
  * Generate safe 2-letter uppercase initials for avatar badge
@@ -297,9 +298,13 @@ export const Navbar: React.FC = () => {
                                 : 'hover:bg-[#FAF7F0]'
                             }`}
                           >
-                            <div className="w-9 h-9 rounded-xl bg-white border-2 border-[#121316] shadow-pop-xs flex items-center justify-center flex-shrink-0">
-                              {item.icon}
-                            </div>
+                            <IconModule
+                              icon={item.icon}
+                              size="sm"
+                              variant={isItemActive ? 'yellow' : 'white'}
+                              hoverEffect="rotate"
+                              withShadow
+                            />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <span className="font-black text-xs text-[#121316] truncate">
@@ -572,23 +577,23 @@ export const Navbar: React.FC = () => {
                 <Link
                   to="/projects"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col gap-1"
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex items-center gap-2.5 group"
                 >
-                  <FolderGit2 className="w-4 h-4 text-[#0288D1]" />
+                  <IconModule icon={<FolderGit2 />} size="xs" variant="blue" hoverEffect="rotate" />
                   <span className="font-black text-xs text-[#121316]">Showcase</span>
                 </Link>
                 <Link
                   to="/ideas"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col gap-1 relative"
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex items-center justify-between group"
                 >
-                  <div className="flex items-center justify-between">
-                    <Lightbulb className="w-4 h-4 text-[#FFA502]" />
-                    <span className="px-1.5 py-0.2 bg-[#6C5CE7] text-white text-[8px] rounded font-mono font-bold">
-                      NEW
-                    </span>
+                  <div className="flex items-center gap-2.5">
+                    <IconModule icon={<Lightbulb />} size="xs" variant="yellow" hoverEffect="rotate" />
+                    <span className="font-black text-xs text-[#121316]">Idea Hub</span>
                   </div>
-                  <span className="font-black text-xs text-[#121316]">Idea Hub</span>
+                  <span className="px-1.5 py-0.2 bg-[#6C5CE7] text-white text-[8px] rounded font-mono font-bold">
+                    NEW
+                  </span>
                 </Link>
               </div>
             </div>
@@ -602,25 +607,25 @@ export const Navbar: React.FC = () => {
                 <Link
                   to="/lab"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1.5 group"
                 >
-                  <FlaskConical className="w-4 h-4 text-[#2ED573]" />
+                  <IconModule icon={<FlaskConical />} size="xs" variant="green" hoverEffect="bounce" />
                   <span className="font-black text-[11px] text-[#121316]">Overview</span>
                 </Link>
                 <Link
                   to="/lab-access"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1.5 group"
                 >
-                  <Clock className="w-4 h-4 text-[#FF793F]" />
+                  <IconModule icon={<Clock />} size="xs" variant="yellow" hoverEffect="bounce" />
                   <span className="font-black text-[11px] text-[#121316]">Book Slots</span>
                 </Link>
                 <Link
                   to="/inventory"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1.5 group"
                 >
-                  <Package className="w-4 h-4 text-[#6C5CE7]" />
+                  <IconModule icon={<Package />} size="xs" variant="purple" hoverEffect="bounce" />
                   <span className="font-black text-[11px] text-[#121316]">Inventory</span>
                 </Link>
               </div>
@@ -635,25 +640,25 @@ export const Navbar: React.FC = () => {
                 <Link
                   to="/about"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1.5 group"
                 >
-                  <Info className="w-4 h-4 text-[#6C5CE7]" />
+                  <IconModule icon={<Info />} size="xs" variant="purple" hoverEffect="bounce" />
                   <span className="font-black text-[11px] text-[#121316]">About</span>
                 </Link>
                 <Link
                   to="/team"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1.5 group"
                 >
-                  <Users className="w-4 h-4 text-[#2ED573]" />
+                  <IconModule icon={<Users />} size="xs" variant="green" hoverEffect="bounce" />
                   <span className="font-black text-[11px] text-[#121316]">Team</span>
                 </Link>
                 <Link
                   to="/gallery"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1"
+                  className="p-2.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600]/30 border border-[#121316]/20 flex flex-col items-center text-center gap-1.5 group"
                 >
-                  <Image className="w-4 h-4 text-[#FF4757]" />
+                  <IconModule icon={<Image />} size="xs" variant="coral" hoverEffect="bounce" />
                   <span className="font-black text-[11px] text-[#121316]">Gallery</span>
                 </Link>
               </div>

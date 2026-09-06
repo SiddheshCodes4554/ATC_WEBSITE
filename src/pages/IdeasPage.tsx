@@ -15,6 +15,7 @@ import {
 import { ProjectIdeaService } from '../services/projectIdeaService';
 import { ProjectIdea, PROJECT_IDEA_CATEGORIES } from '../types/projectIdea.types';
 import { IdeaStatusBadge } from '../components/ideas/IdeaStatusBadge';
+import { ATCEmptyState } from '../components/visual';
 import { useAuth } from '../context/AuthContext';
 
 export const IdeasPage: React.FC = () => {
@@ -294,29 +295,18 @@ export const IdeasPage: React.FC = () => {
             </div>
           ) : filteredIdeas.length === 0 ? (
             /* Empty State */
-            <div className="p-12 rounded-3xl bg-white border-3 border-dashed border-[#121316]/30 text-center space-y-4 max-w-lg mx-auto">
-              <div className="w-16 h-16 rounded-3xl bg-[#FAF7F0] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center mx-auto text-3xl">
-                💡
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-black text-xl text-[#121316]">
-                  No Ideas Found
-                </h3>
-                <p className="text-xs font-bold text-gray-600 max-w-xs mx-auto leading-relaxed">
-                  {searchQuery || selectedCategory !== 'All' || selectedStatus !== 'all'
+            <div className="max-w-lg mx-auto">
+              <ATCEmptyState
+                type="ideas"
+                title="NO IDEAS FOUND"
+                description={
+                  searchQuery || selectedCategory !== 'All' || selectedStatus !== 'all'
                     ? 'Try clearing your filters or search query to find more ideas.'
-                    : 'Be the first pioneer to post a project idea!'}
-                </p>
-              </div>
-              <div>
-                <Link
-                  to={isAuthenticated ? "/student/ideas/new" : "/login"}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm hover:shadow-pop transition-all"
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                  <span>Submit an Idea</span>
-                </Link>
-              </div>
+                    : 'Be the first pioneer to post a robotics or software project idea!'
+                }
+                actionLabel="Submit an Idea"
+                actionHref={isAuthenticated ? "/student/ideas/new" : "/login"}
+              />
             </div>
           ) : (
             /* Ideas Cards Grid */

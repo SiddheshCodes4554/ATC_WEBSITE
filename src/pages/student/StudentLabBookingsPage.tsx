@@ -15,16 +15,13 @@ import {
   ArrowRight,
   RotateCw,
   AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Hourglass,
-  ListOrdered,
-  Plus,
-  Sparkles,
   Info,
-  ShieldCheck,
+  Plus,
   Zap,
+  ListOrdered,
+  Sparkles,
 } from 'lucide-react';
+import { ATCStatusBadge, ATCEmptyState, IconModule } from '../../components/visual';
 
 export const StudentLabBookingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -106,48 +103,6 @@ export const StudentLabBookingsPage: React.FC = () => {
       });
     } catch {
       return '';
-    }
-  };
-
-  // Status Badge Renderer
-  const renderStatusBadge = (status: LabRequestStatus, queuePosition?: number | null) => {
-    switch (status) {
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2ED573] text-[#121316] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            ✓ APPROVED
-          </span>
-        );
-      case 'waitlisted':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF3E0] text-[#E65100] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm">
-            <ListOrdered className="w-3.5 h-3.5" />
-            WAITLISTED {queuePosition ? `(#${queuePosition})` : ''}
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE5E5] text-[#D63031] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm">
-            <XCircle className="w-3.5 h-3.5" />
-            REJECTED
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-200 text-gray-700 border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm">
-            <XCircle className="w-3.5 h-3.5" />
-            CANCELLED
-          </span>
-        );
-      case 'pending':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0EBFF] text-[#6C5CE7] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm">
-            <Hourglass className="w-3.5 h-3.5" />
-            PENDING REVIEW
-          </span>
-        );
     }
   };
 
@@ -351,7 +306,7 @@ export const StudentLabBookingsPage: React.FC = () => {
                         <span>{timeBlock}</span>
                       </div>
 
-                      {renderStatusBadge(request.status, request.queuePosition)}
+                      <ATCStatusBadge status={request.status} queuePosition={request.queuePosition} size="sm" />
                     </div>
 
                     {/* Date & Title */}
@@ -412,40 +367,19 @@ export const StudentLabBookingsPage: React.FC = () => {
           </div>
         ) : (
           /* Empty State */
-          <div className="bg-white rounded-3xl border-3 border-[#121316] p-10 sm:p-14 shadow-pop-lg text-center max-w-lg mx-auto space-y-5">
-            <div className="w-16 h-16 rounded-3xl bg-[#2ED573] border-3 border-[#121316] mx-auto flex items-center justify-center shadow-pop-sm text-2xl">
-              🧪
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-[#121316]">
-                NO LAB BOOKINGS YET
-              </h3>
-              <p className="text-sm font-bold text-gray-600 leading-relaxed">
-                {statusFilter === 'ALL'
+          <div className="max-w-lg mx-auto">
+            <ATCEmptyState
+              type="workbench"
+              title="NO LAB BOOKINGS YET"
+              description={
+                statusFilter === 'ALL'
                   ? "You haven't requested any Lab 5.0 workbench slots yet. Reserve time blocks to build robotics, IoT, and hardware projects!"
-                  : `No lab requests found with status "${statusFilter}".`}
-              </p>
-            </div>
-
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              {statusFilter !== 'ALL' && (
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter('ALL')}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-[#FAF7F0] hover:bg-gray-100 text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm cursor-pointer"
-                >
-                  Clear Status Filter
-                </button>
-              )}
-
-              <Link
-                to="/lab-access"
-                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#2ED573] hover:bg-[#26af5f] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all text-center"
-              >
-                REQUEST LAB ACCESS →
-              </Link>
-            </div>
+                  : `No lab requests found with status "${statusFilter}".`
+              }
+              actionLabel={statusFilter !== 'ALL' ? 'Clear Status Filter' : 'REQUEST LAB ACCESS'}
+              actionHref={statusFilter === 'ALL' ? '/lab-access' : undefined}
+              onAction={statusFilter !== 'ALL' ? () => setStatusFilter('ALL') : undefined}
+            />
           </div>
         )}
 

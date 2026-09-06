@@ -36,6 +36,12 @@ import { projectIdeaService } from '../../services/projectIdeaService';
 import { ProjectIdea } from '../../types/projectIdea.types';
 import { MembershipApplicationService } from '../../services/membershipApplicationService';
 import { MembershipApplication } from '../../types/membershipApplication.types';
+import {
+  IconModule,
+  ATCStatusBadge,
+  ATCEmptyState,
+  ScrewHead,
+} from '../../components/visual';
 
 interface StudentRegistrationItem {
   registration: EventRegistration;
@@ -165,73 +171,7 @@ export const StudentDashboardPage: React.FC = () => {
     fetchMembership();
   }, [user?.$id, user?.email]);
 
-  const renderEventStatusBadge = (status: RegistrationStatus) => {
-    switch (status) {
-      case 'checked_in':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E1DCFF] border border-[#121316] font-mono text-[9px] font-black uppercase text-[#6C5CE7]">
-            <CheckCircle2 className="w-2.5 h-2.5" />
-            CHECKED IN ✓
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFE5E5] border border-[#121316] font-mono text-[9px] font-black uppercase text-[#FF4757]">
-            <XCircle className="w-2.5 h-2.5" />
-            CANCELLED
-          </span>
-        );
-      case 'registered':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#2ED573]/20 border border-[#121316] font-mono text-[9px] font-black uppercase text-[#121316]">
-            <CheckCircle2 className="w-2.5 h-2.5 text-[#2ED573]" />
-            REGISTERED ✓
-          </span>
-        );
-    }
-  };
-
-  const renderLabStatusBadge = (status: LabRequestStatus, queuePosition?: number | null) => {
-    switch (status) {
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#2ED573] text-[#121316] border border-[#121316] font-mono text-[9px] font-black uppercase shadow-pop-xs">
-            <CheckCircle2 className="w-2.5 h-2.5" />
-            ✓ APPROVED
-          </span>
-        );
-      case 'waitlisted':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFF3E0] text-[#E65100] border border-[#121316] font-mono text-[9px] font-black uppercase">
-            <ListOrdered className="w-2.5 h-2.5" />
-            WAITLISTED {queuePosition ? `(#${queuePosition})` : ''}
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFE5E5] text-[#D63031] border border-[#121316] font-mono text-[9px] font-black uppercase">
-            <XCircle className="w-2.5 h-2.5" />
-            REJECTED
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-200 text-gray-700 border border-[#121316] font-mono text-[9px] font-black uppercase">
-            <XCircle className="w-2.5 h-2.5" />
-            CANCELLED
-          </span>
-        );
-      case 'pending':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F0EBFF] text-[#6C5CE7] border border-[#121316] font-mono text-[9px] font-black uppercase">
-            <Hourglass className="w-2.5 h-2.5" />
-            PENDING
-          </span>
-        );
-    }
-  };
+  // Note: All status badges are standardized via ATCStatusBadge
 
   const formatEventDate = (isoString?: string | null) => {
     if (!isoString) return 'Date TBA';
@@ -335,11 +275,19 @@ export const StudentDashboardPage: React.FC = () => {
             {/* Card 1: My Events */}
             <Link
               to="/student/events"
-              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
             >
+              <div className="absolute top-3 right-3">
+                <ScrewHead rotation={25} />
+              </div>
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center mb-4 group-hover:rotate-6 transition-transform">
-                  <Ticket className="w-6 h-6 text-[#121316] stroke-[2.5]" />
+                <div className="mb-4">
+                  <IconModule
+                    icon={<Ticket className="w-6 h-6 stroke-[2.5]" />}
+                    size="lg"
+                    variant="yellow"
+                    hoverEffect="rotate"
+                  />
                 </div>
                 <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
                   My Events
@@ -357,11 +305,19 @@ export const StudentDashboardPage: React.FC = () => {
             {/* Card 2: Lab Access */}
             <Link
               to="/lab-access"
-              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
             >
+              <div className="absolute top-3 right-3">
+                <ScrewHead rotation={65} />
+              </div>
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#2ED573] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center mb-4 group-hover:rotate-6 transition-transform">
-                  <FlaskConical className="w-6 h-6 text-[#121316] stroke-[2.5]" />
+                <div className="mb-4">
+                  <IconModule
+                    icon={<FlaskConical className="w-6 h-6 stroke-[2.5]" />}
+                    size="lg"
+                    variant="green"
+                    hoverEffect="bounce"
+                  />
                 </div>
                 <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
                   Lab Access
@@ -379,11 +335,19 @@ export const StudentDashboardPage: React.FC = () => {
             {/* Card 3: Inventory */}
             <Link
               to="/inventory"
-              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
             >
+              <div className="absolute top-3 right-3">
+                <ScrewHead rotation={110} />
+              </div>
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#E1DCFF] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center mb-4 group-hover:rotate-6 transition-transform">
-                  <Package className="w-6 h-6 text-[#6C5CE7] stroke-[2.5]" />
+                <div className="mb-4">
+                  <IconModule
+                    icon={<Package className="w-6 h-6 stroke-[2.5]" />}
+                    size="lg"
+                    variant="purple"
+                    hoverEffect="bounce"
+                  />
                 </div>
                 <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
                   Inventory
@@ -401,11 +365,19 @@ export const StudentDashboardPage: React.FC = () => {
             {/* Card 4: My Project Ideas */}
             <Link
               to="/student/ideas"
-              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+              className="bg-white rounded-3xl border-3 border-[#121316] p-5 shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
             >
+              <div className="absolute top-3 right-3">
+                <ScrewHead rotation={145} />
+              </div>
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#FFE600] border-2 border-[#121316] shadow-pop-sm flex items-center justify-center mb-4 group-hover:rotate-6 transition-transform">
-                  <Lightbulb className="w-6 h-6 text-[#121316] stroke-[2.5]" />
+                <div className="mb-4">
+                  <IconModule
+                    icon={<Lightbulb className="w-6 h-6 stroke-[2.5]" />}
+                    size="lg"
+                    variant="yellow"
+                    hoverEffect="rotate"
+                  />
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="font-black text-lg text-[#121316] group-hover:text-[#6C5CE7] transition-colors">
@@ -491,47 +463,15 @@ export const StudentDashboardPage: React.FC = () => {
                     <div className="h-7 w-36 bg-gray-200 rounded-full animate-pulse" />
                   ) : membershipApplication ? (
                     <div className="space-y-1.5">
-                      {membershipApplication.status === 'pending' && (
-                        <div>
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0EBFF] text-[#6C5CE7] border-2 border-[#121316] font-mono text-xs font-black shadow-pop-xs">
-                            <span>⏳</span>
-                            <span>APPLICATION PENDING</span>
-                          </div>
-                          <p className="text-xs font-bold text-gray-700 mt-1">
-                            Your application is waiting for review.
-                          </p>
-                        </div>
-                      )}
-                      {membershipApplication.status === 'under_review' && (
-                        <div>
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF9DB] text-amber-800 border-2 border-[#121316] font-mono text-xs font-black shadow-pop-xs">
-                            <span>🔍</span>
-                            <span>UNDER REVIEW</span>
-                          </div>
-                          <p className="text-xs font-bold text-gray-700 mt-1">
-                            The ATC team is reviewing your application.
-                          </p>
-                        </div>
-                      )}
-                      {membershipApplication.status === 'approved' && (
-                        <div>
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4F8E8] text-emerald-800 border-2 border-[#121316] font-mono text-xs font-black shadow-pop-xs">
-                            <span>🎉</span>
-                            <span>APPLICATION APPROVED</span>
-                          </div>
-                          <p className="text-xs font-bold text-emerald-800 mt-1">
-                            Welcome to the ATC community!
-                          </p>
-                        </div>
-                      )}
-                      {membershipApplication.status === 'rejected' && (
-                        <div>
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE5E5] text-[#FF4757] border-2 border-[#121316] font-mono text-xs font-black shadow-pop-xs">
-                            <span>❌</span>
-                            <span>APPLICATION NOT APPROVED</span>
-                          </div>
-                        </div>
-                      )}
+                      <div>
+                        <ATCStatusBadge status={membershipApplication.status} size="md" />
+                        <p className="text-xs font-bold text-gray-700 mt-1">
+                          {membershipApplication.status === 'pending' && 'Your application is waiting for review.'}
+                          {membershipApplication.status === 'under_review' && 'The ATC team is reviewing your application.'}
+                          {membershipApplication.status === 'approved' && 'Welcome to the ATC community!'}
+                          {membershipApplication.status === 'rejected' && 'Application review completed.'}
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <div className="p-3 bg-[#FAF7F0] rounded-2xl border-2 border-[#121316]/20 flex items-center justify-between gap-3">
@@ -600,7 +540,7 @@ export const StudentDashboardPage: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-black text-[#121316] flex items-center gap-2">
                     <Ticket className="w-5 h-5 text-[#6C5CE7]" />
-                    <span>MY EVENTS 🎟️</span>
+                    <span>MY EVENTS</span>
                   </h3>
                   <p className="text-xs font-bold text-gray-600 mt-0.5">
                     Your registrations and upcoming ATC experiences.
@@ -675,14 +615,18 @@ export const StudentDashboardPage: React.FC = () => {
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                               />
                             ) : (
-                              <Ticket className="w-6 h-6 text-[#6C5CE7]" />
+                              <IconModule
+                                icon={<Ticket className="w-6 h-6 stroke-[2.5]" />}
+                                size="md"
+                                variant="purple"
+                              />
                             )}
                           </div>
 
                           {/* Event Details */}
                           <div className="space-y-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              {renderEventStatusBadge(registration.status)}
+                              <ATCStatusBadge status={registration.status} size="sm" />
                             </div>
                             <h4 className="font-black text-sm text-[#121316] truncate group-hover:text-[#6C5CE7] transition-colors">
                               {eventTitle}
@@ -716,28 +660,13 @@ export const StudentDashboardPage: React.FC = () => {
                 </div>
               ) : (
                 /* Empty State */
-                <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center text-xl">
-                    🎟️
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-black text-sm text-[#121316]">
-                      NO EVENTS YET
-                    </h4>
-                    <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
-                      You haven't registered for any ATC events yet.
-                    </p>
-                  </div>
-
-                  <div className="pt-2">
-                    <Link
-                      to="/events"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#FFE600] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
-                    >
-                      <span>EXPLORE EVENTS →</span>
-                    </Link>
-                  </div>
-                </div>
+                <ATCEmptyState
+                  type="calendar"
+                  title="NO EVENTS YET"
+                  description="You haven't registered for any ATC events yet. Explore upcoming hackathons and workshops."
+                  actionLabel="EXPLORE EVENTS"
+                  actionHref="/events"
+                />
               )}
             </div>
 
@@ -761,7 +690,7 @@ export const StudentDashboardPage: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-black text-[#121316] flex items-center gap-2">
                     <FlaskConical className="w-5 h-5 text-[#2ED573]" />
-                    <span>MY LAB ACTIVITY 🧪</span>
+                    <span>MY LAB ACTIVITY</span>
                   </h3>
                   <p className="text-xs font-bold text-gray-600 mt-0.5">
                     Your lab access requests and upcoming sessions.
@@ -826,16 +755,18 @@ export const StudentDashboardPage: React.FC = () => {
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           {/* Slot Icon Thumbnail */}
-                          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl border-2 border-[#121316] flex-shrink-0 flex items-center justify-center ${
-                            isApproved ? 'bg-[#2ED573]/20' : 'bg-white'
-                          }`}>
-                            <FlaskConical className={`w-6 h-6 ${isApproved ? 'text-[#2E7D32]' : 'text-[#2ED573]'}`} />
+                          <div className="flex-shrink-0">
+                            <IconModule
+                              icon={<FlaskConical className="w-5 h-5 stroke-[2.5]" />}
+                              size="md"
+                              variant={isApproved ? "green" : "white"}
+                            />
                           </div>
 
                           {/* Request Details */}
                           <div className="space-y-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              {renderLabStatusBadge(request.status, request.queuePosition)}
+                              <ATCStatusBadge status={request.status} queuePosition={request.queuePosition} size="sm" />
                             </div>
                             <h4 className="font-black text-sm text-[#121316] truncate group-hover:text-[#6C5CE7] transition-colors">
                               {request.purpose || 'Lab Access Session'}
@@ -869,28 +800,13 @@ export const StudentDashboardPage: React.FC = () => {
                 </div>
               ) : (
                 /* Empty State */
-                <div className="p-6 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316]/30 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm mx-auto flex items-center justify-center text-xl">
-                    🧪
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-black text-sm text-[#121316]">
-                      NO LAB BOOKINGS YET
-                    </h4>
-                    <p className="text-xs text-gray-600 font-bold max-w-xs mx-auto leading-relaxed">
-                      Need space to build something?
-                    </p>
-                  </div>
-
-                  <div className="pt-2">
-                    <Link
-                      to="/lab-access"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2ED573] text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-sm hover:shadow-pop active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
-                    >
-                      <span>REQUEST LAB ACCESS →</span>
-                    </Link>
-                  </div>
-                </div>
+                <ATCEmptyState
+                  type="workbench"
+                  title="NO LAB BOOKINGS YET"
+                  description="Need space to build something? Reserve workbench slots in Lab 5.0 to prototype your ideas."
+                  actionLabel="REQUEST LAB ACCESS"
+                  actionHref="/lab-access"
+                />
               )}
             </div>
 

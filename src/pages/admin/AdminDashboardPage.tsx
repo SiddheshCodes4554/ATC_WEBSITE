@@ -18,6 +18,7 @@ import {
   Lightbulb,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { IconModule } from '../../components/visual';
 
 export const AdminDashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -32,7 +33,8 @@ export const AdminDashboardPage: React.FC = () => {
     {
       title: 'Events Management',
       desc: 'Create hackathons, workshops, dynamic forms, update schedules & cover images.',
-      icon: <Calendar className="w-6 h-6 text-[#121316]" />,
+      icon: <Calendar className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'yellow' as const,
       badge: 'EVENTS',
       color: 'bg-[#FFF9DB]',
       linkText: 'Manage Events',
@@ -42,7 +44,8 @@ export const AdminDashboardPage: React.FC = () => {
     {
       title: 'Participant Registrations & Passes',
       desc: 'Live registrations, dynamic form responses, CSV export, digital passes & QR check-in station.',
-      icon: <QrCode className="w-6 h-6 text-[#121316]" />,
+      icon: <QrCode className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'coral' as const,
       badge: 'REGISTRATIONS',
       color: 'bg-[#FFEBF2]',
       linkText: 'Open Registrations',
@@ -52,7 +55,8 @@ export const AdminDashboardPage: React.FC = () => {
     {
       title: 'Team & Leadership',
       desc: 'Manage President, Vice President & Core Department Heads with image upload & reordering.',
-      icon: <Users className="w-6 h-6 text-[#121316]" />,
+      icon: <Users className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'purple' as const,
       badge: 'TEAM',
       color: 'bg-[#F0EBFF]',
       linkText: 'Manage Team',
@@ -62,7 +66,8 @@ export const AdminDashboardPage: React.FC = () => {
     {
       title: 'Student Projects Showcase',
       desc: 'Create, edit, order, feature & publish student hardware builds, software apps, and lab innovations.',
-      icon: <FolderGit2 className="w-6 h-6 text-[#121316]" />,
+      icon: <FolderGit2 className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'blue' as const,
       badge: 'PROJECTS',
       color: 'bg-[#E1F5FE]',
       linkText: 'Manage Projects',
@@ -72,7 +77,8 @@ export const AdminDashboardPage: React.FC = () => {
     {
       title: 'Memory Wall & Gallery',
       desc: 'Manage photo memories, upload event pictures, set featured highlights, and update captions.',
-      icon: <Image className="w-6 h-6 text-[#121316]" />,
+      icon: <Image className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'green' as const,
       badge: 'GALLERY',
       color: 'bg-[#E8F5E9]',
       linkText: 'Manage Gallery',
@@ -82,7 +88,8 @@ export const AdminDashboardPage: React.FC = () => {
     {
       title: 'Lab Access & Slots',
       desc: 'Create time blocks, review maker requests, manage capacity, and supervise auto-promoting waitlists.',
-      icon: <Clock className="w-6 h-6 text-[#121316]" />,
+      icon: <Clock className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'yellow' as const,
       badge: 'LAB 5.0',
       color: 'bg-[#FFF9DB]',
       linkText: 'Manage Lab Slots',
@@ -92,7 +99,8 @@ export const AdminDashboardPage: React.FC = () => {
     {
       title: 'Project Ideas Moderation',
       desc: 'Moderate student pitches, review technical architecture, provide mentor feedback, and approve projects.',
-      icon: <Lightbulb className="w-6 h-6 text-[#121316]" />,
+      icon: <Lightbulb className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'coral' as const,
       badge: 'IDEAS HUB',
       color: 'bg-[#FFF3E0]',
       linkText: 'Moderate Ideas',
@@ -102,7 +110,8 @@ export const AdminDashboardPage: React.FC = () => {
     {
       title: 'Member Applications',
       desc: 'Review incoming 1st and 2nd year student membership applications, review academic info, and update status.',
-      icon: <Users className="w-6 h-6 text-[#121316]" />,
+      icon: <Users className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'purple' as const,
       badge: 'MEMBERSHIP',
       color: 'bg-[#FAF7F0]',
       linkText: 'Review Applications',
@@ -272,9 +281,12 @@ export const AdminDashboardPage: React.FC = () => {
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#121316] shadow-pop-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                        {mod.icon}
-                      </div>
+                      <IconModule
+                        icon={mod.icon}
+                        size="md"
+                        variant={mod.iconVariant}
+                        hoverEffect="bounce"
+                      />
                       <span className="px-3 py-0.5 rounded-full bg-white border border-[#121316] font-mono text-[10px] font-black text-[#121316]">
                         {mod.badge}
                       </span>

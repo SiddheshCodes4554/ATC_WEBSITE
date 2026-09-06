@@ -25,6 +25,7 @@ import {
   MembershipApplication,
   MembershipApplicationStatus,
 } from '../../types/membershipApplication.types';
+import { ATCStatusBadge } from '../../components/visual';
 
 export const AdminMembershipApplicationDetailsPage: React.FC = () => {
   const { applicationId } = useParams<{ applicationId: string }>();
@@ -88,40 +89,6 @@ export const AdminMembershipApplicationDetailsPage: React.FC = () => {
     } finally {
       setUpdatingStatus(false);
       setPendingAction(null);
-    }
-  };
-
-  const renderStatusBadge = (status: MembershipApplicationStatus) => {
-    switch (status) {
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#D4F8E8] text-[#121316] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>APPROVED</span>
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#FFE5E5] text-[#FF4757] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs">
-            <XCircle className="w-4 h-4 text-[#FF4757]" />
-            <span>REJECTED</span>
-          </span>
-        );
-      case 'under_review':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#FFF9DB] text-[#121316] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs">
-            <Clock className="w-4 h-4 text-amber-600" />
-            <span>UNDER REVIEW</span>
-          </span>
-        );
-      case 'pending':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#F0EBFF] text-[#6C5CE7] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs">
-            <Sparkles className="w-4 h-4 text-[#6C5CE7]" />
-            <span>PENDING</span>
-          </span>
-        );
     }
   };
 
@@ -196,7 +163,7 @@ export const AdminMembershipApplicationDetailsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {renderStatusBadge(application.status)}
+            <ATCStatusBadge status={application.status} size="lg" />
           </div>
         </div>
 

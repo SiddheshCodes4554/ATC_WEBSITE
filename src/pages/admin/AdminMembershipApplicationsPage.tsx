@@ -26,6 +26,7 @@ import {
   MembershipApplicationStatus,
   MembershipApplicationStats,
 } from '../../types/membershipApplication.types';
+import { ATCStatusBadge, ATCEmptyState } from '../../components/visual';
 
 export const AdminMembershipApplicationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -89,40 +90,6 @@ export const AdminMembershipApplicationsPage: React.FC = () => {
       (app.skills && app.skills.toLowerCase().includes(q))
     );
   });
-
-  const renderStatusBadge = (status: MembershipApplicationStatus) => {
-    switch (status) {
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4F8E8] text-[#121316] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>APPROVED</span>
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE5E5] text-[#FF4757] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs">
-            <XCircle className="w-3.5 h-3.5 text-[#FF4757]" />
-            <span>REJECTED</span>
-          </span>
-        );
-      case 'under_review':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF9DB] text-[#121316] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs">
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
-            <span>UNDER REVIEW</span>
-          </span>
-        );
-      case 'pending':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0EBFF] text-[#6C5CE7] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[#6C5CE7]" />
-            <span>PENDING</span>
-          </span>
-        );
-    }
-  };
 
   const formatDate = (isoString?: string) => {
     if (!isoString) return 'Date TBA';
@@ -326,31 +293,25 @@ export const AdminMembershipApplicationsPage: React.FC = () => {
             </button>
           </div>
         ) : filteredApplications.length === 0 ? (
-          <div className="p-12 sm:p-16 rounded-[40px] bg-white border-4 border-[#121316] shadow-pop-lg text-center space-y-4 paper-pattern">
-            <div className="w-16 h-16 rounded-3xl bg-[#FAF7F0] border-3 border-[#121316] shadow-pop-sm flex items-center justify-center mx-auto text-3xl">
-              📭
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-xl sm:text-2xl font-black text-[#121316] tracking-tight uppercase">
-                NO MEMBERSHIP APPLICATIONS YET
-              </h3>
-              <p className="text-xs sm:text-sm font-bold text-gray-600 max-w-sm mx-auto leading-relaxed">
-                {searchQuery || statusFilter !== 'all'
+          <div className="max-w-lg mx-auto">
+            <ATCEmptyState
+              type="robot"
+              title="NO MEMBERSHIP APPLICATIONS"
+              description={
+                searchQuery || statusFilter !== 'all'
                   ? 'No applications match your current filters. Try changing your search query or status filter.'
-                  : 'Submitted applications from students will show up here automatically.'}
-              </p>
-            </div>
-            {(searchQuery || statusFilter !== 'all') && (
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setStatusFilter('all');
-                }}
-                className="px-5 py-2 rounded-full bg-[#FFE600] border-2 border-[#121316] font-mono text-xs font-black uppercase shadow-pop-sm hover:shadow-pop cursor-pointer"
-              >
-                Clear Filters
-              </button>
-            )}
+                  : 'Submitted applications from students will show up here automatically.'
+              }
+              actionLabel={searchQuery || statusFilter !== 'all' ? 'Clear Filters' : undefined}
+              onAction={
+                searchQuery || statusFilter !== 'all'
+                  ? () => {
+                      setSearchQuery('');
+                      setStatusFilter('all');
+                    }
+                  : undefined
+              }
+            />
           </div>
         ) : (
           <div className="space-y-4">
@@ -412,7 +373,7 @@ export const AdminMembershipApplicationsPage: React.FC = () => {
 
                       {/* Status */}
                       <td className="py-4 px-4 text-center">
-                        {renderStatusBadge(app.status)}
+                        <ATCStatusBadge status={app.status} size="sm" />
                       </td>
 
                       {/* Submitted Date */}
@@ -448,7 +409,7 @@ export const AdminMembershipApplicationsPage: React.FC = () => {
                       </h4>
                       <p className="font-mono text-xs text-gray-500">{app.email}</p>
                     </div>
-                    {renderStatusBadge(app.status)}
+                    <ATCStatusBadge status={app.status} size="sm" />
                   </div>
 
                   <div className="p-3 bg-[#FAF7F0] rounded-2xl border-2 border-[#121316]/15 space-y-1.5 text-xs font-mono">
