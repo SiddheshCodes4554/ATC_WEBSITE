@@ -247,7 +247,7 @@ export const JoinCommunityPage: React.FC = () => {
               🎉
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <span className="px-4 py-1 bg-[#2ED573] text-[#121316] rounded-full text-xs font-mono font-black uppercase inline-block border-2 border-[#121316] shadow-pop-xs">
                 STATUS: PENDING REVIEW
               </span>
@@ -257,6 +257,10 @@ export const JoinCommunityPage: React.FC = () => {
               <p className="text-base sm:text-lg font-bold text-gray-700 max-w-lg mx-auto leading-relaxed">
                 Your application has been received! The ATC team will review it soon.
               </p>
+              <div className="p-3.5 rounded-2xl bg-[#FFF9DB] border-2 border-[#121316] max-w-md mx-auto text-xs sm:text-sm font-black text-[#121316] flex items-center justify-center gap-2 shadow-pop-xs">
+                <span>📩</span>
+                <span>If selected, we will contact you for further steps.</span>
+              </div>
             </div>
 
             {/* Information Card */}
