@@ -56,7 +56,7 @@ export class MembershipApplicationService {
   ): Promise<T> {
     const payload = { ...data };
     let currentPermissions = permissions;
-    const maxRetries = 10;
+    const maxRetries = 4;
 
     for (let i = 0; i < maxRetries; i++) {
       try {
@@ -77,10 +77,10 @@ export class MembershipApplicationService {
           );
         }
       } catch (err: any) {
-        // If permission error, retry without explicit permissions (let collection defaults apply)
+        // If permission error with document-level permissions, retry immediately without permissions
         if (
           currentPermissions &&
-          (err?.code === 401 || err?.code === 403 || /permission/i.test(err?.message || ''))
+          (err?.code === 400 || err?.code === 401 || err?.code === 403 || /permission/i.test(err?.message || ''))
         ) {
           currentPermissions = undefined;
           continue;
@@ -155,22 +155,7 @@ export class MembershipApplicationService {
       );
 
       if (res.documents.length === 0) {
-        // Try direct exact casing fallback if lowercase didn't match
-        const exactRes = await databases.listDocuments(
-          this.databaseId,
-          this.collectionId,
-          [
-            Query.equal('email', email.trim()),
-            Query.limit(1),
-          ]
-        );
-        if (exactRes.documents.length === 0) {
-          return { success: true, data: null };
-        }
-        return {
-          success: true,
-          data: this.mapDocumentToApplication(exactRes.documents[0]),
-        };
+        return { success: true, data: null };
       }
 
       return {
@@ -178,7 +163,11 @@ export class MembershipApplicationService {
         data: this.mapDocumentToApplication(res.documents[0]),
       };
     } catch (err: any) {
-      console.error('[MembershipApplicationService] getApplicationByEmail error:', err);
+      // If guest lacks list permission or collection has no email index, proceed gracefully
+      if (err?.code === 401 || err?.code === 403 || err?.code === 404) {
+        return { success: true, data: null };
+      }
+      console.warn('[MembershipApplicationService] getApplicationByEmail warning:', err);
       return {
         success: false,
         error: err?.message || 'Failed to check existing application.',

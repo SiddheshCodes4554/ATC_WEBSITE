@@ -105,9 +105,20 @@ export const JoinCommunityPage: React.FC = () => {
 
     // 6. Resume Link (Optional, but validate if entered)
     if (formData.resumeLink && formData.resumeLink.trim()) {
-      const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
-      if (!urlPattern.test(formData.resumeLink.trim())) {
-        newErrors.resumeLink = 'Please enter a valid URL (e.g., https://github.com/yourhandle or Google Drive link).';
+      const trimmedUrl = formData.resumeLink.trim();
+      let valid = false;
+      try {
+        const formatted = trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
+          ? trimmedUrl
+          : `https://${trimmedUrl}`;
+        const parsed = new URL(formatted);
+        valid = Boolean(parsed.hostname && parsed.hostname.includes('.'));
+      } catch {
+        valid = false;
+      }
+
+      if (!valid) {
+        newErrors.resumeLink = 'Please enter a valid URL (e.g. https://github.com/yourname or Google Drive link).';
       }
     }
 
@@ -161,12 +172,16 @@ export const JoinCommunityPage: React.FC = () => {
 
       if (res.success) {
         setIsSuccess(true);
-        confetti({
-          particleCount: 120,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#2ED573', '#00D2D3'],
-        });
+        try {
+          confetti({
+            particleCount: 100,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#2ED573', '#00D2D3'],
+          });
+        } catch {
+          // ignore any canvas confetti issues
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         setSubmitError(res.error || 'Failed to submit application. Please try again.');
