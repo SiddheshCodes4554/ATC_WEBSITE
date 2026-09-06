@@ -13,7 +13,7 @@ import { LabPage } from './pages/LabPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { TeamPage } from './pages/TeamPage';
 import { GalleryPage } from './pages/GalleryPage';
-import { JoinPage } from './pages/JoinPage';
+import { JoinCommunityPage } from './pages/JoinCommunityPage';
 import { SignupPage } from './pages/SignupPage';
 import { LoginPage } from './pages/LoginPage';
 import { StudentDashboardPage } from './pages/student/StudentDashboardPage';
@@ -32,6 +32,8 @@ import { AdminCreateProjectPage } from './pages/admin/AdminCreateProjectPage';
 import { AdminEditProjectPage } from './pages/admin/AdminEditProjectPage';
 import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
 import { AdminLabPage } from './pages/admin/AdminLabPage';
+import { AdminMembershipApplicationsPage } from './pages/admin/AdminMembershipApplicationsPage';
+import { AdminMembershipApplicationDetailsPage } from './pages/admin/AdminMembershipApplicationDetailsPage';
 import { LabAccessPage } from './pages/LabAccessPage';
 import { IdeasPage } from './pages/IdeasPage';
 import { IdeaDetailsPage } from './pages/IdeaDetailsPage';
@@ -91,7 +93,7 @@ export const App: React.FC = () => {
           <Route path="/inventory" element={<PublicLayout><InventoryPage /></PublicLayout>} />
           <Route path="/team" element={<PublicLayout><TeamPage /></PublicLayout>} />
           <Route path="/gallery" element={<PublicLayout><GalleryPage /></PublicLayout>} />
-          <Route path="/join" element={<PublicLayout><JoinPage /></PublicLayout>} />
+          <Route path="/join" element={<PublicLayout><JoinCommunityPage /></PublicLayout>} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />
 
@@ -135,6 +137,8 @@ export const App: React.FC = () => {
             <Route path="projects/edit/:id" element={<AdminEditProjectPage />} />
             <Route path="project-ideas" element={<AdminProjectIdeasPage />} />
             <Route path="project-ideas/:ideaId" element={<AdminProjectIdeaReviewPage />} />
+            <Route path="membership-applications" element={<AdminMembershipApplicationsPage />} />
+            <Route path="membership-applications/:applicationId" element={<AdminMembershipApplicationDetailsPage />} />
             <Route path="gallery" element={<AdminGalleryPage />} />
             <Route path="lab" element={<AdminLabPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />

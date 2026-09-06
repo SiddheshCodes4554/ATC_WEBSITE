@@ -13,8 +13,10 @@ export * from './storage.service';
 export * from './realtime.service';
 export * from './functions.service';
 export * from './registrationService';
+export * from './membershipApplicationService';
 
 export * from '../lib/appwrite/permissions';
 export * from '../types/appwrite.types';
 export * from '../types/event.types';
 export * from '../types/form.types';
+export * from '../types/membershipApplication.types';

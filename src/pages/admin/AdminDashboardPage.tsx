@@ -99,6 +99,16 @@ export const AdminDashboardPage: React.FC = () => {
       path: '/admin/project-ideas',
       isInternal: true,
     },
+    {
+      title: 'Member Applications',
+      desc: 'Review incoming 1st and 2nd year student membership applications, review academic info, and update status.',
+      icon: <Users className="w-6 h-6 text-[#121316]" />,
+      badge: 'MEMBERSHIP',
+      color: 'bg-[#FAF7F0]',
+      linkText: 'Review Applications',
+      path: '/admin/membership-applications',
+      isInternal: true,
+    },
   ];
 
   return (
@@ -226,6 +236,14 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <Lightbulb className="w-3.5 h-3.5" />
               <span>Project Ideas</span>
+            </Link>
+
+            <Link
+              to="/admin/membership-applications"
+              className="px-5 py-2.5 rounded-full bg-[#FAF7F0] hover:bg-gray-100 text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <Users className="w-3.5 h-3.5 text-[#6C5CE7]" />
+              <span>Member Applications</span>
             </Link>
           </div>
 

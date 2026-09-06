@@ -5,7 +5,7 @@ import { FinalCulminationCTA } from '../components/join/FinalCulminationCTA';
 import { JoinModals } from '../components/join/JoinModals';
 
 export const JoinPage: React.FC = () => {
-  const [activeModal, setActiveModal] = useState<'community' | 'core' | 'partner' | null>(null);
+  const [activeModal, setActiveModal] = useState<'community' | 'partner' | null>(null);
 
   return (
     <div className="flex flex-col min-h-screen">

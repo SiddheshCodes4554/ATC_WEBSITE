@@ -440,6 +440,18 @@ export const Navbar: React.FC = () => {
                             </div>
                             <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                           </Link>
+
+                          <Link
+                            to="/admin/membership-applications"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-black text-[#121316] hover:bg-[#FFE600]/40 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-[#6C5CE7]" />
+                              <span>Member Applications</span>
+                            </div>
+                            <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                          </Link>
                         </>
                       ) : (
                         <>

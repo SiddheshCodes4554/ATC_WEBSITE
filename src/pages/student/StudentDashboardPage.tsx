@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { projectIdeaService } from '../../services/projectIdeaService';
 import { ProjectIdea } from '../../types/projectIdea.types';
+import { MembershipApplicationService } from '../../services/membershipApplicationService';
+import { MembershipApplication } from '../../types/membershipApplication.types';
 
 interface StudentRegistrationItem {
   registration: EventRegistration;
@@ -57,6 +59,10 @@ export const StudentDashboardPage: React.FC = () => {
   const [ideas, setIdeas] = useState<ProjectIdea[]>([]);
   const [ideasLoading, setIdeasLoading] = useState<boolean>(true);
 
+  // Membership Application State
+  const [membershipApplication, setMembershipApplication] = useState<MembershipApplication | null>(null);
+  const [membershipLoading, setMembershipLoading] = useState<boolean>(true);
+
   // Derive first name safely from user.name
   const firstName =
     user?.name && user.name.trim()
@@ -65,6 +71,27 @@ export const StudentDashboardPage: React.FC = () => {
 
   const fullName = user?.name?.trim() || 'Student Builder';
   const email = user?.email || 'No email attached';
+
+  const fetchMembership = async () => {
+    if (!user?.email) {
+      setMembershipLoading(false);
+      return;
+    }
+
+    setMembershipLoading(true);
+    try {
+      const res = await MembershipApplicationService.getApplicationByEmail(user.email);
+      if (res.success && res.data) {
+        setMembershipApplication(res.data);
+      } else {
+        setMembershipApplication(null);
+      }
+    } catch (err) {
+      console.error('Error fetching membership application:', err);
+    } finally {
+      setMembershipLoading(false);
+    }
+  };
 
   const fetchRegistrations = async () => {
     if (!user?.$id) {
@@ -135,7 +162,8 @@ export const StudentDashboardPage: React.FC = () => {
     fetchRegistrations();
     fetchLabRequests();
     fetchIdeas();
-  }, [user?.$id]);
+    fetchMembership();
+  }, [user?.$id, user?.email]);
 
   const renderEventStatusBadge = (status: RegistrationStatus) => {
     switch (status) {
@@ -449,6 +477,76 @@ export const StudentDashboardPage: React.FC = () => {
                       STUDENT MEMBER
                     </span>
                   </div>
+                </div>
+
+                {/* ATC Membership Application Status */}
+                <div className="space-y-2 pt-3 border-t-2 border-[#121316]/10">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] font-black uppercase text-gray-400">
+                      ATC Membership
+                    </span>
+                  </div>
+
+                  {membershipLoading ? (
+                    <div className="h-7 w-36 bg-gray-200 rounded-full animate-pulse" />
+                  ) : membershipApplication ? (
+                    <div className="space-y-1.5">
+                      {membershipApplication.status === 'pending' && (
+                        <div>
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0EBFF] text-[#6C5CE7] border-2 border-[#121316] font-mono text-xs font-black shadow-pop-xs">
+                            <span>⏳</span>
+                            <span>APPLICATION PENDING</span>
+                          </div>
+                          <p className="text-xs font-bold text-gray-700 mt-1">
+                            Your application is waiting for review.
+                          </p>
+                        </div>
+                      )}
+                      {membershipApplication.status === 'under_review' && (
+                        <div>
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF9DB] text-amber-800 border-2 border-[#121316] font-mono text-xs font-black shadow-pop-xs">
+                            <span>🔍</span>
+                            <span>UNDER REVIEW</span>
+                          </div>
+                          <p className="text-xs font-bold text-gray-700 mt-1">
+                            The ATC team is reviewing your application.
+                          </p>
+                        </div>
+                      )}
+                      {membershipApplication.status === 'approved' && (
+                        <div>
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#D4F8E8] text-emerald-800 border-2 border-[#121316] font-mono text-xs font-black shadow-pop-xs">
+                            <span>🎉</span>
+                            <span>APPLICATION APPROVED</span>
+                          </div>
+                          <p className="text-xs font-bold text-emerald-800 mt-1">
+                            Welcome to the ATC community!
+                          </p>
+                        </div>
+                      )}
+                      {membershipApplication.status === 'rejected' && (
+                        <div>
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE5E5] text-[#FF4757] border-2 border-[#121316] font-mono text-xs font-black shadow-pop-xs">
+                            <span>❌</span>
+                            <span>APPLICATION NOT APPROVED</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-[#FAF7F0] rounded-2xl border-2 border-[#121316]/20 flex items-center justify-between gap-3">
+                      <div className="text-xs font-black text-[#121316] uppercase">
+                        READY TO JOIN ATC?
+                      </div>
+                      <Link
+                        to="/join"
+                        className="px-3.5 py-1.5 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] border-2 border-[#121316] font-mono text-[11px] font-black uppercase shadow-pop-xs hover:shadow-pop transition-all flex items-center gap-1"
+                      >
+                        <span>APPLY NOW</span>
+                        <ArrowRight className="w-3 h-3 stroke-[3]" />
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
