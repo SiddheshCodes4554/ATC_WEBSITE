@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Derived state directly from the authenticated Appwrite user (source of truth)
   const isAdmin = AuthService.isAdminUser(user);
 
-  // Fetch or hydrate student profile
+  // Fetch or hydrate student profile with auto-healing to database collection
   const hydrateProfile = async (currentUser: Models.User<Models.Preferences> | null) => {
     if (!currentUser?.$id) {
       setProfile(null);
@@ -51,20 +51,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      // Fallback: hydrate from user.prefs if database record hasn't synced
+      // Fallback: If missing from database collection but present in user.prefs,
+      // self-heal / create record in student_profiles table
       const prefs = (currentUser.prefs || {}) as Record<string, any>;
       if (prefs.niatId || prefs.studentId) {
+        const niatId = (prefs.niatId || prefs.studentId || '').toString().trim();
+        const year = (prefs.year || '1st Year') as StudentYear;
+        const section = (prefs.section || 'S01') as StudentSection;
+        const phone = (prefs.phone || '').toString().trim();
+
+        try {
+          const createRes = await StudentProfileService.createProfile({
+            userId: currentUser.$id,
+            name: currentUser.name || 'Student',
+            email: currentUser.email || '',
+            niatId: niatId,
+            phone: phone,
+            year: year,
+            section: section,
+          });
+
+          if (createRes.success && createRes.data) {
+            setProfile(createRes.data);
+            return;
+          }
+        } catch (syncErr) {
+          console.warn('[AuthContext] Auto-sync profile to student_profiles table:', syncErr);
+        }
+
         setProfile({
           $id: currentUser.$id,
           $createdAt: currentUser.$createdAt || new Date().toISOString(),
           userId: currentUser.$id,
           name: currentUser.name || '',
           email: currentUser.email || '',
-          niatId: (prefs.niatId || prefs.studentId || '').toString(),
-          studentId: (prefs.studentId || prefs.niatId || '').toString(),
-          phone: (prefs.phone || '').toString(),
-          year: (prefs.year || '1st Year') as StudentYear,
-          section: (prefs.section || 'S01') as StudentSection,
+          niatId: niatId,
+          studentId: niatId,
+          phone: phone,
+          year: year,
+          section: section,
         });
       } else {
         setProfile(null);
