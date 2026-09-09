@@ -87,18 +87,26 @@ export const AdminFormResponsesPage: React.FC = () => {
     setError(null);
 
     try {
-      // 1. Fetch Form definition
+      // 1. Fetch Form definition (support ID and slug fallback)
+      let targetForm: CustomForm | null = null;
       const formRes = await customFormService.getForm(formId.trim());
-      if (!formRes.success || !formRes.data) {
-        setError(formRes.error || 'Form could not be found.');
-        setLoading(false);
-        setIsRefreshing(false);
-        return;
+      if (formRes.success && formRes.data) {
+        targetForm = formRes.data;
+      } else {
+        const slugRes = await customFormService.getFormBySlug(formId.trim());
+        if (slugRes.success && slugRes.data) {
+          targetForm = slugRes.data;
+        } else {
+          setError(formRes.error || slugRes.error || 'Form could not be found.');
+          setLoading(false);
+          setIsRefreshing(false);
+          return;
+        }
       }
-      setForm(formRes.data);
+      setForm(targetForm);
 
-      // 2. Fetch Form responses (newest first)
-      const responsesRes = await customFormService.getFormResponses(formId.trim(), {
+      // 2. Fetch Form responses using canonical form ID
+      const responsesRes = await customFormService.getFormResponses(targetForm.id, {
         limit: 500,
       });
 
@@ -106,6 +114,9 @@ export const AdminFormResponsesPage: React.FC = () => {
         setResponses(responsesRes.data);
       } else {
         setResponses([]);
+        if (responsesRes.error) {
+          console.warn('[AdminFormResponsesPage] getFormResponses notice:', responsesRes.error);
+        }
       }
     } catch (err: any) {
       setError(err?.message || 'Failed to load form responses.');
