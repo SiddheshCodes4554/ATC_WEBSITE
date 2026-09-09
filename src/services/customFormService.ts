@@ -1068,25 +1068,56 @@ export class CustomFormService {
         }
       }
 
-      // 9. Create Response Document in Appwrite
+      // 9. Create Response Document in Appwrite (with auto-healing attribute stripping)
       const documentId = ID.unique();
       const submittedAt = new Date().toISOString();
 
-      const payload = {
+      const payload: Record<string, unknown> = {
         formId: form.id,
-        formSlug: form.slug,
-        userId: userId || '',
-        respondentEmail: respondentEmail || '',
         answers: serializedAnswers,
         submittedAt,
       };
 
-      const doc = await databases.createDocument(
-        this.databaseId,
-        this.responsesCollectionId,
-        documentId,
-        payload
-      );
+      if (form.slug) {
+        payload.formSlug = form.slug;
+      }
+      if (userId) {
+        payload.userId = userId;
+      }
+      if (respondentEmail) {
+        payload.respondentEmail = respondentEmail;
+      }
+
+      let doc;
+      const cleanPayload = { ...payload };
+      let attempts = 0;
+
+      while (attempts < 6) {
+        try {
+          doc = await databases.createDocument(
+            this.databaseId,
+            this.responsesCollectionId,
+            documentId,
+            cleanPayload
+          );
+          break;
+        } catch (createErr: any) {
+          const match = createErr?.message?.match(/Unknown attribute: ["']?([^"'\s]+)["']?/i);
+          if (match && match[1] && cleanPayload[match[1]] !== undefined) {
+            console.warn(
+              `[CustomFormService] Missing schema attribute "${match[1]}" in custom_form_responses. Stripping and retrying.`
+            );
+            delete cleanPayload[match[1]];
+            attempts++;
+          } else {
+            throw createErr;
+          }
+        }
+      }
+
+      if (!doc) {
+        throw new Error('Failed to create response document.');
+      }
 
       // 10. Increment responseCount on the form document (best-effort, non-blocking)
       try {
