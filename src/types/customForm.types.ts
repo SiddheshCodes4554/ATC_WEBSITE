@@ -185,3 +185,64 @@ export interface FieldError {
   fieldId: string;
   message: string;
 }
+
+/**
+ * Time range options for response analytics
+ */
+export type TimeRangeOption = 'all' | '30d' | '7d' | 'today';
+
+/**
+ * Summary metrics for form analytics
+ */
+export interface FormAnalyticsSummary {
+  totalResponses: number;
+  todayCount: number;
+  weekCount: number;
+  identifiedCount: number;
+  anonymousCount: number;
+  averageRating?: number;
+  totalRatingResponses?: number;
+}
+
+/**
+ * Trend data point for submissions over time
+ */
+export interface ResponseTrendPoint {
+  label: string;
+  rawDate: string;
+  count: number;
+}
+
+/**
+ * Choice distribution breakdown for radio, select, and checkbox fields
+ */
+export interface ChoiceDistribution {
+  option: string;
+  count: number;
+  percentage: number;
+}
+
+/**
+ * Score distribution breakdown for rating fields
+ */
+export interface RatingDistribution {
+  score: number;
+  count: number;
+  percentage: number;
+}
+
+/**
+ * Field-level analytics calculation result
+ */
+export interface FieldAnalytics {
+  fieldId: string;
+  fieldLabel: string;
+  fieldType: FormFieldType;
+  totalAnswers: number;
+  completionRate: number;
+  choices?: ChoiceDistribution[];
+  ratings?: RatingDistribution[];
+  averageRating?: number;
+  recentTextAnswers?: string[];
+}
+

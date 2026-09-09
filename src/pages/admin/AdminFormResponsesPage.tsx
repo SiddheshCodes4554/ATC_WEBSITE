@@ -20,24 +20,34 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert,
+  Download,
+  BarChart3,
+  Table,
+  Loader2,
 } from 'lucide-react';
 import { customFormService } from '../../services/customFormService';
 import { CustomForm, CustomFormResponse, FormFieldDefinition } from '../../types/customForm.types';
 import { ATCStatusBadge, ATCEmptyState, ScrewHead } from '../../components/visual';
 import { ResponseDetailModal } from '../../components/forms/responses/ResponseDetailModal';
+import { FormAnalyticsView } from '../../components/forms/analytics/FormAnalyticsView';
+import { exportFormResponsesToCsv } from '../../utils/formAnalytics';
 
+type ViewMode = 'responses' | 'analytics';
 type RespondentFilter = 'all' | 'with-email' | 'anonymous';
 
 export const AdminFormResponsesPage: React.FC = () => {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
 
+  // Mode: Responses Table vs Visual Analytics
+  const [viewMode, setViewMode] = useState<ViewMode>('responses');
+
   // Data State
   const [form, setForm] = useState<CustomForm | null>(null);
   const [responses, setResponses] = useState<CustomFormResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isExportingCsv, setIsExportingCsv] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Search & Filter State
@@ -139,10 +149,40 @@ export const AdminFormResponsesPage: React.FC = () => {
     }
   };
 
+  // CSV Export Handler
+  const handleExportCsv = () => {
+    if (!form || responses.length === 0) {
+      setToastMessage({ type: 'error', text: 'No responses available to export.' });
+      return;
+    }
+
+    setIsExportingCsv(true);
+    try {
+      const res = exportFormResponsesToCsv(form, responses);
+      if (res.success) {
+        setToastMessage({
+          type: 'success',
+          text: `CSV Exported: ${res.filename || 'responses.csv'}`,
+        });
+      } else {
+        setToastMessage({
+          type: 'error',
+          text: res.error || 'Failed to export CSV.',
+        });
+      }
+    } catch (err: any) {
+      setToastMessage({
+        type: 'error',
+        text: err?.message || 'Error occurred while generating CSV.',
+      });
+    } finally {
+      setIsExportingCsv(false);
+    }
+  };
+
   // Determine Primary Dynamic Columns (up to 4 representative fields)
   const displayFields: FormFieldDefinition[] = useMemo(() => {
     if (!form?.fields) return [];
-    // Filter out purely layout elements if any, pick first 4
     return form.fields.slice(0, 4);
   }, [form]);
 
@@ -319,7 +359,7 @@ export const AdminFormResponsesPage: React.FC = () => {
           </div>
 
           {/* Form Title & Action Toolbar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-1">
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#FFE600] text-[#121316] border border-[#121316] font-mono text-[10px] font-black uppercase">
                 <Inbox className="w-3 h-3" />
@@ -332,6 +372,22 @@ export const AdminFormResponsesPage: React.FC = () => {
 
             {form && (
               <div className="flex flex-wrap items-center gap-2.5">
+                {/* CSV Export Button */}
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  disabled={isExportingCsv || responses.length === 0}
+                  className="px-4 py-2.5 rounded-2xl bg-[#D4F8E8] hover:bg-[#A8F2CC] text-emerald-950 font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-xs hover:shadow-pop transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Export all responses as CSV file"
+                >
+                  {isExportingCsv ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-800" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5 text-emerald-800 stroke-[2.5]" />
+                  )}
+                  <span>{isExportingCsv ? 'Exporting...' : 'Export CSV'}</span>
+                </button>
+
                 {/* Open Live Form */}
                 {form.status !== 'draft' && (
                   <Link
@@ -368,386 +424,428 @@ export const AdminFormResponsesPage: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Summary Metrics Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-3xl bg-white border-3 border-[#121316] shadow-pop space-y-1">
-            <span className="font-mono text-[11px] font-black uppercase text-gray-500 block">
-              TOTAL RESPONSES
-            </span>
-            <div className="text-3xl font-black text-[#121316]">{responses.length}</div>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-[#D4F8E8] border-3 border-[#121316] shadow-pop space-y-1">
-            <span className="font-mono text-[11px] font-black uppercase text-emerald-800 block">
-              IDENTIFIED RESPONDENTS
-            </span>
-            <div className="text-3xl font-black text-emerald-950">{identifiedCount}</div>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-[#FFF9DB] border-3 border-[#121316] shadow-pop space-y-1">
-            <span className="font-mono text-[11px] font-black uppercase text-amber-800 block">
-              ANONYMOUS
-            </span>
-            <div className="text-3xl font-black text-amber-950">{anonymousCount}</div>
-          </div>
-
-          <div className="p-5 rounded-3xl bg-[#E1DCFF] border-3 border-[#121316] shadow-pop space-y-1">
-            <span className="font-mono text-[11px] font-black uppercase text-[#6C5CE7] block">
-              LATEST SUBMISSION
-            </span>
-            <div className="text-xs sm:text-sm font-black text-[#121316] truncate font-mono pt-1.5">
-              {latestSubmission}
-            </div>
-          </div>
-        </div>
-
-        {/* Search, Filter & Controls Bar */}
-        <div className="p-5 rounded-3xl bg-white border-3 border-[#121316] shadow-pop space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-center">
-            
-            {/* Search Input (7 Cols) */}
-            <div className="md:col-span-7 relative">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search responses by email, name, or answer keyword..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] text-xs font-bold text-[#121316] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6C5CE7]"
-              />
-            </div>
-
-            {/* Filter Buttons (5 Cols) */}
-            <div className="md:col-span-5 flex items-center gap-1.5 bg-[#FAF7F0] p-1 rounded-2xl border-2 border-[#121316] overflow-x-auto scrollbar-none">
-              {(
-                [
-                  { id: 'all', label: 'All Responses' },
-                  { id: 'with-email', label: 'With Email' },
-                  { id: 'anonymous', label: 'Anonymous' },
-                ] as const
-              ).map((flt) => (
-                <button
-                  key={flt.id}
-                  type="button"
-                  onClick={() => setFilterType(flt.id)}
-                  className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-black uppercase transition-all whitespace-nowrap cursor-pointer flex-1 text-center ${
-                    filterType === flt.id
-                      ? 'bg-[#121316] text-white shadow-pop-xs'
-                      : 'text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {flt.label}
-                </button>
-              ))}
-            </div>
-
-          </div>
-
-          {/* Sub-bar Status */}
-          <div className="flex items-center justify-between text-xs font-mono font-bold text-gray-500 pt-1">
-            <span>
-              Showing {filteredResponses.length} of {responses.length} responses
-            </span>
-            {(searchQuery || filterType !== 'all') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setFilterType('all');
-                }}
-                className="text-[#6C5CE7] hover:underline font-black cursor-pointer"
-              >
-                Clear all filters
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {loading ? (
-          <div className="p-8 rounded-[36px] bg-white border-4 border-gray-200 shadow-pop space-y-4 animate-pulse">
-            <div className="h-10 bg-gray-200 rounded-2xl w-1/3" />
-            <div className="space-y-3 pt-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-14 bg-gray-100 rounded-2xl border-2 border-gray-200" />
-              ))}
-            </div>
-          </div>
-        ) : error ? (
-          /* Error State */
-          <div className="p-8 sm:p-10 rounded-[36px] bg-[#FFE5E5] border-4 border-[#FF4757] text-center space-y-4 max-w-lg mx-auto shadow-pop">
-            <AlertTriangle className="w-12 h-12 text-[#FF4757] mx-auto" />
-            <div className="space-y-1">
-              <h3 className="font-black text-xl text-[#121316]">RESPONSES UNAVAILABLE</h3>
-              <p className="text-xs sm:text-sm font-bold text-gray-700">{error}</p>
-            </div>
+          {/* Mode Switcher Tabs: [ RESPONSES ] vs [ ANALYTICS ] */}
+          <div className="pt-2 border-t-2 border-[#121316]/10 flex items-center gap-2">
             <button
               type="button"
-              onClick={() => loadData()}
-              className="px-6 py-2.5 rounded-full bg-white border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] shadow-pop hover:shadow-pop-md transition-all cursor-pointer"
+              onClick={() => setViewMode('responses')}
+              className={`px-5 py-2.5 rounded-2xl font-mono text-xs font-black uppercase border-2 border-[#121316] transition-all flex items-center gap-2 cursor-pointer ${
+                viewMode === 'responses'
+                  ? 'bg-[#121316] text-white shadow-pop-xs'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              Retry Connection
+              <Table className="w-4 h-4" />
+              <span>Responses ({responses.length})</span>
             </button>
-          </div>
-        ) : responses.length === 0 ? (
-          /* Empty Responses State */
-          <div className="p-12 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-xl text-center space-y-5">
-            <div className="w-16 h-16 rounded-2xl bg-[#FFF9DB] border-3 border-[#121316] shadow-pop mx-auto flex items-center justify-center">
-              <Inbox className="w-8 h-8 text-[#121316]" />
-            </div>
-            <div className="space-y-1">
-              <span className="px-3 py-0.5 rounded-full bg-[#FFF9DB] text-amber-800 border border-[#121316] font-mono text-[11px] font-black uppercase">
-                ZERO SUBMISSIONS
-              </span>
-              <h2 className="text-2xl font-black text-[#121316]">No Responses Yet</h2>
-              <p className="text-xs sm:text-sm font-bold text-gray-600 max-w-md mx-auto">
-                Responses will appear here automatically once visitors fill out and submit your form.
-              </p>
-            </div>
-            {form?.status !== 'draft' && (
-              <div className="pt-2">
-                <Link
-                  to={`/forms/${form?.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black uppercase border-3 border-[#121316] shadow-pop transition-all cursor-pointer"
-                >
-                  <span>Open Public Form</span>
-                  <ExternalLink className="w-4 h-4 stroke-[3]" />
-                </Link>
-              </div>
-            )}
-          </div>
-        ) : filteredResponses.length === 0 ? (
-          /* Search Empty State */
-          <div className="p-10 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop text-center space-y-4">
-            <Search className="w-10 h-10 text-gray-400 mx-auto" />
-            <div className="space-y-1">
-              <h3 className="font-black text-lg text-[#121316]">No Matching Responses</h3>
-              <p className="text-xs font-bold text-gray-600">
-                No submissions matched "{searchQuery}". Try a different keyword.
-              </p>
-            </div>
+
             <button
               type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setFilterType('all');
-              }}
-              className="px-5 py-2.5 rounded-full bg-[#FAF7F0] hover:bg-gray-200 border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] shadow-pop-xs transition-all cursor-pointer"
+              onClick={() => setViewMode('analytics')}
+              className={`px-5 py-2.5 rounded-2xl font-mono text-xs font-black uppercase border-2 border-[#121316] transition-all flex items-center gap-2 cursor-pointer ${
+                viewMode === 'analytics'
+                  ? 'bg-[#121316] text-white shadow-pop-xs'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              Clear Search
+              <BarChart3 className="w-4 h-4 text-[#FFE600]" />
+              <span>Analytics & Trends</span>
             </button>
           </div>
+
+        </div>
+
+        {/* Mode 1: Visual Analytics View */}
+        {viewMode === 'analytics' ? (
+          form ? (
+            <FormAnalyticsView form={form} responses={responses} />
+          ) : null
         ) : (
-          /* Main Tabular View Container */
-          <div className="space-y-4">
+          /* Mode 2: Responses Tabular View */
+          <div className="space-y-6">
             
-            {/* Desktop Dynamic Table View (Hidden on mobile) */}
-            <div className="hidden sm:block rounded-[32px] bg-white border-4 border-[#121316] shadow-pop-xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b-3 border-[#121316] bg-[#FAF7F0] font-mono text-[11px] font-black uppercase text-gray-700">
-                      <th className="py-4 px-4 w-14 text-center">#</th>
-                      <th className="py-4 px-4 min-w-[180px]">RESPONDENT</th>
-                      
-                      {/* Dynamic Form Question Columns */}
-                      {displayFields.map((field) => (
-                        <th key={field.id} className="py-4 px-4 min-w-[160px] max-w-[220px]">
-                          <span className="line-clamp-1" title={field.label}>
-                            {field.label}
-                          </span>
-                        </th>
-                      ))}
+            {/* Summary Metrics Row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-5 rounded-3xl bg-white border-3 border-[#121316] shadow-pop space-y-1">
+                <span className="font-mono text-[11px] font-black uppercase text-gray-500 block">
+                  TOTAL RESPONSES
+                </span>
+                <div className="text-3xl font-black text-[#121316]">{responses.length}</div>
+              </div>
 
-                      <th className="py-4 px-4 min-w-[150px]">SUBMITTED</th>
-                      <th className="py-4 px-4 w-28 text-right">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  
-                  <tbody className="divide-y-2 divide-gray-100 font-sans text-xs sm:text-sm">
-                    {paginatedResponses.map((resp, idx) => {
-                      const absoluteIndex = (currentPage - 1) * pageSize + idx + 1;
-                      return (
-                        <tr
-                          key={resp.id}
-                          onClick={() => {
-                            setSelectedResponse(resp);
-                            setSelectedResponseIndex(absoluteIndex);
-                          }}
-                          className="hover:bg-[#FFFDF5] transition-colors cursor-pointer group"
-                        >
-                          {/* 1. Sequence Number */}
-                          <td className="py-3.5 px-4 font-mono font-black text-gray-400 text-center text-xs">
-                            {String(absoluteIndex).padStart(2, '0')}
-                          </td>
+              <div className="p-5 rounded-3xl bg-[#D4F8E8] border-3 border-[#121316] shadow-pop space-y-1">
+                <span className="font-mono text-[11px] font-black uppercase text-emerald-800 block">
+                  IDENTIFIED RESPONDENTS
+                </span>
+                <div className="text-3xl font-black text-emerald-950">{identifiedCount}</div>
+              </div>
 
-                          {/* 2. Respondent Identity */}
-                          <td className="py-3.5 px-4">
-                            {resp.respondentEmail ? (
-                              <div className="flex items-center gap-1.5 font-mono text-xs font-black text-[#121316]">
-                                <Mail className="w-3.5 h-3.5 text-[#6C5CE7] flex-shrink-0" />
-                                <span className="truncate max-w-[160px]">{resp.respondentEmail}</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-gray-500">
-                                <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                                <span>Anonymous</span>
-                              </div>
-                            )}
-                          </td>
+              <div className="p-5 rounded-3xl bg-[#FFF9DB] border-3 border-[#121316] shadow-pop space-y-1">
+                <span className="font-mono text-[11px] font-black uppercase text-amber-800 block">
+                  ANONYMOUS
+                </span>
+                <div className="text-3xl font-black text-amber-950">{anonymousCount}</div>
+              </div>
 
-                          {/* 3. Dynamic Field Answers */}
+              <div className="p-5 rounded-3xl bg-[#E1DCFF] border-3 border-[#121316] shadow-pop space-y-1">
+                <span className="font-mono text-[11px] font-black uppercase text-[#6C5CE7] block">
+                  LATEST SUBMISSION
+                </span>
+                <div className="text-xs sm:text-sm font-black text-[#121316] truncate font-mono pt-1.5">
+                  {latestSubmission}
+                </div>
+              </div>
+            </div>
+
+            {/* Search, Filter & Controls Bar */}
+            <div className="p-5 rounded-3xl bg-white border-3 border-[#121316] shadow-pop space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-center">
+                
+                {/* Search Input (7 Cols) */}
+                <div className="md:col-span-7 relative">
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search responses by email, name, or answer keyword..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] text-xs font-bold text-[#121316] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6C5CE7]"
+                  />
+                </div>
+
+                {/* Filter Buttons (5 Cols) */}
+                <div className="md:col-span-5 flex items-center gap-1.5 bg-[#FAF7F0] p-1 rounded-2xl border-2 border-[#121316] overflow-x-auto scrollbar-none">
+                  {(
+                    [
+                      { id: 'all', label: 'All Responses' },
+                      { id: 'with-email', label: 'With Email' },
+                      { id: 'anonymous', label: 'Anonymous' },
+                    ] as const
+                  ).map((flt) => (
+                    <button
+                      key={flt.id}
+                      type="button"
+                      onClick={() => setFilterType(flt.id)}
+                      className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-black uppercase transition-all whitespace-nowrap cursor-pointer flex-1 text-center ${
+                        filterType === flt.id
+                          ? 'bg-[#121316] text-white shadow-pop-xs'
+                          : 'text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {flt.label}
+                    </button>
+                  ))}
+                </div>
+
+              </div>
+
+              {/* Sub-bar Status */}
+              <div className="flex items-center justify-between text-xs font-mono font-bold text-gray-500 pt-1">
+                <span>
+                  Showing {filteredResponses.length} of {responses.length} responses
+                </span>
+                {(searchQuery || filterType !== 'all') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setFilterType('all');
+                    }}
+                    className="text-[#6C5CE7] hover:underline font-black cursor-pointer"
+                  >
+                    Clear all filters
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Loading State */}
+            {loading ? (
+              <div className="p-8 rounded-[36px] bg-white border-4 border-gray-200 shadow-pop space-y-4 animate-pulse">
+                <div className="h-10 bg-gray-200 rounded-2xl w-1/3" />
+                <div className="space-y-3 pt-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-14 bg-gray-100 rounded-2xl border-2 border-gray-200" />
+                  ))}
+                </div>
+              </div>
+            ) : error ? (
+              /* Error State */
+              <div className="p-8 sm:p-10 rounded-[36px] bg-[#FFE5E5] border-4 border-[#FF4757] text-center space-y-4 max-w-lg mx-auto shadow-pop">
+                <AlertTriangle className="w-12 h-12 text-[#FF4757] mx-auto" />
+                <div className="space-y-1">
+                  <h3 className="font-black text-xl text-[#121316]">RESPONSES UNAVAILABLE</h3>
+                  <p className="text-xs sm:text-sm font-bold text-gray-700">{error}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => loadData()}
+                  className="px-6 py-2.5 rounded-full bg-white border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] shadow-pop hover:shadow-pop-md transition-all cursor-pointer"
+                >
+                  Retry Connection
+                </button>
+              </div>
+            ) : responses.length === 0 ? (
+              /* Empty Responses State */
+              <div className="p-12 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop-xl text-center space-y-5">
+                <div className="w-16 h-16 rounded-2xl bg-[#FFF9DB] border-3 border-[#121316] shadow-pop mx-auto flex items-center justify-center">
+                  <Inbox className="w-8 h-8 text-[#121316]" />
+                </div>
+                <div className="space-y-1">
+                  <span className="px-3 py-0.5 rounded-full bg-[#FFF9DB] text-amber-800 border border-[#121316] font-mono text-[11px] font-black uppercase">
+                    ZERO SUBMISSIONS
+                  </span>
+                  <h2 className="text-2xl font-black text-[#121316]">No Responses Yet</h2>
+                  <p className="text-xs sm:text-sm font-bold text-gray-600 max-w-md mx-auto">
+                    Responses will appear here automatically once visitors fill out and submit your form.
+                  </p>
+                </div>
+                {form?.status !== 'draft' && (
+                  <div className="pt-2">
+                    <Link
+                      to={`/forms/${form?.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-mono text-xs font-black uppercase border-3 border-[#121316] shadow-pop transition-all cursor-pointer"
+                    >
+                      <span>Open Public Form</span>
+                      <ExternalLink className="w-4 h-4 stroke-[3]" />
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : filteredResponses.length === 0 ? (
+              /* Search Empty State */
+              <div className="p-10 rounded-[36px] bg-white border-4 border-[#121316] shadow-pop text-center space-y-4">
+                <Search className="w-10 h-10 text-gray-400 mx-auto" />
+                <div className="space-y-1">
+                  <h3 className="font-black text-lg text-[#121316]">No Matching Responses</h3>
+                  <p className="text-xs font-bold text-gray-600">
+                    No submissions matched "{searchQuery}". Try a different keyword.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterType('all');
+                  }}
+                  className="px-5 py-2.5 rounded-full bg-[#FAF7F0] hover:bg-gray-200 border-2 border-[#121316] font-mono text-xs font-black uppercase text-[#121316] shadow-pop-xs transition-all cursor-pointer"
+                >
+                  Clear Search
+                </button>
+              </div>
+            ) : (
+              /* Main Tabular View Container */
+              <div className="space-y-4">
+                
+                {/* Desktop Dynamic Table View (Hidden on mobile) */}
+                <div className="hidden sm:block rounded-[32px] bg-white border-4 border-[#121316] shadow-pop-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-3 border-[#121316] bg-[#FAF7F0] font-mono text-[11px] font-black uppercase text-gray-700">
+                          <th className="py-4 px-4 w-14 text-center">#</th>
+                          <th className="py-4 px-4 min-w-[180px]">RESPONDENT</th>
+                          
+                          {/* Dynamic Form Question Columns */}
                           {displayFields.map((field) => (
-                            <td
-                              key={field.id}
-                              className="py-3.5 px-4 font-bold text-gray-800 max-w-[220px] truncate"
-                              title={String(resp.answers?.[field.id] || '')}
-                            >
-                              {formatTableCell(field, resp.answers?.[field.id])}
-                            </td>
+                            <th key={field.id} className="py-4 px-4 min-w-[160px] max-w-[220px]">
+                              <span className="line-clamp-1" title={field.label}>
+                                {field.label}
+                              </span>
+                            </th>
                           ))}
 
-                          {/* 4. Submission Date */}
-                          <td className="py-3.5 px-4 font-mono text-xs font-bold text-gray-600 whitespace-nowrap">
-                            {formatDate(resp.submittedAt || resp.createdAt)}
-                          </td>
-
-                          {/* 5. Action Buttons */}
-                          <td
-                            className="py-3.5 px-4 text-right whitespace-nowrap"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedResponse(resp);
-                                  setSelectedResponseIndex(absoluteIndex);
-                                }}
-                                className="px-3 py-1.5 rounded-xl bg-[#E1DCFF] hover:bg-[#D4CEFF] text-[#6C5CE7] font-mono text-xs font-black uppercase border border-[#121316] shadow-pop-xs hover:shadow-pop transition-all flex items-center gap-1 cursor-pointer"
-                                title="Inspect full response"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>View</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => setResponseToDelete(resp)}
-                                className="p-1.5 rounded-xl bg-[#FFE5E5] hover:bg-[#FFD2D2] text-[#FF4757] border border-[#121316] shadow-pop-xs transition-all cursor-pointer"
-                                title="Delete response"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
+                          <th className="py-4 px-4 min-w-[150px]">SUBMITTED</th>
+                          <th className="py-4 px-4 w-28 text-right">ACTIONS</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                      </thead>
+                      
+                      <tbody className="divide-y-2 divide-gray-100 font-sans text-xs sm:text-sm">
+                        {paginatedResponses.map((resp, idx) => {
+                          const absoluteIndex = (currentPage - 1) * pageSize + idx + 1;
+                          return (
+                            <tr
+                              key={resp.id}
+                              onClick={() => {
+                                setSelectedResponse(resp);
+                                setSelectedResponseIndex(absoluteIndex);
+                              }}
+                              className="hover:bg-[#FFFDF5] transition-colors cursor-pointer group"
+                            >
+                              {/* 1. Sequence Number */}
+                              <td className="py-3.5 px-4 font-mono font-black text-gray-400 text-center text-xs">
+                                {String(absoluteIndex).padStart(2, '0')}
+                              </td>
 
-            {/* Mobile Responsive Cards View (Visible on mobile screens) */}
-            <div className="sm:hidden space-y-3.5">
-              {paginatedResponses.map((resp, idx) => {
-                const absoluteIndex = (currentPage - 1) * pageSize + idx + 1;
-                return (
-                  <div
-                    key={resp.id}
-                    onClick={() => {
-                      setSelectedResponse(resp);
-                      setSelectedResponseIndex(absoluteIndex);
-                    }}
-                    className="p-5 rounded-3xl bg-white border-3 border-[#121316] shadow-pop space-y-3.5 cursor-pointer active:scale-[0.99] transition-all"
-                  >
-                    <div className="flex items-center justify-between border-b-2 border-gray-100 pb-2.5">
-                      <span className="font-mono text-xs font-black text-[#6C5CE7]">
-                        RESPONSE #{String(absoluteIndex).padStart(2, '0')}
-                      </span>
-                      <span className="font-mono text-[10px] font-bold text-gray-500">
-                        {formatDate(resp.submittedAt || resp.createdAt)}
-                      </span>
-                    </div>
+                              {/* 2. Respondent Identity */}
+                              <td className="py-3.5 px-4">
+                                {resp.respondentEmail ? (
+                                  <div className="flex items-center gap-1.5 font-mono text-xs font-black text-[#121316]">
+                                    <Mail className="w-3.5 h-3.5 text-[#6C5CE7] flex-shrink-0" />
+                                    <span className="truncate max-w-[160px]">{resp.respondentEmail}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-gray-500">
+                                    <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                    <span>Anonymous</span>
+                                  </div>
+                                )}
+                              </td>
 
-                    <div className="space-y-1.5">
-                      <div className="font-mono text-xs font-black text-[#121316]">
-                        {resp.respondentEmail || 'Anonymous Respondent'}
-                      </div>
+                              {/* 3. Dynamic Field Answers */}
+                              {displayFields.map((field) => (
+                                <td
+                                  key={field.id}
+                                  className="py-3.5 px-4 font-bold text-gray-800 max-w-[220px] truncate"
+                                  title={String(resp.answers?.[field.id] || '')}
+                                >
+                                  {formatTableCell(field, resp.answers?.[field.id])}
+                                </td>
+                              ))}
 
-                      {/* Display primary answer snippet */}
-                      {displayFields.slice(0, 2).map((field) => (
-                        <div key={field.id} className="text-xs">
-                          <span className="font-mono text-gray-500 text-[10px] font-bold uppercase mr-1.5">
-                            {field.label}:
-                          </span>
-                          <span className="font-bold text-gray-800">
-                            {formatTableCell(field, resp.answers?.[field.id])}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                              {/* 4. Submission Date */}
+                              <td className="py-3.5 px-4 font-mono text-xs font-bold text-gray-600 whitespace-nowrap">
+                                {formatDate(resp.submittedAt || resp.createdAt)}
+                              </td>
 
-                    <div className="pt-2 border-t-2 border-gray-100 flex items-center justify-between gap-2">
-                      <button
-                        type="button"
+                              {/* 5. Action Buttons */}
+                              <td
+                                className="py-3.5 px-4 text-right whitespace-nowrap"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedResponse(resp);
+                                      setSelectedResponseIndex(absoluteIndex);
+                                    }}
+                                    className="px-3 py-1.5 rounded-xl bg-[#E1DCFF] hover:bg-[#D4CEFF] text-[#6C5CE7] font-mono text-xs font-black uppercase border border-[#121316] shadow-pop-xs hover:shadow-pop transition-all flex items-center gap-1 cursor-pointer"
+                                    title="Inspect full response"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>View</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => setResponseToDelete(resp)}
+                                    className="p-1.5 rounded-xl bg-[#FFE5E5] hover:bg-[#FFD2D2] text-[#FF4757] border border-[#121316] shadow-pop-xs transition-all cursor-pointer"
+                                    title="Delete response"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile Responsive Cards View (Visible on mobile screens) */}
+                <div className="sm:hidden space-y-3.5">
+                  {paginatedResponses.map((resp, idx) => {
+                    const absoluteIndex = (currentPage - 1) * pageSize + idx + 1;
+                    return (
+                      <div
+                        key={resp.id}
                         onClick={() => {
                           setSelectedResponse(resp);
                           setSelectedResponseIndex(absoluteIndex);
                         }}
-                        className="px-4 py-1.5 rounded-xl bg-[#E1DCFF] text-[#6C5CE7] font-mono text-xs font-black uppercase border border-[#121316] shadow-pop-xs flex items-center gap-1.5"
+                        className="p-5 rounded-3xl bg-white border-3 border-[#121316] shadow-pop space-y-3.5 cursor-pointer active:scale-[0.99] transition-all"
                       >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Inspect Full Answers</span>
-                      </button>
+                        <div className="flex items-center justify-between border-b-2 border-gray-100 pb-2.5">
+                          <span className="font-mono text-xs font-black text-[#6C5CE7]">
+                            RESPONSE #{String(absoluteIndex).padStart(2, '0')}
+                          </span>
+                          <span className="font-mono text-[10px] font-bold text-gray-500">
+                            {formatDate(resp.submittedAt || resp.createdAt)}
+                          </span>
+                        </div>
 
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setResponseToDelete(resp);
-                        }}
-                        className="p-1.5 rounded-xl bg-[#FFE5E5] text-[#FF4757] border border-[#121316] shadow-pop-xs"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                        <div className="space-y-1.5">
+                          <div className="font-mono text-xs font-black text-[#121316]">
+                            {resp.respondentEmail || 'Anonymous Respondent'}
+                          </div>
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="p-4 rounded-3xl bg-white border-3 border-[#121316] shadow-pop flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-2xl bg-[#FAF7F0] hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-xs hover:shadow-pop transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <ChevronLeft className="w-4 h-4 stroke-[3]" />
-                  <span>Previous</span>
-                </button>
+                          {/* Display primary answer snippet */}
+                          {displayFields.slice(0, 2).map((field) => (
+                            <div key={field.id} className="text-xs">
+                              <span className="font-mono text-gray-500 text-[10px] font-bold uppercase mr-1.5">
+                                {field.label}:
+                              </span>
+                              <span className="font-bold text-gray-800">
+                                {formatTableCell(field, resp.answers?.[field.id])}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
 
-                <div className="font-mono text-xs font-black text-[#121316]">
-                  Page {currentPage} of {totalPages}
+                        <div className="pt-2 border-t-2 border-gray-100 flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedResponse(resp);
+                              setSelectedResponseIndex(absoluteIndex);
+                            }}
+                            className="px-4 py-1.5 rounded-xl bg-[#E1DCFF] text-[#6C5CE7] font-mono text-xs font-black uppercase border border-[#121316] shadow-pop-xs flex items-center gap-1.5"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Inspect Full Answers</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setResponseToDelete(resp);
+                            }}
+                            className="p-1.5 rounded-xl bg-[#FFE5E5] text-[#FF4757] border border-[#121316] shadow-pop-xs"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-2xl bg-[#FAF7F0] hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-xs hover:shadow-pop transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="w-4 h-4 stroke-[3]" />
-                </button>
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="p-4 rounded-3xl bg-white border-3 border-[#121316] shadow-pop flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 rounded-2xl bg-[#FAF7F0] hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-xs hover:shadow-pop transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <ChevronLeft className="w-4 h-4 stroke-[3]" />
+                      <span>Previous</span>
+                    </button>
+
+                    <div className="font-mono text-xs font-black text-[#121316]">
+                      Page {currentPage} of {totalPages}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 rounded-2xl bg-[#FAF7F0] hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-[#121316] font-mono text-xs font-black uppercase border-2 border-[#121316] shadow-pop-xs hover:shadow-pop transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="w-4 h-4 stroke-[3]" />
+                    </button>
+                  </div>
+                )}
+
               </div>
             )}
 
