@@ -131,11 +131,10 @@ export const PublicCustomFormPage: React.FC = () => {
     // Validate Each Configured Question
     for (const field of form.fields) {
       const val = answers[field.id];
-      const isProvided =
-        val !== undefined &&
-        val !== null &&
-        val !== '' &&
-        !(Array.isArray(val) && val.length === 0);
+      const isNullOrUndefined = val === undefined || val === null;
+      const isWhitespaceString = typeof val === 'string' && val.trim() === '';
+      const isEmptyArray = Array.isArray(val) && val.length === 0;
+      const isProvided = !isNullOrUndefined && !isWhitespaceString && !isEmptyArray;
 
       if (field.required && !isProvided) {
         errors[field.id] = `"${field.label}" is required.`;
@@ -147,10 +146,26 @@ export const PublicCustomFormPage: React.FC = () => {
 
       // Type validations
       switch (field.type) {
+        case 'text': {
+          if (String(val).length > 5000) {
+            errors[field.id] = 'Text response cannot exceed 5,000 characters.';
+            if (!firstErrorId) firstErrorId = field.id;
+          }
+          break;
+        }
+
+        case 'textarea': {
+          if (String(val).length > 10000) {
+            errors[field.id] = 'Detailed response cannot exceed 10,000 characters.';
+            if (!firstErrorId) firstErrorId = field.id;
+          }
+          break;
+        }
+
         case 'email': {
           const emailStr = String(val).trim().toLowerCase();
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(emailStr)) {
+          if (emailStr.length > 255 || !emailRegex.test(emailStr)) {
             errors[field.id] = 'Please enter a valid email address.';
             if (!firstErrorId) firstErrorId = field.id;
           }
@@ -159,7 +174,7 @@ export const PublicCustomFormPage: React.FC = () => {
 
         case 'number': {
           const num = Number(val);
-          if (isNaN(num)) {
+          if (isNaN(num) || !Number.isFinite(num)) {
             errors[field.id] = 'Please enter a valid number.';
             if (!firstErrorId) firstErrorId = field.id;
           } else {
@@ -177,23 +192,28 @@ export const PublicCustomFormPage: React.FC = () => {
 
         case 'url': {
           const urlStr = String(val).trim();
-          try {
-            const parsed = new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`);
-            if (!parsed.hostname) {
+          if (urlStr.length > 2048) {
+            errors[field.id] = 'URL is too long.';
+            if (!firstErrorId) firstErrorId = field.id;
+          } else {
+            try {
+              const parsed = new URL(urlStr.startsWith('http://') || urlStr.startsWith('https://') ? urlStr : `https://${urlStr}`);
+              if (!parsed.hostname || !parsed.hostname.includes('.')) {
+                errors[field.id] = 'Please enter a valid website URL (e.g., https://example.com).';
+                if (!firstErrorId) firstErrorId = field.id;
+              }
+            } catch {
               errors[field.id] = 'Please enter a valid website URL.';
               if (!firstErrorId) firstErrorId = field.id;
             }
-          } catch {
-            errors[field.id] = 'Please enter a valid website URL.';
-            if (!firstErrorId) firstErrorId = field.id;
           }
           break;
         }
 
         case 'phone': {
-          const cleanPhone = String(val).replace(/[\s\-()]/g, '');
-          if (cleanPhone.length < 7 || !/^\+?[0-9]{7,15}$/.test(cleanPhone)) {
-            errors[field.id] = 'Please enter a valid phone number.';
+          const cleanPhone = String(val).replace(/[\s\-().+]/g, '');
+          if (cleanPhone.length < 7 || cleanPhone.length > 15 || !/^[0-9]+$/.test(cleanPhone)) {
+            errors[field.id] = 'Please enter a valid phone number (7–15 digits).';
             if (!firstErrorId) firstErrorId = field.id;
           }
           break;
@@ -223,12 +243,35 @@ export const PublicCustomFormPage: React.FC = () => {
           break;
         }
 
+        case 'date': {
+          const dateStr = String(val).trim();
+          if (isNaN(Date.parse(dateStr))) {
+            errors[field.id] = 'Please provide a valid date.';
+            if (!firstErrorId) firstErrorId = field.id;
+          }
+          break;
+        }
+
+        case 'time': {
+          const timeStr = String(val).trim();
+          if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/.test(timeStr)) {
+            errors[field.id] = 'Please provide a valid time format (HH:MM).';
+            if (!firstErrorId) firstErrorId = field.id;
+          }
+          break;
+        }
+
         case 'rating': {
           const ratingVal = Number(val);
           const minR = field.minRating ?? 1;
           const maxR = field.maxRating ?? 5;
-          if (isNaN(ratingVal) || ratingVal < minR || ratingVal > maxR) {
-            errors[field.id] = `Rating must be between ${minR} and ${maxR}.`;
+          if (
+            isNaN(ratingVal) ||
+            !Number.isInteger(ratingVal) ||
+            ratingVal < minR ||
+            ratingVal > maxR
+          ) {
+            errors[field.id] = `Rating must be an integer between ${minR} and ${maxR}.`;
             if (!firstErrorId) firstErrorId = field.id;
           }
           break;
@@ -296,9 +339,11 @@ export const PublicCustomFormPage: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         setSubmissionError(res.error || 'Failed to submit form. Please verify your inputs and try again.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (err: any) {
       setSubmissionError(err?.message || 'An unexpected network error occurred. Please try again.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsSubmitting(false);
     }

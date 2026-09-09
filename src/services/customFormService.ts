@@ -269,7 +269,8 @@ export class CustomFormService {
   }
 
   /**
-   * Validates submitted answers against the form's dynamic field definitions
+   * Validates submitted answers against the form's dynamic field definitions.
+   * Performs deep type-checking, option verification, length constraints, and required checks.
    */
   public static validateResponse(
     form: CustomForm,
@@ -279,34 +280,52 @@ export class CustomFormService {
     const errors: Record<string, string> = {};
 
     // 1. Check form login requirement
-    if (form.settings.requireLogin && !userContext?.userId) {
+    if (form.settings?.requireLogin && !userContext?.userId) {
       errors._general = 'You must be logged in to submit this form.';
       return { isValid: false, errors };
     }
 
     // 2. Validate each configured field
-    for (const field of form.fields) {
+    for (const field of form.fields || []) {
       const val = answers[field.id];
-      const isProvided =
-        val !== undefined &&
-        val !== null &&
-        val !== '' &&
-        !(Array.isArray(val) && val.length === 0);
+      const isNullOrUndefined = val === undefined || val === null;
+      const isWhitespaceString = typeof val === 'string' && val.trim() === '';
+      const isEmptyArray = Array.isArray(val) && val.length === 0;
+      const isProvided = !isNullOrUndefined && !isWhitespaceString && !isEmptyArray;
 
-      // Check required
+      // Check required constraint
       if (field.required && !isProvided) {
         errors[field.id] = `"${field.label}" is required.`;
         continue;
       }
 
+      // If optional and not provided, continue to next field
       if (!isProvided) continue;
 
       // Type-specific validation
       switch (field.type) {
+        case 'text': {
+          if (typeof val !== 'string' && typeof val !== 'number') {
+            errors[field.id] = 'Invalid text format.';
+          } else if (String(val).length > 5000) {
+            errors[field.id] = 'Text response cannot exceed 5,000 characters.';
+          }
+          break;
+        }
+
+        case 'textarea': {
+          if (typeof val !== 'string' && typeof val !== 'number') {
+            errors[field.id] = 'Invalid text format.';
+          } else if (String(val).length > 10000) {
+            errors[field.id] = 'Detailed response cannot exceed 10,000 characters.';
+          }
+          break;
+        }
+
         case 'email': {
           const emailStr = String(val).trim().toLowerCase();
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(emailStr)) {
+          if (emailStr.length > 255 || !emailRegex.test(emailStr)) {
             errors[field.id] = 'Please enter a valid email address.';
           }
           break;
@@ -314,7 +333,7 @@ export class CustomFormService {
 
         case 'number': {
           const num = Number(val);
-          if (isNaN(num)) {
+          if (isNaN(num) || !Number.isFinite(num)) {
             errors[field.id] = 'Please enter a valid number.';
           } else {
             if (field.min !== undefined && num < field.min) {
@@ -329,21 +348,26 @@ export class CustomFormService {
 
         case 'url': {
           const urlStr = String(val).trim();
-          try {
-            const parsed = new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`);
-            if (!parsed.hostname) {
-              errors[field.id] = 'Please enter a valid URL.';
+          if (urlStr.length > 2048) {
+            errors[field.id] = 'URL is too long.';
+          } else {
+            try {
+              const parsed = new URL(urlStr.startsWith('http://') || urlStr.startsWith('https://') ? urlStr : `https://${urlStr}`);
+              if (!parsed.hostname || !parsed.hostname.includes('.')) {
+                errors[field.id] = 'Please enter a valid website URL (e.g., https://example.com).';
+              }
+            } catch {
+              errors[field.id] = 'Please enter a valid website URL.';
             }
-          } catch {
-            errors[field.id] = 'Please enter a valid website URL.';
           }
           break;
         }
 
         case 'phone': {
-          const phoneStr = String(val).replace(/[\s\-()]/g, '');
-          if (phoneStr.length < 7 || !/^\+?[0-9]{7,15}$/.test(phoneStr)) {
-            errors[field.id] = 'Please enter a valid phone number.';
+          const rawPhone = String(val).trim();
+          const digitsOnly = rawPhone.replace(/[\s\-().+]/g, '');
+          if (digitsOnly.length < 7 || digitsOnly.length > 15 || !/^[0-9]+$/.test(digitsOnly)) {
+            errors[field.id] = 'Please enter a valid phone number (7–15 digits).';
           }
           break;
         }
@@ -351,8 +375,10 @@ export class CustomFormService {
         case 'select':
         case 'radio': {
           const selectedOption = String(val);
-          if (field.options && field.options.length > 0 && !field.options.includes(selectedOption)) {
-            errors[field.id] = 'Selected option is not valid.';
+          if (field.options && field.options.length > 0) {
+            if (!field.options.includes(selectedOption)) {
+              errors[field.id] = 'Selected option is not valid.';
+            }
           }
           break;
         }
@@ -369,12 +395,43 @@ export class CustomFormService {
           break;
         }
 
+        case 'date': {
+          const dateStr = String(val).trim();
+          const timestamp = Date.parse(dateStr);
+          if (isNaN(timestamp)) {
+            errors[field.id] = 'Please provide a valid date.';
+          }
+          break;
+        }
+
+        case 'time': {
+          const timeStr = String(val).trim();
+          // Verify format HH:MM or HH:MM:SS
+          if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/.test(timeStr)) {
+            errors[field.id] = 'Please provide a valid time format (HH:MM).';
+          }
+          break;
+        }
+
         case 'rating': {
           const ratingVal = Number(val);
           const minR = field.minRating ?? 1;
           const maxR = field.maxRating ?? 5;
-          if (isNaN(ratingVal) || ratingVal < minR || ratingVal > maxR) {
-            errors[field.id] = `Rating must be between ${minR} and ${maxR}.`;
+          if (
+            isNaN(ratingVal) ||
+            !Number.isInteger(ratingVal) ||
+            ratingVal < minR ||
+            ratingVal > maxR
+          ) {
+            errors[field.id] = `Rating must be an integer between ${minR} and ${maxR}.`;
+          }
+          break;
+        }
+
+        case 'file': {
+          // File support check for current phase (Phase 9 implements full file upload)
+          if (typeof val !== 'string') {
+            errors[field.id] = 'Invalid file reference.';
           }
           break;
         }
@@ -793,8 +850,8 @@ export class CustomFormService {
   /* ======================================================================== */
 
   /**
-   * Public & Auth: Submits a new form response with validation
-   * (NO LOGIN REQUIRED for public forms)
+   * Public & Auth: Submits a new form response with hardened validation and zero-login anonymous support.
+   * Untrusted browser payloads are strictly sanitized against the form's defined schema.
    */
   public static async createFormResponse(
     input: CreateFormResponseInput
@@ -808,15 +865,19 @@ export class CustomFormService {
         return { success: false, error: 'Form ID is missing.' };
       }
 
-      // 1. Load Form Document
+      // 1. Fetch fresh Form Document from Appwrite
       const formRes = await this.getForm(input.formId.trim());
       if (!formRes.success || !formRes.data) {
-        return { success: false, error: 'Form does not exist or has been removed.', statusCode: 404 };
+        return {
+          success: false,
+          error: 'This form does not exist or has been removed.',
+          statusCode: 404,
+        };
       }
 
       const form = formRes.data;
 
-      // 2. Verify Form is published
+      // 2. Verify Form Status
       if (form.status === 'closed') {
         return {
           success: false,
@@ -833,32 +894,94 @@ export class CustomFormService {
         };
       }
 
-      // 3. Obtain user context if available
+      if (form.status !== 'published') {
+        return {
+          success: false,
+          error: 'This form is currently unavailable for submissions.',
+          statusCode: 400,
+        };
+      }
+
+      // 3. Obtain user context if session exists
       const currentUser = await AuthService.getCurrentUser();
       const userId = currentUser?.$id || input.userId || '';
-      let respondentEmail = input.respondentEmail?.trim().toLowerCase() || currentUser?.email || '';
 
-      // Extract respondent email from answers if not passed directly
-      if (!respondentEmail) {
-        const emailField = form.fields.find((f) => f.type === 'email');
-        if (emailField && input.answers[emailField.id]) {
-          respondentEmail = String(input.answers[emailField.id]).trim().toLowerCase();
+      // Check login requirement
+      if (form.settings?.requireLogin && !userId) {
+        return {
+          success: false,
+          error: 'You must be logged in to submit this form.',
+          statusCode: 401,
+        };
+      }
+
+      // 4. Unknown Field Protection & Sanitization
+      // Build a whitelist of valid field IDs defined on this form
+      const validFieldIds = new Set((form.fields || []).map((f) => f.id));
+      const rawAnswers = input.answers && typeof input.answers === 'object' ? input.answers : {};
+      const sanitizedAnswers: Record<string, unknown> = {};
+
+      for (const key of Object.keys(rawAnswers)) {
+        if (validFieldIds.has(key)) {
+          sanitizedAnswers[key] = rawAnswers[key];
         }
       }
 
-      // 4. Validate Answers against Form Schema
-      const validation = this.validateResponse(form, input.answers, {
+      // 5. Determine & Validate Respondent Email
+      let respondentEmail = input.respondentEmail?.trim().toLowerCase() || currentUser?.email || '';
+
+      // If not passed explicitly, attempt to extract from an email field in sanitized answers
+      if (!respondentEmail) {
+        const emailField = form.fields.find((f) => f.type === 'email');
+        if (emailField && sanitizedAnswers[emailField.id]) {
+          respondentEmail = String(sanitizedAnswers[emailField.id]).trim().toLowerCase();
+        }
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (form.settings?.collectEmail && !respondentEmail) {
+        return {
+          success: false,
+          error: 'Respondent email address is required for this form.',
+          statusCode: 400,
+        };
+      }
+
+      if (respondentEmail && (respondentEmail.length > 255 || !emailRegex.test(respondentEmail))) {
+        return {
+          success: false,
+          error: 'Please provide a valid respondent email address.',
+          statusCode: 400,
+        };
+      }
+
+      // 6. Deep Schema Validation on Sanitized Answers
+      const validation = this.validateResponse(form, sanitizedAnswers, {
         userId,
         email: respondentEmail,
       });
 
       if (!validation.isValid) {
         const firstError = Object.values(validation.errors)[0] || 'Invalid submission answers.';
-        return { success: false, error: firstError };
+        return {
+          success: false,
+          error: firstError,
+          statusCode: 422,
+        };
       }
 
-      // 5. Multiple response check (if allowMultipleResponses === false)
-      if (!form.settings.allowMultipleResponses) {
+      // 7. Check Serialization and Appwrite Data Limits (50,000 char column limit)
+      const serializedAnswers = JSON.stringify(sanitizedAnswers);
+      if (serializedAnswers.length > 49000) {
+        return {
+          success: false,
+          error: 'Your response is too large to submit. Please shorten your text entries.',
+          statusCode: 413,
+        };
+      }
+
+      // 8. Multiple Response Restriction Check (when allowMultipleResponses is false)
+      if (form.settings && !form.settings.allowMultipleResponses) {
         try {
           const duplicateQueries: string[] = [
             Query.equal('formId', form.id),
@@ -871,6 +994,7 @@ export class CustomFormService {
             duplicateQueries.push(Query.equal('respondentEmail', respondentEmail));
           }
 
+          // Only perform duplicate check if we have an identifier (userId or respondentEmail)
           if (duplicateQueries.length > 1) {
             const check = await databases.listDocuments(
               this.databaseId,
@@ -891,16 +1015,16 @@ export class CustomFormService {
         }
       }
 
-      // 6. Create response document
+      // 9. Create Response Document in Appwrite
       const documentId = ID.unique();
       const submittedAt = new Date().toISOString();
 
       const payload = {
         formId: form.id,
         formSlug: form.slug,
-        userId,
-        respondentEmail,
-        answers: JSON.stringify(input.answers),
+        userId: userId || '',
+        respondentEmail: respondentEmail || '',
+        answers: serializedAnswers,
         submittedAt,
       };
 
@@ -911,9 +1035,10 @@ export class CustomFormService {
         payload
       );
 
-      // 7. Increment responseCount on the form document (best-effort)
+      // 10. Increment responseCount on the form document (best-effort, non-blocking)
       try {
-        const newCount = (form.responseCount || 0) + 1;
+        const currentCount = Math.max(0, typeof form.responseCount === 'number' ? form.responseCount : 0);
+        const newCount = currentCount + 1;
         await databases.updateDocument(
           this.databaseId,
           this.formsCollectionId,
@@ -921,7 +1046,7 @@ export class CustomFormService {
           { responseCount: newCount }
         );
       } catch (countErr) {
-        console.warn('[CustomFormService] Failed to increment responseCount cache:', countErr);
+        console.warn('[CustomFormService] Notice: Failed to increment cached responseCount:', countErr);
       }
 
       return {
