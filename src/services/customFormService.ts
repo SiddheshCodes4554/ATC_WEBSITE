@@ -502,12 +502,37 @@ export class CustomFormService {
         payload.coverImageId = input.coverImageId.trim();
       }
 
-      const doc = await databases.createDocument(
-        this.databaseId,
-        this.formsCollectionId,
-        documentId,
-        payload
-      );
+      // Auto-healing document creation (re-tries automatically if non-essential attribute is missing from Appwrite schema)
+      let doc;
+      const cleanPayload = { ...payload };
+      let attempts = 0;
+
+      while (attempts < 6) {
+        try {
+          doc = await databases.createDocument(
+            this.databaseId,
+            this.formsCollectionId,
+            documentId,
+            cleanPayload
+          );
+          break;
+        } catch (createErr: any) {
+          const match = createErr?.message?.match(/Unknown attribute: ["']?([^"'\s]+)["']?/i);
+          if (match && match[1] && cleanPayload[match[1]] !== undefined) {
+            console.warn(
+              `[CustomFormService] Missing schema attribute "${match[1]}" in Appwrite. Stripping and retrying.`
+            );
+            delete cleanPayload[match[1]];
+            attempts++;
+          } else {
+            throw createErr;
+          }
+        }
+      }
+
+      if (!doc) {
+        throw new Error('Failed to create form document.');
+      }
 
       return {
         success: true,
@@ -741,12 +766,37 @@ export class CustomFormService {
         payload.coverImageId = input.coverImageId.trim();
       }
 
-      const doc = await databases.updateDocument(
-        this.databaseId,
-        this.formsCollectionId,
-        formId.trim(),
-        payload
-      );
+      // Auto-healing update loop
+      let doc;
+      const cleanPayload = { ...payload };
+      let attempts = 0;
+
+      while (attempts < 6) {
+        try {
+          doc = await databases.updateDocument(
+            this.databaseId,
+            this.formsCollectionId,
+            formId.trim(),
+            cleanPayload
+          );
+          break;
+        } catch (updateErr: any) {
+          const match = updateErr?.message?.match(/Unknown attribute: ["']?([^"'\s]+)["']?/i);
+          if (match && match[1] && cleanPayload[match[1]] !== undefined) {
+            console.warn(
+              `[CustomFormService] Missing schema attribute "${match[1]}" during update. Stripping and retrying.`
+            );
+            delete cleanPayload[match[1]];
+            attempts++;
+          } else {
+            throw updateErr;
+          }
+        }
+      }
+
+      if (!doc) {
+        throw new Error('Failed to update form document.');
+      }
 
       return {
         success: true,
