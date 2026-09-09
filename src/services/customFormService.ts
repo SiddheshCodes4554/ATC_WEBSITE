@@ -487,17 +487,20 @@ export class CustomFormService {
       const user = await AuthService.getCurrentUser();
       const documentId = ID.unique();
 
-      const payload = {
+      const payload: Record<string, unknown> = {
         title: input.title.trim(),
         slug,
         description: input.description?.trim() || '',
         status: input.status || 'draft',
         fields: fieldsJson,
         settings: settingsJson,
-        coverImageId: input.coverImageId || '',
         responseCount: 0,
         createdBy: user?.$id || input.createdBy || '',
       };
+
+      if (input.coverImageId && input.coverImageId.trim()) {
+        payload.coverImageId = input.coverImageId.trim();
+      }
 
       const doc = await databases.createDocument(
         this.databaseId,
@@ -734,8 +737,8 @@ export class CustomFormService {
         });
       }
 
-      if (input.coverImageId !== undefined) {
-        payload.coverImageId = input.coverImageId;
+      if (input.coverImageId !== undefined && input.coverImageId.trim()) {
+        payload.coverImageId = input.coverImageId.trim();
       }
 
       const doc = await databases.updateDocument(
