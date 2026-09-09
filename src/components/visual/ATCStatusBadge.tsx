@@ -102,6 +102,20 @@ const statusConfigs: Record<string, StatusConfig> = {
     border: 'border-[#121316]',
     icon: <FileEdit className="w-3.5 h-3.5 stroke-[2.5]" />,
   },
+  published: {
+    label: 'PUBLISHED',
+    bg: 'bg-[#D4F8E8]',
+    text: 'text-emerald-800',
+    border: 'border-[#121316]',
+    icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 stroke-[2.5]" />,
+  },
+  closed: {
+    label: 'CLOSED',
+    bg: 'bg-[#FFE5E5]',
+    text: 'text-[#FF4757]',
+    border: 'border-[#121316]',
+    icon: <Lock className="w-3.5 h-3.5 stroke-[2.5]" />,
+  },
   submitted: {
     label: 'SUBMITTED',
     bg: 'bg-[#E1DCFF]',

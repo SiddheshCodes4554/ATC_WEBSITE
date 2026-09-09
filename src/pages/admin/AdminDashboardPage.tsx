@@ -17,6 +17,7 @@ import {
   Clock,
   Lightbulb,
   Package,
+  FileText,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IconModule } from '../../components/visual';
@@ -51,6 +52,17 @@ export const AdminDashboardPage: React.FC = () => {
       color: 'bg-[#FFEBF2]',
       linkText: 'Open Registrations',
       path: '/admin/events',
+      isInternal: true,
+    },
+    {
+      title: 'ATC Forms Control Center',
+      desc: 'Build dynamic forms, publish public surveys, recruit members, collect RSVPs, and export responses.',
+      icon: <FileText className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'yellow' as const,
+      badge: 'FORMS BUILDER',
+      color: 'bg-[#FFF9DB]',
+      linkText: 'Manage Forms',
+      path: '/admin/forms',
       isInternal: true,
     },
     {
@@ -228,6 +240,14 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <Calendar className="w-3.5 h-3.5 text-[#6C5CE7]" />
               <span>Manage Events</span>
+            </Link>
+
+            <Link
+              to="/admin/forms"
+              className="px-5 py-2.5 rounded-full bg-[#FFF9DB] hover:bg-[#FFF3B0] text-[#121316] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <FileText className="w-3.5 h-3.5 text-[#121316]" />
+              <span>ATC Forms</span>
             </Link>
 
             <Link

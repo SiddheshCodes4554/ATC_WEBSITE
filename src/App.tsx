@@ -47,6 +47,10 @@ import { AdminComponentRequestsPage } from './pages/admin/AdminComponentRequests
 import { AdminComponentRequestDetailsPage } from './pages/admin/AdminComponentRequestDetailsPage';
 import { AdminProjectIdeasPage } from './pages/admin/AdminProjectIdeasPage';
 import { AdminProjectIdeaReviewPage } from './pages/admin/AdminProjectIdeaReviewPage';
+import { AdminFormsPage } from './pages/admin/AdminFormsPage';
+import { AdminFormBuilderPage } from './pages/admin/AdminFormBuilderPage';
+import { AdminFormResponsesPage } from './pages/admin/AdminFormResponsesPage';
+import { PublicCustomFormPage } from './pages/forms/PublicCustomFormPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { StudentProtectedRoute } from './components/auth/StudentProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -93,6 +97,7 @@ export const App: React.FC = () => {
           <Route path="/projects/:slug" element={<PublicLayout><ProjectDetailsPage /></PublicLayout>} />
           <Route path="/ideas" element={<PublicLayout><IdeasPage /></PublicLayout>} />
           <Route path="/ideas/:ideaId" element={<PublicLayout><IdeaDetailsPage /></PublicLayout>} />
+          <Route path="/forms/:slug" element={<PublicLayout><PublicCustomFormPage /></PublicLayout>} />
           <Route path="/lab" element={<PublicLayout><LabPage /></PublicLayout>} />
           <Route path="/lab-access" element={<PublicLayout><LabAccessPage /></PublicLayout>} />
           <Route path="/inventory" element={<PublicLayout><InventoryPage /></PublicLayout>} />
@@ -136,6 +141,11 @@ export const App: React.FC = () => {
             <Route path="events/:eventId/edit" element={<AdminEditEventPage />} />
             <Route path="events/:eventId/registrations" element={<AdminEventRegistrationsPage />} />
             <Route path="events/:eventId/check-in" element={<AdminEventCheckInPage />} />
+            <Route path="forms" element={<AdminFormsPage />} />
+            <Route path="forms/create" element={<AdminFormBuilderPage />} />
+            <Route path="forms/:formId/edit" element={<AdminFormBuilderPage />} />
+            <Route path="forms/edit/:formId" element={<AdminFormBuilderPage />} />
+            <Route path="forms/:formId/responses" element={<AdminFormResponsesPage />} />
             <Route path="team" element={<AdminTeamPage />} />
             <Route path="projects" element={<AdminProjectsPage />} />
             <Route path="projects/new" element={<AdminCreateProjectPage />} />
