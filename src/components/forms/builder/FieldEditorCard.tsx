@@ -17,7 +17,8 @@ import {
   Phone,
   Calendar,
   Clock,
-  HelpCircle,
+  Plus,
+  X,
 } from 'lucide-react';
 import { FormFieldDefinition, FormFieldType } from '../../../types/customForm.types';
 
@@ -77,6 +78,28 @@ export const FieldEditorCard: React.FC<FieldEditorCardProps> = ({
   onDelete,
   onUpdateField,
 }) => {
+  // Option manipulation handlers
+  const handleAddOption = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const current = field.options || [];
+    const newName = `Option ${current.length + 1}`;
+    onUpdateField({ options: [...current, newName] });
+  };
+
+  const handleUpdateOption = (optIndex: number, newValue: string) => {
+    const current = [...(field.options || [])];
+    current[optIndex] = newValue;
+    onUpdateField({ options: current });
+  };
+
+  const handleDeleteOption = (optIndex: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const current = (field.options || []).filter((_, i) => i !== optIndex);
+    onUpdateField({ options: current });
+  };
+
+  const isChoiceField = ['radio', 'checkbox', 'select'].includes(field.type);
+
   return (
     <div
       onClick={onSelect}
@@ -180,29 +203,34 @@ export const FieldEditorCard: React.FC<FieldEditorCardProps> = ({
           </p>
         )}
 
-        {/* Dynamic Field Representation */}
-        <div className="pt-1 pointer-events-none">
+        {/* Dynamic Field Representation & Interactive Options Editing */}
+        <div className="pt-1">
+          
+          {/* Short Text */}
           {field.type === 'text' && (
-            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400">
+            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 pointer-events-none">
               {field.placeholder || 'Short answer text'}
             </div>
           )}
 
+          {/* Textarea */}
           {field.type === 'textarea' && (
-            <div className="px-4 py-3 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 h-16">
+            <div className="px-4 py-3 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 h-16 pointer-events-none">
               {field.placeholder || 'Long answer text / paragraph'}
             </div>
           )}
 
+          {/* Email */}
           {field.type === 'email' && (
-            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2">
+            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2 pointer-events-none">
               <Mail className="w-4 h-4" />
               <span>{field.placeholder || 'name@example.com'}</span>
             </div>
           )}
 
+          {/* Number */}
           {field.type === 'number' && (
-            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center justify-between">
+            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center justify-between pointer-events-none">
               <span>{field.placeholder || 'Numeric input'}</span>
               {(field.min !== undefined || field.max !== undefined) && (
                 <span className="font-mono text-[10px] text-gray-500">
@@ -212,69 +240,169 @@ export const FieldEditorCard: React.FC<FieldEditorCardProps> = ({
             </div>
           )}
 
+          {/* URL */}
           {field.type === 'url' && (
-            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2">
+            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2 pointer-events-none">
               <Globe className="w-4 h-4" />
               <span>{field.placeholder || 'https://example.com'}</span>
             </div>
           )}
 
+          {/* Phone */}
           {field.type === 'phone' && (
-            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2">
+            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2 pointer-events-none">
               <Phone className="w-4 h-4" />
               <span>{field.placeholder || '+91 98765 43210'}</span>
             </div>
           )}
 
+          {/* Radio (Single Choice) — Fully Editable Inline */}
           {field.type === 'radio' && (
-            <div className="space-y-1.5 pl-1">
+            <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
               {(field.options && field.options.length > 0 ? field.options : ['Option 1', 'Option 2']).map(
-                (opt, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 text-xs font-bold text-gray-700">
-                    <div className="w-4 h-4 rounded-full border-2 border-[#121316] bg-white flex items-center justify-center" />
-                    <span>{opt}</span>
+                (opt, optIdx) => (
+                  <div key={optIdx} className="flex items-center gap-2.5 group">
+                    <div className="w-4 h-4 rounded-full border-2 border-[#121316] bg-white flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => handleUpdateOption(optIdx, e.target.value)}
+                      placeholder={`Option ${optIdx + 1}`}
+                      className="px-3 py-1.5 rounded-xl bg-[#FAF7F0] hover:bg-white focus:bg-white border-2 border-[#121316] text-xs font-bold text-[#121316] focus:outline-none focus:ring-2 focus:ring-[#6C5CE7] flex-grow transition-colors"
+                    />
+                    <button
+                      type="button"
+                      disabled={(field.options || []).length <= 1}
+                      onClick={(e) => handleDeleteOption(optIdx, e)}
+                      className="p-1.5 rounded-lg hover:bg-[#FFE5E5] disabled:opacity-20 text-gray-400 hover:text-[#FF4757] transition-colors cursor-pointer flex-shrink-0"
+                      title="Remove option"
+                    >
+                      <X className="w-4 h-4 stroke-[2.5]" />
+                    </button>
                   </div>
                 )
               )}
+
+              {/* Add Option Button */}
+              <div className="pt-1 pl-6">
+                <button
+                  type="button"
+                  onClick={handleAddOption}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] text-[#121316] font-mono text-xs font-black uppercase border border-[#121316] shadow-pop-xs hover:shadow-pop transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Add Option</span>
+                </button>
+              </div>
             </div>
           )}
 
+          {/* Checkbox (Multiple Choice) — Fully Editable Inline */}
           {field.type === 'checkbox' && (
-            <div className="space-y-1.5 pl-1">
+            <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
               {(field.options && field.options.length > 0 ? field.options : ['Choice 1', 'Choice 2']).map(
-                (opt, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 text-xs font-bold text-gray-700">
-                    <div className="w-4 h-4 rounded-md border-2 border-[#121316] bg-white" />
-                    <span>{opt}</span>
+                (opt, optIdx) => (
+                  <div key={optIdx} className="flex items-center gap-2.5 group">
+                    <div className="w-4 h-4 rounded-md border-2 border-[#121316] bg-white flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => handleUpdateOption(optIdx, e.target.value)}
+                      placeholder={`Choice ${optIdx + 1}`}
+                      className="px-3 py-1.5 rounded-xl bg-[#FAF7F0] hover:bg-white focus:bg-white border-2 border-[#121316] text-xs font-bold text-[#121316] focus:outline-none focus:ring-2 focus:ring-[#6C5CE7] flex-grow transition-colors"
+                    />
+                    <button
+                      type="button"
+                      disabled={(field.options || []).length <= 1}
+                      onClick={(e) => handleDeleteOption(optIdx, e)}
+                      className="p-1.5 rounded-lg hover:bg-[#FFE5E5] disabled:opacity-20 text-gray-400 hover:text-[#FF4757] transition-colors cursor-pointer flex-shrink-0"
+                      title="Remove choice"
+                    >
+                      <X className="w-4 h-4 stroke-[2.5]" />
+                    </button>
                   </div>
                 )
               )}
+
+              {/* Add Choice Button */}
+              <div className="pt-1 pl-6">
+                <button
+                  type="button"
+                  onClick={handleAddOption}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] text-[#121316] font-mono text-xs font-black uppercase border border-[#121316] shadow-pop-xs hover:shadow-pop transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Add Choice</span>
+                </button>
+              </div>
             </div>
           )}
 
+          {/* Select (Dropdown) — Fully Editable Options List Inline */}
           {field.type === 'select' && (
-            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-[#121316] text-xs font-bold text-gray-600 flex items-center justify-between">
-              <span>{field.options && field.options.length > 0 ? `${field.options.length} options configured` : 'Select option'}</span>
-              <ChevronDown className="w-4 h-4" />
+            <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+              <div className="text-[11px] font-mono font-bold text-gray-500 pb-1">
+                Dropdown Menu Options:
+              </div>
+              {(field.options && field.options.length > 0 ? field.options : ['Option 1', 'Option 2']).map(
+                (opt, optIdx) => (
+                  <div key={optIdx} className="flex items-center gap-2 group">
+                    <span className="font-mono text-[11px] font-black text-gray-400 w-4 text-center">
+                      {optIdx + 1}.
+                    </span>
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => handleUpdateOption(optIdx, e.target.value)}
+                      placeholder={`Dropdown Item ${optIdx + 1}`}
+                      className="px-3 py-1.5 rounded-xl bg-[#FAF7F0] hover:bg-white focus:bg-white border-2 border-[#121316] text-xs font-bold text-[#121316] focus:outline-none focus:ring-2 focus:ring-[#6C5CE7] flex-grow transition-colors"
+                    />
+                    <button
+                      type="button"
+                      disabled={(field.options || []).length <= 1}
+                      onClick={(e) => handleDeleteOption(optIdx, e)}
+                      className="p-1.5 rounded-lg hover:bg-[#FFE5E5] disabled:opacity-20 text-gray-400 hover:text-[#FF4757] transition-colors cursor-pointer flex-shrink-0"
+                      title="Remove option"
+                    >
+                      <X className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  </div>
+                )
+              )}
+
+              {/* Add Dropdown Option Button */}
+              <div className="pt-1 pl-6">
+                <button
+                  type="button"
+                  onClick={handleAddOption}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7F0] hover:bg-[#FFE600] text-[#121316] font-mono text-xs font-black uppercase border border-[#121316] shadow-pop-xs hover:shadow-pop transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Add Dropdown Option</span>
+                </button>
+              </div>
             </div>
           )}
 
+          {/* Date */}
           {field.type === 'date' && (
-            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2">
+            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2 pointer-events-none">
               <Calendar className="w-4 h-4" />
               <span>YYYY-MM-DD</span>
             </div>
           )}
 
+          {/* Time */}
           {field.type === 'time' && (
-            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2">
+            <div className="px-4 py-2.5 rounded-xl bg-[#FAF7F0] border-2 border-dashed border-gray-400 text-xs font-bold text-gray-400 flex items-center gap-2 pointer-events-none">
               <Clock className="w-4 h-4" />
               <span>HH:MM AM/PM</span>
             </div>
           )}
 
+          {/* Rating */}
           {field.type === 'rating' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pointer-events-none">
               {Array.from({ length: (field.maxRating ?? 5) - (field.minRating ?? 1) + 1 }).map((_, idx) => (
                 <div
                   key={idx}
@@ -286,12 +414,14 @@ export const FieldEditorCard: React.FC<FieldEditorCardProps> = ({
             </div>
           )}
 
+          {/* File Upload Box */}
           {field.type === 'file' && (
-            <div className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316] flex items-center justify-center gap-2 text-xs font-bold text-gray-600">
+            <div className="p-4 rounded-2xl bg-[#FAF7F0] border-2 border-dashed border-[#121316] flex items-center justify-center gap-2 text-xs font-bold text-gray-600 pointer-events-none">
               <UploadCloud className="w-4 h-4 text-[#6C5CE7]" />
               <span>Attachment Upload Box (PDF, Docs, Images)</span>
             </div>
           )}
+
         </div>
       </div>
     </div>
