@@ -165,6 +165,29 @@ export const AdminUsersPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Instant Access Banner */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#E1DCFF]/50 border-3 border-[#6C5CE7] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-bold text-[#121316]">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-[#6C5CE7] text-white flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <div>
+              <span className="font-black text-[#6C5CE7] font-mono text-[11px] uppercase block">
+                INSTANT REGISTRATION DIRECTORY (NO APPROVAL REQUIRED)
+              </span>
+              <span>
+                All registered student accounts are instantly active upon signup with immediate access to booking lab slots, reserving components, and submitting project ideas. Admin approval is reserved strictly for candidates applying for core club cohort membership via the Join ATC form.
+              </span>
+            </div>
+          </div>
+          <Link
+            to="/admin/membership-applications"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-gray-100 border-2 border-[#121316] font-mono text-[11px] font-black uppercase text-[#121316] shadow-pop-xs transition-all flex-shrink-0 text-center"
+          >
+            Go to Member Applications →
+          </Link>
+        </div>
+
         {/* Stats Metrics Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-5 rounded-3xl bg-white border-3 border-[#121316] shadow-pop space-y-1">

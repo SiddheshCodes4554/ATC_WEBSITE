@@ -565,44 +565,51 @@ export const StudentDashboardPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Account Type */}
-                <div className="space-y-1">
-                  <span className="font-mono text-[10px] font-black uppercase text-gray-400">
-                    Account Classification
+                {/* Account Type & Instant Status */}
+                <div className="space-y-1.5 p-3.5 rounded-2xl bg-[#D4F8E8]/50 border-2 border-[#121316]">
+                  <span className="font-mono text-[10px] font-black uppercase text-emerald-800">
+                    Account Status
                   </span>
-                  <div>
-                    <span className="px-2.5 py-1 rounded-full bg-[#E1DCFF] border border-[#121316] font-mono text-xs font-black text-[#6C5CE7]">
-                      STUDENT MEMBER
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#D4F8E8] text-emerald-900 border border-[#121316] font-mono text-[11px] font-black uppercase">
+                      ● ACTIVE — INSTANT ACCESS
                     </span>
                   </div>
+                  <p className="text-[11px] font-bold text-gray-700 leading-snug">
+                    Your student account is active. No approval needed to book lab slots, register for events, or requisition hardware.
+                  </p>
                 </div>
 
-                {/* ATC Membership Application Status */}
+                {/* Optional ATC Core Team / Cohort Membership Application */}
                 <div className="space-y-2 pt-3 border-t-2 border-[#121316]/10">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] font-black uppercase text-gray-400">
-                      ATC Membership
+                    <span className="font-mono text-[10px] font-black uppercase text-gray-500">
+                      Core Community Membership (/join)
+                    </span>
+                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                      OPTIONAL COHORT
                     </span>
                   </div>
 
                   {membershipLoading ? (
                     <div className="h-7 w-36 bg-gray-200 rounded-full animate-pulse" />
                   ) : membershipApplication ? (
-                    <div className="space-y-1.5">
-                      <div>
-                        <ATCStatusBadge status={membershipApplication.status} size="md" />
-                        <p className="text-xs font-bold text-gray-700 mt-1">
-                          {membershipApplication.status === 'pending' && 'Your application is waiting for review.'}
-                          {membershipApplication.status === 'under_review' && 'The ATC team is reviewing your application.'}
-                          {membershipApplication.status === 'approved' && 'Welcome to the ATC community!'}
-                          {membershipApplication.status === 'rejected' && 'Application review completed.'}
-                        </p>
+                    <div className="p-3.5 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs font-black text-[#121316]">Core Form Application:</span>
+                        <ATCStatusBadge status={membershipApplication.status} size="sm" />
                       </div>
+                      <p className="text-[11px] font-bold text-gray-700">
+                        {membershipApplication.status === 'pending' && 'Your core membership application is under faculty review.'}
+                        {membershipApplication.status === 'under_review' && 'The ATC team is reviewing your application portfolio.'}
+                        {membershipApplication.status === 'approved' && 'Congratulations! You have been accepted into the ATC Core Cohort.'}
+                        {membershipApplication.status === 'rejected' && 'Core membership review cycle concluded.'}
+                      </p>
                     </div>
                   ) : (
                     <div className="p-3 bg-[#FAF7F0] rounded-2xl border-2 border-[#121316]/20 flex items-center justify-between gap-3">
                       <div className="text-xs font-black text-[#121316] uppercase">
-                        READY TO JOIN ATC?
+                        JOIN ATC CORE COHORT?
                       </div>
                       <Link
                         to="/join"
