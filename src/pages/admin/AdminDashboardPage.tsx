@@ -130,6 +130,17 @@ export const AdminDashboardPage: React.FC = () => {
       path: '/admin/component-requests',
       isInternal: true,
     },
+    {
+      title: 'Registered Users Directory',
+      desc: 'View all students registered with ATC, inspect NIAT IDs, academic years, sections, and contact info.',
+      icon: <Users className="w-6 h-6 stroke-[2.5]" />,
+      iconVariant: 'purple' as const,
+      badge: 'STUDENTS',
+      color: 'bg-[#E1DCFF]',
+      linkText: 'Open User Directory',
+      path: '/admin/users',
+      isInternal: true,
+    },
   ];
 
   return (
@@ -273,6 +284,14 @@ export const AdminDashboardPage: React.FC = () => {
             >
               <Package className="w-3.5 h-3.5 text-[#121316]" />
               <span>Component Requests</span>
+            </Link>
+
+            <Link
+              to="/admin/users"
+              className="px-5 py-2.5 rounded-full bg-[#E1DCFF] hover:bg-[#D4CEFF] text-[#6C5CE7] font-mono text-xs font-black border-2 border-[#121316] shadow-pop-sm flex items-center gap-1.5 transition-all hover:scale-105"
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Registered Users</span>
             </Link>
           </div>
 

@@ -51,7 +51,7 @@ interface StudentRegistrationItem {
 }
 
 export const StudentDashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   // Event Registrations State
   const [registrations, setRegistrations] = useState<StudentRegistrationItem[]>([]);
@@ -522,6 +522,27 @@ export const StudentDashboardPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* NIAT ID & Academic Info */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1 p-3 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316]">
+                    <span className="font-mono text-[9px] font-black uppercase text-gray-500">
+                      NIAT ID
+                    </span>
+                    <div className="text-xs sm:text-sm font-mono font-black text-[#121316] truncate">
+                      {profile?.niatId || (user?.prefs as any)?.niatId || (user?.prefs as any)?.studentId || '—'}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 p-3 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316]">
+                    <span className="font-mono text-[9px] font-black uppercase text-gray-500">
+                      Year & Section
+                    </span>
+                    <div className="text-xs sm:text-sm font-mono font-black text-[#6C5CE7] truncate">
+                      {profile?.year || (user?.prefs as any)?.year || '1st Year'} • {profile?.section || (user?.prefs as any)?.section || 'S01'}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Email */}
                 <div className="space-y-1">
                   <span className="font-mono text-[10px] font-black uppercase text-gray-400">
@@ -531,6 +552,18 @@ export const StudentDashboardPage: React.FC = () => {
                     {email}
                   </div>
                 </div>
+
+                {/* Phone (if available) */}
+                {(profile?.phone || (user?.prefs as any)?.phone) && (
+                  <div className="space-y-1">
+                    <span className="font-mono text-[10px] font-black uppercase text-gray-400">
+                      Contact Phone
+                    </span>
+                    <div className="text-xs font-mono font-bold text-gray-800">
+                      {profile?.phone || (user?.prefs as any)?.phone}
+                    </div>
+                  </div>
+                )}
 
                 {/* Account Type */}
                 <div className="space-y-1">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -13,21 +13,31 @@ import {
   EyeOff,
   Sparkles,
   CheckCircle2,
-  LogOut
+  LogOut,
+  Phone,
+  Hash,
+  GraduationCap,
+  Layers,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { StudentYear, StudentSection } from '../types/studentProfile.types';
 
 export const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
+  const [niatId, setNiatId] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [year, setYear] = useState<StudentYear>('1st Year');
+  const [section, setSection] = useState<StudentSection>('S01');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { user, signup, logout, isAuthenticated, isAdmin, loading } = useAuth();
+  const { user, profile, signup, logout, isAuthenticated, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,7 +45,9 @@ export const SignupPage: React.FC = () => {
     if (isSubmitting) return;
 
     const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
+    const trimmedNiatId = niatId.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPhone = phone.trim();
 
     // 1. Client-side Name validation
     if (!trimmedName || trimmedName.length < 2) {
@@ -43,20 +55,51 @@ export const SignupPage: React.FC = () => {
       return;
     }
 
-    // 2. Client-side Email validation
+    // 2. Client-side NIAT ID validation
+    if (!trimmedNiatId) {
+      setError('Please enter your NIAT ID.');
+      return;
+    }
+
+    if (trimmedNiatId.length < 3) {
+      setError('Please enter a valid NIAT ID (at least 3 characters).');
+      return;
+    }
+
+    // 3. Client-side Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
       setError('Please enter a valid email address.');
       return;
     }
 
-    // 3. Client-side Password validation
+    // 4. Client-side Phone validation
+    const cleanPhone = trimmedPhone.replace(/[\s\-()]/g, '');
+    if (!cleanPhone || cleanPhone.length < 7 || !/^\+?[0-9]{7,15}$/.test(cleanPhone)) {
+      setError('Please enter a valid phone number (e.g. 9876543210 or +919876543210).');
+      return;
+    }
+
+    // 5. Year Validation
+    if (year !== '1st Year' && year !== '2nd Year') {
+      setError('Please select a valid academic year (1st Year or 2nd Year).');
+      return;
+    }
+
+    // 6. Section Validation
+    const validSections: StudentSection[] = ['S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07'];
+    if (!validSections.includes(section)) {
+      setError('Please select a valid section (S01 to S07).');
+      return;
+    }
+
+    // 7. Client-side Password validation
     if (!password || password.length < 8) {
       setError('Password must be at least 8 characters long.');
       return;
     }
 
-    // 4. Confirm Password Match
+    // 8. Confirm Password Match
     if (password !== confirmPassword) {
       setError('Passwords do not match. Please verify both fields.');
       return;
@@ -66,8 +109,16 @@ export const SignupPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // 5. Appwrite Account Registration & Auto-login
-      const result = await signup(trimmedName, trimmedEmail, password);
+      // 9. Execute instant Appwrite Account creation, Profile synchronization, and Auto-login
+      const result = await signup({
+        name: trimmedName,
+        niatId: trimmedNiatId,
+        email: trimmedEmail,
+        phone: trimmedPhone,
+        year,
+        section,
+        password,
+      });
 
       if (result.success) {
         // Trigger celebratory confetti
@@ -78,7 +129,7 @@ export const SignupPage: React.FC = () => {
           colors: ['#FFE600', '#FF6B6B', '#6C5CE7', '#2ED573'],
         });
 
-        // Navigate directly to Home
+        // Instant access without approval - navigate directly to home
         navigate('/', { replace: true });
       } else {
         setError(result.error || 'Unable to create your account. Please try again.');
@@ -124,14 +175,19 @@ export const SignupPage: React.FC = () => {
           </p>
           <div className="p-3 rounded-2xl bg-[#FAF7F0] border-2 border-[#121316] font-mono text-xs font-black text-[#6C5CE7] mb-6 break-all">
             {user?.name ? `${user.name} (${user.email})` : user?.email || 'Student'}
+            {profile?.niatId && (
+              <div className="mt-1 text-[11px] text-gray-600 font-bold">
+                NIAT ID: {profile.niatId} • {profile.year} • {profile.section}
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
             <Link
-              to={isAdmin ? '/admin/dashboard' : '/'}
+              to={isAdmin ? '/admin/dashboard' : '/student/dashboard'}
               className="w-full py-3.5 px-6 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] text-[#121316] font-black text-base border-3 border-[#121316] shadow-pop hover:shadow-pop-lg active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <span>{isAdmin ? 'Go to Admin Dashboard' : 'Continue to Home Page'}</span>
+              <span>{isAdmin ? 'Go to Admin Dashboard' : 'Go to Student Dashboard'}</span>
               <ArrowRight className="w-5 h-5 stroke-[3]" />
             </Link>
 
@@ -154,7 +210,7 @@ export const SignupPage: React.FC = () => {
     <div className="min-h-[90vh] bg-[#FAF7F0] flex flex-col items-center justify-center p-4 sm:p-8 paper-pattern select-none">
       
       {/* Top Bar Navigation Link */}
-      <div className="w-full max-w-md mb-6 flex items-center justify-between">
+      <div className="w-full max-w-lg mb-6 flex items-center justify-between">
         <Link
           to="/"
           className="inline-flex items-center gap-2 font-mono text-xs font-black text-[#121316] hover:text-[#6C5CE7] transition-colors"
@@ -168,7 +224,7 @@ export const SignupPage: React.FC = () => {
       </div>
 
       {/* Main Registration Card */}
-      <div className="w-full max-w-md bg-white rounded-[36px] border-4 border-[#121316] shadow-pop-xl p-8 sm:p-10 relative">
+      <div className="w-full max-w-lg bg-white rounded-[36px] border-4 border-[#121316] shadow-pop-xl p-6 sm:p-10 relative">
         
         {/* Playful Tape Accent on Top */}
         <div className="tape-strip pointer-events-none bg-[#6C5CE7]" />
@@ -186,8 +242,8 @@ export const SignupPage: React.FC = () => {
               alt="ATC Logo"
               className="h-11 w-auto object-contain drop-shadow-[2px_2px_0px_#121316]"
             />
-            <h1 className="text-3xl font-black text-[#121316] tracking-tight">
-              Create Account
+            <h1 className="text-2xl sm:text-3xl font-black text-[#121316] tracking-tight">
+              CREATE YOUR ATC ACCOUNT
             </h1>
           </div>
 
@@ -209,10 +265,10 @@ export const SignupPage: React.FC = () => {
         {/* Signup Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Full Name Input */}
+          {/* 1. Full Name Input */}
           <div className="space-y-1.5 text-left">
             <label className="block text-xs font-mono font-black uppercase text-[#121316]">
-              Full Name
+              Full Name <span className="text-[#FF4757]">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
@@ -230,10 +286,31 @@ export const SignupPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Email Input */}
+          {/* 2. NIAT ID Input */}
           <div className="space-y-1.5 text-left">
             <label className="block text-xs font-mono font-black uppercase text-[#121316]">
-              Email Address
+              NIAT ID <span className="text-[#FF4757]">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                <Hash className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                required
+                disabled={isSubmitting}
+                value={niatId}
+                onChange={(e) => setNiatId(e.target.value)}
+                placeholder="Enter your NIAT ID"
+                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#FAF7F0] border-3 border-[#121316] shadow-pop-sm font-bold text-sm text-[#121316] placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] disabled:opacity-60 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* 3. Email Input */}
+          <div className="space-y-1.5 text-left">
+            <label className="block text-xs font-mono font-black uppercase text-[#121316]">
+              Email Address <span className="text-[#FF4757]">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
@@ -251,11 +328,90 @@ export const SignupPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Password Input */}
+          {/* 4. Phone Number Input */}
+          <div className="space-y-1.5 text-left">
+            <label className="block text-xs font-mono font-black uppercase text-[#121316]">
+              Phone Number <span className="text-[#FF4757]">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                <Phone className="w-4 h-4" />
+              </div>
+              <input
+                type="tel"
+                required
+                disabled={isSubmitting}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="9876543210"
+                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#FAF7F0] border-3 border-[#121316] shadow-pop-sm font-bold text-sm text-[#121316] placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] disabled:opacity-60 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* 5. & 6. Year and Section Select Dropdowns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* Year Dropdown */}
+            <div className="space-y-1.5 text-left">
+              <label className="block text-xs font-mono font-black uppercase text-[#121316]">
+                Year <span className="text-[#FF4757]">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                  <GraduationCap className="w-4 h-4" />
+                </div>
+                <select
+                  required
+                  disabled={isSubmitting}
+                  value={year}
+                  onChange={(e) => setYear(e.target.value as StudentYear)}
+                  className="w-full pl-10 pr-8 py-3 rounded-2xl bg-[#FAF7F0] border-3 border-[#121316] shadow-pop-sm font-bold text-sm text-[#121316] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] disabled:opacity-60 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-gray-500 font-mono text-xs font-black">
+                  ▼
+                </div>
+              </div>
+            </div>
+
+            {/* Section Dropdown */}
+            <div className="space-y-1.5 text-left">
+              <label className="block text-xs font-mono font-black uppercase text-[#121316]">
+                Section <span className="text-[#FF4757]">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <select
+                  required
+                  disabled={isSubmitting}
+                  value={section}
+                  onChange={(e) => setSection(e.target.value as StudentSection)}
+                  className="w-full pl-10 pr-8 py-3 rounded-2xl bg-[#FAF7F0] border-3 border-[#121316] shadow-pop-sm font-bold text-sm text-[#121316] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#FFE600] disabled:opacity-60 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="S01">S01</option>
+                  <option value="S02">S02</option>
+                  <option value="S03">S03</option>
+                  <option value="S04">S04</option>
+                  <option value="S05">S05</option>
+                  <option value="S06">S06</option>
+                  <option value="S07">S07</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-gray-500 font-mono text-xs font-black">
+                  ▼
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 7. Password Input */}
           <div className="space-y-1.5 text-left">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-mono font-black uppercase text-[#121316]">
-                Password
+                Password <span className="text-[#FF4757]">*</span>
               </label>
               <span className="font-mono text-[10px] font-bold text-gray-500">
                 Min. 8 chars
@@ -290,10 +446,10 @@ export const SignupPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Confirm Password Input */}
+          {/* 8. Confirm Password Input */}
           <div className="space-y-1.5 text-left">
             <label className="block text-xs font-mono font-black uppercase text-[#121316]">
-              Confirm Password
+              Confirm Password <span className="text-[#FF4757]">*</span>
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
@@ -327,7 +483,15 @@ export const SignupPage: React.FC = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting || !name.trim() || !email.trim() || !password || !confirmPassword}
+            disabled={
+              isSubmitting ||
+              !name.trim() ||
+              !niatId.trim() ||
+              !email.trim() ||
+              !phone.trim() ||
+              !password ||
+              !confirmPassword
+            }
             className="w-full mt-3 py-3.5 px-6 rounded-full bg-[#FFE600] hover:bg-[#FFD32A] disabled:opacity-60 disabled:cursor-not-allowed text-[#121316] font-black text-base border-3 border-[#121316] shadow-pop hover:shadow-pop-lg active:translate-x-[2px] active:translate-y-[2px] flex items-center justify-center gap-2 cursor-pointer transition-all duration-150"
           >
             {isSubmitting ? (
@@ -337,7 +501,7 @@ export const SignupPage: React.FC = () => {
               </>
             ) : (
               <>
-                <span>Complete Signup</span>
+                <span>CREATE ACCOUNT</span>
                 <ArrowRight className="w-5 h-5 stroke-[3]" />
               </>
             )}
@@ -349,7 +513,7 @@ export const SignupPage: React.FC = () => {
         <div className="mt-6 pt-4 border-t-2 border-[#121316]/10 text-center space-y-2">
           <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-gray-700">
             <CheckCircle2 className="w-4 h-4 text-[#2ED573]" />
-            <span>Instant event passes & lab slots booking</span>
+            <span>Instant access • No admin approval required</span>
           </div>
 
           <p className="font-mono text-[11px] font-bold text-gray-500">

@@ -34,6 +34,7 @@ import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
 import { AdminLabPage } from './pages/admin/AdminLabPage';
 import { AdminMembershipApplicationsPage } from './pages/admin/AdminMembershipApplicationsPage';
 import { AdminMembershipApplicationDetailsPage } from './pages/admin/AdminMembershipApplicationDetailsPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { LabAccessPage } from './pages/LabAccessPage';
 import { IdeasPage } from './pages/IdeasPage';
 import { IdeaDetailsPage } from './pages/IdeaDetailsPage';
@@ -147,6 +148,7 @@ export const App: React.FC = () => {
             <Route path="component-requests/:requestId" element={<AdminComponentRequestDetailsPage />} />
             <Route path="membership-applications" element={<AdminMembershipApplicationsPage />} />
             <Route path="membership-applications/:applicationId" element={<AdminMembershipApplicationDetailsPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
             <Route path="gallery" element={<AdminGalleryPage />} />
             <Route path="lab" element={<AdminLabPage />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />

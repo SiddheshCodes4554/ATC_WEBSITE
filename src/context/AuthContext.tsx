@@ -1,19 +1,28 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Models } from 'appwrite';
-import { AuthService, AuthResult } from '../services/authService';
+import { AuthService, AuthResult, SignupSuccessData } from '../services/authService';
+import { StudentProfile, StudentSignupInput, StudentYear, StudentSection } from '../types/studentProfile.types';
+import { StudentProfileService } from '../services/studentProfileService';
 
 interface AuthContextType {
   user: Models.User<Models.Preferences> | null;
+  profile: StudentProfile | null;
   loading: boolean;
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<AuthResult<Models.Session>>;
   signup: (
-    name: string,
-    email: string,
-    password: string
-  ) => Promise<AuthResult<{ user: Models.User<Models.Preferences>; session: Models.Session | null }>>;
+    input: StudentSignupInput | {
+      name: string;
+      email: string;
+      password: string;
+      niatId?: string;
+      phone?: string;
+      year?: StudentYear;
+      section?: StudentSection;
+    }
+  ) => Promise<AuthResult<SignupSuccessData>>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -22,10 +31,48 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Derived state directly from the authenticated Appwrite user (source of truth)
   const isAdmin = AuthService.isAdminUser(user);
+
+  // Fetch or hydrate student profile
+  const hydrateProfile = async (currentUser: Models.User<Models.Preferences> | null) => {
+    if (!currentUser?.$id) {
+      setProfile(null);
+      return;
+    }
+
+    try {
+      const profileRes = await StudentProfileService.getProfileByUserId(currentUser.$id);
+      if (profileRes.success && profileRes.data) {
+        setProfile(profileRes.data);
+        return;
+      }
+
+      // Fallback: hydrate from user.prefs if database record hasn't synced
+      const prefs = (currentUser.prefs || {}) as Record<string, any>;
+      if (prefs.niatId || prefs.studentId) {
+        setProfile({
+          $id: currentUser.$id,
+          $createdAt: currentUser.$createdAt || new Date().toISOString(),
+          userId: currentUser.$id,
+          name: currentUser.name || '',
+          email: currentUser.email || '',
+          niatId: (prefs.niatId || prefs.studentId || '').toString(),
+          studentId: (prefs.studentId || prefs.niatId || '').toString(),
+          phone: (prefs.phone || '').toString(),
+          year: (prefs.year || '1st Year') as StudentYear,
+          section: (prefs.section || 'S01') as StudentSection,
+        });
+      } else {
+        setProfile(null);
+      }
+    } catch {
+      setProfile(null);
+    }
+  };
 
   // Verify session on initial app mount
   const checkAuth = async () => {
@@ -33,8 +80,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       const currentUser = await AuthService.getCurrentUser();
       setUser(currentUser);
+      await hydrateProfile(currentUser);
     } catch {
       setUser(null);
+      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -51,6 +100,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (result.success) {
         const currentUser = await AuthService.getCurrentUser();
         setUser(currentUser);
+        await hydrateProfile(currentUser);
       }
       return result;
     } finally {
@@ -59,45 +109,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signup = async (
-    name: string,
-    email: string,
-    password: string
-  ): Promise<AuthResult<{ user: Models.User<Models.Preferences>; session: Models.Session | null }>> => {
+    input: StudentSignupInput | {
+      name: string;
+      email: string;
+      password: string;
+      niatId?: string;
+      phone?: string;
+      year?: StudentYear;
+      section?: StudentSection;
+    }
+  ): Promise<AuthResult<SignupSuccessData>> => {
     setLoading(true);
     try {
-      // 1. Create the Appwrite account
-      const signupResult = await AuthService.signup(name, email, password);
-      if (!signupResult.success || !signupResult.data) {
-        return {
-          success: false,
-          error: signupResult.error || 'Failed to create account.',
-          code: signupResult.code,
-        };
-      }
-
-      // 2. Automatically log in the newly registered user
-      const loginResult = await AuthService.login(email, password);
-      if (loginResult.success) {
-        const currentUser = await AuthService.getCurrentUser();
-        setUser(currentUser);
-        return {
-          success: true,
-          data: {
-            user: currentUser || signupResult.data,
-            session: loginResult.data || null,
-          },
-        };
-      }
-
-      // If auto-login fails, return success for creation with a warning note
-      return {
-        success: true,
-        data: {
-          user: signupResult.data,
-          session: null,
-        },
-        error: 'Account created successfully! Please sign in with your credentials.',
+      const sanitizedInput: StudentSignupInput = {
+        name: input.name,
+        email: input.email,
+        password: input.password,
+        niatId: input.niatId || '',
+        phone: input.phone || '',
+        year: input.year || '1st Year',
+        section: input.section || 'S01',
       };
+
+      const result = await AuthService.signup(sanitizedInput);
+      if (result.success && result.data) {
+        const currentUser = await AuthService.getCurrentUser();
+        setUser(currentUser || result.data.user);
+        if (result.data.profile) {
+          setProfile(result.data.profile);
+        } else {
+          await hydrateProfile(currentUser || result.data.user);
+        }
+      }
+      return result;
     } finally {
       setLoading(false);
     }
@@ -108,6 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await AuthService.logout();
       setUser(null);
+      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -117,6 +162,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <AuthContext.Provider
       value={{
         user,
+        profile,
         loading,
         isLoading: loading,
         isAuthenticated: Boolean(user),
@@ -139,3 +185,5 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+export default AuthContext;
