@@ -1068,7 +1068,7 @@ export class CustomFormService {
         }
       }
 
-      // 9. Create Response Document in Appwrite (with auto-healing attribute stripping)
+      // 9. Create Response Document in Appwrite (with auto-healing attribute stripping and resilient permissions)
       const documentId = ID.unique();
       const submittedAt = new Date().toISOString();
 
@@ -1088,21 +1088,57 @@ export class CustomFormService {
         payload.respondentEmail = respondentEmail;
       }
 
+      const defaultPermissions = [
+        Permission.read(Role.any()),
+        Permission.update(Role.users()),
+        Permission.delete(Role.users()),
+      ];
+      if (userId) {
+        defaultPermissions.push(Permission.read(Role.user(userId)));
+      }
+
       let doc;
       const cleanPayload = { ...payload };
+      let currentPermissions: string[] | undefined = defaultPermissions;
       let attempts = 0;
 
-      while (attempts < 6) {
+      while (attempts < 8) {
         try {
-          doc = await databases.createDocument(
-            this.databaseId,
-            this.responsesCollectionId,
-            documentId,
-            cleanPayload
-          );
+          if (currentPermissions && currentPermissions.length > 0) {
+            doc = await databases.createDocument(
+              this.databaseId,
+              this.responsesCollectionId,
+              documentId,
+              cleanPayload,
+              currentPermissions
+            );
+          } else {
+            doc = await databases.createDocument(
+              this.databaseId,
+              this.responsesCollectionId,
+              documentId,
+              cleanPayload
+            );
+          }
           break;
         } catch (createErr: any) {
-          const match = createErr?.message?.match(/Unknown attribute: ["']?([^"'\s]+)["']?/i);
+          // If custom permissions fail (e.g. collection doesn't permit document-level permissions), retry without permissions
+          if (
+            currentPermissions &&
+            (createErr?.code === 401 ||
+              createErr?.code === 403 ||
+              /permission/i.test(createErr?.message || ''))
+          ) {
+            console.warn('[CustomFormService] Permission error during response creation. Retrying with default collection permissions.');
+            currentPermissions = undefined;
+            attempts++;
+            continue;
+          }
+
+          const match =
+            createErr?.message?.match(/Unknown attribute: ["']?([^"'\s]+)["']?/i) ||
+            createErr?.message?.match(/Attribute not found.*?:\s*["']?([^"'\s]+)["']?/i);
+
           if (match && match[1] && cleanPayload[match[1]] !== undefined) {
             console.warn(
               `[CustomFormService] Missing schema attribute "${match[1]}" in custom_form_responses. Stripping and retrying.`
@@ -1148,7 +1184,7 @@ export class CustomFormService {
   }
 
   /**
-   * Admin: Fetches all submitted responses for a form
+   * Admin: Fetches all submitted responses for a form with resilient query fallbacks
    */
   public static async getFormResponses(
     formId: string,
@@ -1159,25 +1195,59 @@ export class CustomFormService {
         return { success: false, error: 'Invalid form ID.' };
       }
 
-      const queries: string[] = [
-        Query.equal('formId', formId.trim()),
-        Query.orderDesc('submittedAt'),
-        Query.limit(options?.limit || 100),
-      ];
+      const limit = options?.limit || 200;
+      const targetFormId = formId.trim();
+      let resDocs: Models.Document[] = [];
 
-      if (options?.offset) {
-        queries.push(Query.offset(options.offset));
+      // Query Attempt 1: Query by formId and sort by $createdAt (built-in Appwrite index)
+      try {
+        const queries = [
+          Query.equal('formId', targetFormId),
+          Query.orderDesc('$createdAt'),
+          Query.limit(limit),
+        ];
+        if (options?.offset) queries.push(Query.offset(options.offset));
+
+        const res = await databases.listDocuments(this.databaseId, this.responsesCollectionId, queries);
+        resDocs = res.documents;
+      } catch (err1: any) {
+        console.warn('[CustomFormService] getFormResponses Attempt 1 failed:', err1?.message);
+
+        // Query Attempt 2: Query by formId without custom order
+        try {
+          const queries = [Query.equal('formId', targetFormId), Query.limit(limit)];
+          if (options?.offset) queries.push(Query.offset(options.offset));
+
+          const res = await databases.listDocuments(this.databaseId, this.responsesCollectionId, queries);
+          resDocs = res.documents;
+        } catch (err2: any) {
+          console.warn('[CustomFormService] getFormResponses Attempt 2 failed:', err2?.message);
+
+          // Query Attempt 3: List documents without formId query (in case formId index is missing) and filter client-side
+          try {
+            const queries = [Query.orderDesc('$createdAt'), Query.limit(500)];
+            const res = await databases.listDocuments(this.databaseId, this.responsesCollectionId, queries);
+            resDocs = res.documents.filter((d: any) => d.formId === targetFormId || d.formSlug === targetFormId);
+          } catch (err3: any) {
+            console.warn('[CustomFormService] getFormResponses Attempt 3 failed:', err3?.message);
+
+            // Query Attempt 4: Bare listDocuments fallback
+            const res = await databases.listDocuments(this.databaseId, this.responsesCollectionId, [Query.limit(500)]);
+            resDocs = res.documents.filter((d: any) => d.formId === targetFormId || d.formSlug === targetFormId);
+          }
+        }
       }
 
-      const res = await databases.listDocuments(
-        this.databaseId,
-        this.responsesCollectionId,
-        queries
-      );
+      // Sort newest first
+      resDocs.sort((a, b) => {
+        const dateA = new Date((a as any).submittedAt || a.$createdAt).getTime();
+        const dateB = new Date((b as any).submittedAt || b.$createdAt).getTime();
+        return dateB - dateA;
+      });
 
       return {
         success: true,
-        data: res.documents.map((doc) => this.mapDocumentToResponse(doc)),
+        data: resDocs.map((doc) => this.mapDocumentToResponse(doc)),
       };
     } catch (err: any) {
       console.error('[CustomFormService] getFormResponses error:', err);
@@ -1275,7 +1345,7 @@ export class CustomFormService {
   }
 
   /**
-   * Returns total count of responses for a form
+   * Returns total count of responses for a form with fallback
    */
   public static async getFormResponseCount(
     formId: string
@@ -1285,16 +1355,23 @@ export class CustomFormService {
         return { success: false, error: 'Invalid form ID.' };
       }
 
-      const res = await databases.listDocuments(
-        this.databaseId,
-        this.responsesCollectionId,
-        [Query.equal('formId', formId.trim()), Query.limit(1)]
-      );
-
-      return {
-        success: true,
-        data: res.total,
-      };
+      try {
+        const res = await databases.listDocuments(
+          this.databaseId,
+          this.responsesCollectionId,
+          [Query.equal('formId', formId.trim()), Query.limit(1)]
+        );
+        return {
+          success: true,
+          data: res.total,
+        };
+      } catch {
+        const responses = await this.getFormResponses(formId, { limit: 500 });
+        return {
+          success: true,
+          data: responses.data ? responses.data.length : 0,
+        };
+      }
     } catch (err: any) {
       return {
         success: false,
